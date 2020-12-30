@@ -27,32 +27,6 @@
 	<build>
 		<finalName>mumble-client</finalName>
 		<sourceDirectory>src/main/java</sourceDirectory>
-		<resources>
-			<resource>
-				<targetPath>.</targetPath>
-				<filtering>true</filtering>
-				<directory>${basedir}/src/main/resources/</directory>
-				<includes>
-					<include>plugin.yml</include>
-				</includes>
-			</resource>
-			<resource>
-				<targetPath>./resources/dictionaries/French</targetPath>
-				<filtering>true</filtering>
-				<directory>${basedir}/src/main/resources/dictionaries/French</directory>
-				<includes>
-					<include>*.xml</include>
-				</includes>
-			</resource>
-			<resource>
-				<targetPath>./resources/dictionaries/English</targetPath>
-				<filtering>true</filtering>
-				<directory>${basedir}/src/main/resources/dictionaries/English</directory>
-				<includes>
-					<include>*.xml</include>
-				</includes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
