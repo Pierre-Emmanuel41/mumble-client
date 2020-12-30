@@ -3,10 +3,14 @@ package fr.pederobien.mumble.client.interfaces;
 import java.util.UUID;
 
 import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
-import fr.pederobien.persistence.interfaces.IUnmodifiableNominable;
 import fr.pederobien.utils.IObservable;
 
-public interface IPlayer extends IUnmodifiableNominable, IObservable<IObsPlayer> {
+public interface IPlayer extends IObservable<IObsPlayer> {
+
+	/**
+	 * @return The player name.
+	 */
+	String getName();
 
 	/**
 	 * @return True if this player is an admin for this server.
