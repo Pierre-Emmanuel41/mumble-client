@@ -23,6 +23,11 @@ public interface IMumbleConnection extends IObservable<IObsMumbleConnection> {
 	public void dispose();
 
 	/**
+	 * @return If the connection has been disposed.
+	 */
+	public boolean isDisposed();
+
+	/**
 	 * Get the player associated to this client.
 	 * 
 	 * @param response Callback when the response is received.

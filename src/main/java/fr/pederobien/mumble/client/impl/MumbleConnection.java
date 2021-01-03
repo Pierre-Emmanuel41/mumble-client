@@ -76,6 +76,11 @@ public class MumbleConnection implements IMumbleConnection {
 	}
 
 	@Override
+	public boolean isDisposed() {
+		return connection.isDisposed();
+	}
+
+	@Override
 	public void getPlayer(Consumer<IResponse<IPlayer>> callback) {
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		getUniqueIdentifier(callback);
