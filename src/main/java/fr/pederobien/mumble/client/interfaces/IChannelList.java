@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.Map;
+import java.util.List;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelAddedEvent;
@@ -27,7 +27,7 @@ public interface IChannelList extends IObservable<IObsChannelList> {
 	void removeChannel(String channelName, Consumer<IResponse<ChannelRemovedEvent>> callback);
 
 	/**
-	 * @return The map of channels registered on the server. This map is unmodifiable.
+	 * @return The list of channels registered on the server. This list is unmodifiable.
 	 */
-	Map<String, IChannel> getChannels();
+	List<IChannel> getChannels();
 }
