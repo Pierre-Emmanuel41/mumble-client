@@ -74,6 +74,7 @@ public class InternalChannelList implements IChannelList {
 		if (channel == null)
 			return;
 
+		channels.remove(channel);
 		notifyObservers(obs -> obs.onChannelRemoved(channel));
 	}
 
@@ -87,6 +88,15 @@ public class InternalChannelList implements IChannelList {
 	public InternalChannel getChannel(String name) {
 		Optional<InternalChannel> optChannel = channels.stream().filter(c -> c.getName().equals(name)).findFirst();
 		return optChannel.isPresent() ? optChannel.get() : null;
+	}
+
+	/**
+	 * Remove each channel from this list.
+	 */
+	public void clear() {
+		int size = channels.size();
+		for (int i = 0; i < size; i++)
+			internalRemove(channels.get(0).getName());
 	}
 
 	private void notifyObservers(Consumer<IObsChannelList> consumer) {

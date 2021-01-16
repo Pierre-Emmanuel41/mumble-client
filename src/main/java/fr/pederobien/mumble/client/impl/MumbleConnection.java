@@ -93,6 +93,7 @@ public class MumbleConnection implements IMumbleConnection {
 			int currentIndex = 0;
 			int numberOfChannels = (int) payload[currentIndex++];
 
+			channelList.clear();
 			for (int i = 0; i < numberOfChannels; i++) {
 				String channelName = (String) payload[currentIndex++];
 				int numberOfPlayers = (int) payload[currentIndex++];
