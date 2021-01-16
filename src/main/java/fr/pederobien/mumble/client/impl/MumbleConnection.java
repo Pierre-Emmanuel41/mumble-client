@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -58,6 +59,11 @@ public class MumbleConnection implements IMumbleConnection {
 
 	public void removeObserver(IObsMumbleConnection obs) {
 		observers.removeObserver(obs);
+	}
+
+	@Override
+	public InetSocketAddress getAddress() {
+		return connection.getAddress();
 	}
 
 	@Override

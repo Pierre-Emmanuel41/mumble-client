@@ -1,11 +1,22 @@
 package fr.pederobien.mumble.client.interfaces;
 
+import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.utils.IObservable;
 
 public interface IMumbleConnection extends IObservable<IObsMumbleConnection> {
+
+	/**
+	 * Returns the address to which the connection is connected.
+	 * <p>
+	 * If the connection was connected prior to being {@link #dispose() disposed}, then this method will continue to return the
+	 * connected address after the connection is disposed.
+	 *
+	 * @return the remote IP address to which this connected is connected, or {@code null} if the socket is not connected.
+	 */
+	InetSocketAddress getAddress();
 
 	/**
 	 * Attempt a connection to the remove.
