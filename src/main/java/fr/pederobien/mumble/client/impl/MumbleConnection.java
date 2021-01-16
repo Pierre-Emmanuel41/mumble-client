@@ -170,11 +170,11 @@ public class MumbleConnection implements IMumbleConnection {
 
 	private <T> void filter(ResponseCallbackArgs args, Consumer<IResponse<T>> callback, Consumer<Object[]> consumer) {
 		if (args.isTimeout())
-			callback.accept(new Response<T>(ErrorCode.TIMEOUT.getMessage()));
+			callback.accept(new Response<T>(ErrorCode.TIMEOUT));
 		else {
 			IMessage<Header> response = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			if (response.getHeader().isError())
-				callback.accept(new Response<T>(response.getHeader().getErrorCode().getMessage()));
+				callback.accept(new Response<T>(response.getHeader().getErrorCode()));
 			else
 				consumer.accept(response.getPayload());
 		}
@@ -182,11 +182,11 @@ public class MumbleConnection implements IMumbleConnection {
 
 	private <T> void answer(ResponseCallbackArgs args, Consumer<IResponse<T>> callback, T response) {
 		if (args.isTimeout())
-			callback.accept(new Response<T>(ErrorCode.TIMEOUT.getMessage()));
+			callback.accept(new Response<T>(ErrorCode.TIMEOUT));
 		else {
 			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			if (answer.getHeader().isError())
-				callback.accept(new Response<T>(answer.getHeader().getErrorCode().getMessage(), response));
+				callback.accept(new Response<T>(answer.getHeader().getErrorCode(), response));
 			else
 				callback.accept(new Response<T>(response));
 		}

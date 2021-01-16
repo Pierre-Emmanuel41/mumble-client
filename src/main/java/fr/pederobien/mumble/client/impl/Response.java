@@ -1,35 +1,36 @@
 package fr.pederobien.mumble.client.impl;
 
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.common.impl.ErrorCode;
 
 public class Response<T> implements IResponse<T> {
 	private boolean hasFailed;
-	private String message;
+	private ErrorCode errorCode;
 	private T elt;
 
-	private Response(boolean hasFailed, String message, T elt) {
+	private Response(boolean hasFailed, ErrorCode errorCode, T elt) {
 		this.hasFailed = hasFailed;
-		this.message = message;
+		this.errorCode = errorCode;
 		this.elt = elt;
 	}
 
 	/**
 	 * Constructs a response when an error occurs.
 	 * 
-	 * @param message The message associated to the error.
+	 * @param errorCode The error code returned by the server when an error occurs.
 	 */
-	public Response(String message) {
-		this(true, message, null);
+	public Response(ErrorCode errorCode) {
+		this(true, errorCode, null);
 	}
 
 	/**
 	 * Constructs a response when an error occurs.
 	 * 
-	 * @param message The message associated to the error.
-	 * @param elt     The element associated to the response.
+	 * @param errorCode The error code returned by the server when an error occurs.
+	 * @param elt       The element associated to the response.
 	 */
-	public Response(String message, T elt) {
-		this(true, message, elt);
+	public Response(ErrorCode errorCode, T elt) {
+		this(true, errorCode, elt);
 	}
 
 	/**
@@ -38,7 +39,7 @@ public class Response<T> implements IResponse<T> {
 	 * @param elt The element associated to the response.
 	 */
 	public Response(T elt) {
-		this(false, "", elt);
+		this(false, ErrorCode.NONE, elt);
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class Response<T> implements IResponse<T> {
 	}
 
 	@Override
-	public String getMessage() {
-		return message;
+	public ErrorCode getErrorCode() {
+		return errorCode;
 	}
 }

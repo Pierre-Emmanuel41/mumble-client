@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.interfaces;
 
+import fr.pederobien.mumble.common.impl.ErrorCode;
+
 public interface IResponse<T> {
 
 	/**
@@ -13,8 +15,8 @@ public interface IResponse<T> {
 	boolean hasFailed();
 
 	/**
-	 * @return The message when the response has failed.
+	 * @return The error code returned by the server if an error occurs when sending data to the remote or receiving data from the
+	 *         remote.
 	 */
-	String getMessage();
-
+	ErrorCode getErrorCode();
 }
