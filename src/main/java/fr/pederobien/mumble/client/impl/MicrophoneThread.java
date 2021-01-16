@@ -41,8 +41,8 @@ public class MicrophoneThread extends Thread {
 		int numBytesRead;
 		int CHUNK_SIZE = 1024;
 		byte[] data = new byte[microphone.getBufferSize() / 5];
+		microphone.start();
 		while (!client.isClosed()) {
-			microphone.start();
 			numBytesRead = microphone.read(data, 0, CHUNK_SIZE);
 			try {
 				client.send(new DatagramPacket(data, numBytesRead));
