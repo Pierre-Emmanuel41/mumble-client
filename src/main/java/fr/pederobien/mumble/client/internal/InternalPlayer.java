@@ -1,8 +1,8 @@
 package fr.pederobien.mumble.client.internal;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
 import fr.pederobien.utils.Observable;
@@ -12,6 +12,7 @@ public class InternalPlayer implements IPlayer {
 	private UUID uuid;
 	private boolean isAdmin, isOnline;
 	private Observable<IObsPlayer> observers;
+	private IChannel channel;
 
 	public InternalPlayer(boolean isOnline, String name, UUID uuid, boolean isAdmin) {
 		this.isOnline = isOnline;
@@ -56,7 +57,7 @@ public class InternalPlayer implements IPlayer {
 			return;
 
 		this.isAdmin = isAdmin;
-		notifyObservers(obs -> obs.onAdminStatusChanged(isAdmin));
+		observers.notifyObservers(obs -> obs.onAdminStatusChanged(isAdmin));
 	}
 
 	@Override
@@ -83,12 +84,25 @@ public class InternalPlayer implements IPlayer {
 			return;
 
 		this.isOnline = isOnline;
-		notifyObservers(obs -> obs.onConnectionStatusChanged(isOnline));
+		observers.notifyObservers(obs -> obs.onConnectionStatusChanged(isOnline));
+	}
+
+	@Override
+	public IChannel getChannel() {
+		return channel;
+	}
+
+	public void setChannel(IChannel channel) {
+		if (this.channel != null && this.channel.equals(channel))
+			return;
+
+		this.channel = channel;
+		observers.notifyObservers(obs -> obs.onChannelChanged(channel));
 	}
 
 	@Override
 	public String toString() {
-		return "Player={" + name + "," + uuid + "}";
+		return name + "[" + uuid + "]";
 	}
 
 	@Override
@@ -101,9 +115,5 @@ public class InternalPlayer implements IPlayer {
 
 		IPlayer other = (IPlayer) obj;
 		return getUUID().equals(other.getUUID());
-	}
-
-	private void notifyObservers(Consumer<IObsPlayer> consumer) {
-		observers.notifyObservers(consumer);
 	}
 }

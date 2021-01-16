@@ -26,4 +26,9 @@ public interface IPlayer extends IObservable<IObsPlayer> {
 	 * @return True if this player is currently logged in the server.
 	 */
 	boolean isOnline();
+
+	/**
+	 * @return The channel in which the player is registered, or null if the player is not registered in any channel.
+	 */
+	IChannel getChannel();
 }

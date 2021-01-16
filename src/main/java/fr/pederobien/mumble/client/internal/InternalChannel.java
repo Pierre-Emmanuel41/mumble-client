@@ -71,18 +71,38 @@ public class InternalChannel implements IChannel {
 		connection.removePlayerfromChannel(getName(), player.getName(), callback);
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!(obj instanceof IChannel))
+			return false;
+		IChannel other = (IChannel) obj;
+		return name.equals(other.getName());
+	}
+
 	public void internalSetPlayer(InternalPlayer player) {
 		this.player = player;
 	}
 
 	public void internalAddPlayer(String player) {
 		players.add(player);
+		if (player.equals(this.player.getName()))
+			this.player.setChannel(this);
 		notifyObservers(obs -> obs.onPlayerAdded(this, player));
 	}
 
 	public void internalRemovePlayer(String player) {
-		if (players.remove(player))
+		if (players.remove(player)) {
+			if (player.equals(this.player.getName()))
+				this.player.setChannel(null);
 			notifyObservers(obs -> obs.onPlayerRemoved(this, player));
+		}
 	}
 
 	public void internalSetName(String name) {
