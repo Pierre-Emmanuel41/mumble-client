@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.impl;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -14,10 +14,10 @@ import javax.sound.sampled.TargetDataLine;
 public class MicrophoneThread extends Thread {
 	private TargetDataLine microphone;
 	private DatagramSocket client;
-	private InetAddress address;
+	private InetSocketAddress address;
 	private int udpPort;
 
-	public MicrophoneThread(InetAddress address, int udpPort) {
+	public MicrophoneThread(InetSocketAddress address, int udpPort) {
 		this.address = address;
 		this.udpPort = udpPort;
 	}
@@ -37,7 +37,7 @@ public class MicrophoneThread extends Thread {
 
 	@Override
 	public void run() {
-		client.connect(address, udpPort);
+		client.connect(address.getAddress(), udpPort);
 		int numBytesRead;
 		int CHUNK_SIZE = 1024;
 		byte[] data = new byte[microphone.getBufferSize() / 5];
