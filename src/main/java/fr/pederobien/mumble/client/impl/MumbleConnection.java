@@ -8,8 +8,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
-import fr.pederobien.communication.impl.ClientConnection;
-import fr.pederobien.communication.interfaces.IConnection;
+import fr.pederobien.communication.impl.TcpClientConnection;
+import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.event.ChannelAddedEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
@@ -35,13 +35,13 @@ import fr.pederobien.mumble.common.impl.Oid;
 
 public class MumbleConnection implements IMumbleConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
-	private IConnection connection;
+	private ITcpConnection connection;
 	private InternalObserver observers;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
 
 	private MumbleConnection(String remoteAddress, int tcpPort, boolean isEnabled) {
-		connection = new ClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
+		connection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
 		player = new InternalPlayer(false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
 		observers = new InternalObserver(this, player, channelList);
