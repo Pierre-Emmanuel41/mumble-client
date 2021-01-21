@@ -6,7 +6,7 @@ import fr.pederobien.communication.NonBlockingConsole;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
-import fr.pederobien.communication.interfaces.IObsConnection;
+import fr.pederobien.communication.interfaces.IObsTcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
@@ -15,7 +15,7 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
 
-public class InternalObserver implements IObservable<IObsMumbleConnection>, IObsConnection {
+public class InternalObserver implements IObservable<IObsMumbleConnection>, IObsTcpConnection {
 	private MumbleConnection connection;
 	private Observable<IObsMumbleConnection> observers;
 	private InternalPlayer player;
