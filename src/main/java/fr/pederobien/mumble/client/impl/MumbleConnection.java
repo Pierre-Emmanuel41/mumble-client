@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.impl.TcpClientConnection;
+import fr.pederobien.communication.impl.UdpClientConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
+import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.event.ChannelAddedEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
@@ -29,28 +32,37 @@ import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
 
 public class MumbleConnection implements IMumbleConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
-	private ITcpConnection connection;
+	private ITcpConnection tcpConnection;
+	private IUdpConnection udpConnection;
+	private AudioThread audioThread;
 	private InternalObserver observers;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
+	private AtomicBoolean isDisposed;
 
-	private MumbleConnection(String remoteAddress, int tcpPort, boolean isEnabled) {
-		connection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
+	private MumbleConnection(String remoteAddress, int tcpPort, int udpPort, boolean isEnabled) {
+		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
+		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), isEnabled);
+
+		audioThread = new AudioThread(udpConnection);
+		audioThread.start();
 		player = new InternalPlayer(false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
 		observers = new InternalObserver(this, player, channelList);
 
-		connection.addObserver(observers);
+		tcpConnection.addObserver(observers);
+
+		isDisposed = new AtomicBoolean(false);
 	}
 
-	public static IMumbleConnection of(String remoteAddress, int tcpPort) {
-		return new MumbleConnection(remoteAddress, tcpPort, true);
+	public static IMumbleConnection of(String remoteAddress, int tcpPort, int udpPort) {
+		return new MumbleConnection(remoteAddress, tcpPort, udpPort, true);
 	}
 
 	public void addObserver(IObsMumbleConnection obs) {
@@ -63,27 +75,32 @@ public class MumbleConnection implements IMumbleConnection {
 
 	@Override
 	public InetSocketAddress getAddress() {
-		return connection.getAddress();
+		return tcpConnection.getAddress();
 	}
 
 	@Override
 	public void connect() {
-		connection.connect();
+		tcpConnection.connect();
 	}
 
 	@Override
 	public void disconnect() {
-		connection.disconnect();
+		tcpConnection.disconnect();
+		udpConnection.disconnect();
 	}
 
 	@Override
 	public void dispose() {
-		connection.dispose();
+		if (!isDisposed.compareAndSet(false, true))
+			return;
+
+		tcpConnection.dispose();
+		udpConnection.dispose();
 	}
 
 	@Override
 	public boolean isDisposed() {
-		return connection.isDisposed();
+		return isDisposed.get();
 	}
 
 	@Override
@@ -112,6 +129,11 @@ public class MumbleConnection implements IMumbleConnection {
 			}
 			callback.accept(new Response<IChannelList>(channelList));
 		}));
+	}
+
+	@Override
+	public AudioThread getAudioThread() {
+		return audioThread;
 	}
 
 	public void addChannel(String channelName, Consumer<IResponse<ChannelAddedEvent>> callback) {
@@ -172,7 +194,7 @@ public class MumbleConnection implements IMumbleConnection {
 	}
 
 	private void send(IMessage<Header> message, Consumer<ResponseCallbackArgs> callback) {
-		connection.send(new MumbleRequestMessage(message, callback));
+		tcpConnection.send(new MumbleCallbackMessage(message, callback));
 	}
 
 	private <T> void filter(ResponseCallbackArgs args, Consumer<IResponse<T>> callback, Consumer<Object[]> consumer) {

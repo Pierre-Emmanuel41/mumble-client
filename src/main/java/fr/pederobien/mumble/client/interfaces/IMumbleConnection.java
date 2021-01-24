@@ -3,6 +3,7 @@ package fr.pederobien.mumble.client.interfaces;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.impl.AudioThread;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.utils.IObservable;
 
@@ -51,4 +52,14 @@ public interface IMumbleConnection extends IObservable<IObsMumbleConnection> {
 	 * @param response Callback when response is received.
 	 */
 	void getChannels(Consumer<IResponse<IChannelList>> response);
+
+	/**
+	 * Get the audio thread. The thread is started but does not get the microphone input and does not play data received from the
+	 * remote. You have to call method {@link AudioThread#connect()} in order to get the microphone input and send it to the remote.
+	 * If you only want to stop getting data, but not stopping the thread, you have to call method {@link AudioThread#disconnect()}.
+	 * This will stop sending microphone data and receiving data from the remote.
+	 * 
+	 * @return The audio thread that capture the microphone input and play sound received from the remote.
+	 */
+	AudioThread getAudioThread();
 }

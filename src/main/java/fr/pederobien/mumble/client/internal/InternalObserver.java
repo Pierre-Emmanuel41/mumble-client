@@ -17,9 +17,9 @@ import fr.pederobien.utils.Observable;
 
 public class InternalObserver implements IObservable<IObsMumbleConnection>, IObsTcpConnection {
 	private MumbleConnection connection;
-	private Observable<IObsMumbleConnection> observers;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
+	private Observable<IObsMumbleConnection> observers;
 
 	public InternalObserver(MumbleConnection connection, InternalPlayer player, InternalChannelList channelList) {
 		this.connection = connection;
