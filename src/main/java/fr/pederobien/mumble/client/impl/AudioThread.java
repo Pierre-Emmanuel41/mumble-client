@@ -10,7 +10,6 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 
-import fr.pederobien.communication.NonBlockingConsole;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.interfaces.IObsConnection;
@@ -66,7 +65,6 @@ public class AudioThread extends Thread implements IObsConnection {
 			try {
 				semaphore.acquire();
 				numBytesRead = microphone.read(data, 0, CHUNK_SIZE);
-				NonBlockingConsole.println("Getting micro input");
 
 				// The connection might be closed while waiting for the microphone data.
 				if (connection.isDisposed())
