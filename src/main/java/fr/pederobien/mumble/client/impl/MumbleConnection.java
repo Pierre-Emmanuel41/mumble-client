@@ -48,7 +48,7 @@ public class MumbleConnection implements IMumbleConnection {
 
 	private MumbleConnection(String remoteAddress, int tcpPort, int udpPort, boolean isEnabled) {
 		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
-		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), isEnabled);
+		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), isEnabled, 20000);
 
 		audioThread = new AudioThread(udpConnection);
 		audioThread.start();
