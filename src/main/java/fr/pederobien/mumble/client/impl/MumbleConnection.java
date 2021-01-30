@@ -51,7 +51,6 @@ public class MumbleConnection implements IMumbleConnection {
 		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), isEnabled, 20000);
 
 		audioThread = new AudioThread(udpConnection);
-		audioThread.start();
 		player = new InternalPlayer(false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
 		observers = new InternalObserver(this, player, channelList);

@@ -28,6 +28,7 @@ public class AudioThread extends Thread implements IObsConnection {
 	private AtomicBoolean isConnected;
 	private Semaphore semaphore;
 	private BlockingQueueTask<DataReceivedEvent> speakQueue;
+	private boolean isStarted, isDisconnectionRequested;
 
 	public AudioThread(IUdpConnection connection) {
 		super("AudioThread");
@@ -37,12 +38,17 @@ public class AudioThread extends Thread implements IObsConnection {
 		isConnected = new AtomicBoolean(false);
 		semaphore = new Semaphore(1);
 		speakQueue = new BlockingQueueTask<>("Speakers", event -> speak(event));
+		isStarted = false;
+		isDisconnectionRequested = false;
 
 		setDaemon(true);
 	}
 
 	@Override
 	public synchronized void start() {
+		if (isStarted)
+			return;
+
 		AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
 		try {
 			microphone = (TargetDataLine) AudioSystem.getLine(new DataLine.Info(TargetDataLine.class, format));
@@ -51,6 +57,7 @@ public class AudioThread extends Thread implements IObsConnection {
 			speakers.open(format);
 			semaphore.acquire();
 			super.start();
+			isStarted = true;
 		} catch (LineUnavailableException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
@@ -73,6 +80,14 @@ public class AudioThread extends Thread implements IObsConnection {
 				// The connection might be closed while waiting for the microphone data.
 				if (connection.isDisposed())
 					return;
+
+				if (isDisconnectionRequested) {
+					// Releasing the semaphore in order to operate the disconnection from the remote properly
+					semaphore.release();
+					// Giving time to the thread that ask for the disconnection to operate the disconnection.
+					Thread.sleep(200);
+					continue;
+				}
 
 				connection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, ByteWrapper.wrap(data).extract(0, numBytesRead))));
 				semaphore.release();
@@ -114,6 +129,8 @@ public class AudioThread extends Thread implements IObsConnection {
 	 * order to send data from the microphone.
 	 */
 	public void disconnect() {
+		isDisconnectionRequested = true;
+
 		if (!isConnected.get())
 			return;
 
@@ -133,6 +150,11 @@ public class AudioThread extends Thread implements IObsConnection {
 	 * order to stop sending data from the microphone.
 	 */
 	public void connect() {
+		isDisconnectionRequested = false;
+
+		if (!isStarted)
+			start();
+
 		if (isConnected.get())
 			return;
 
