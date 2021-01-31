@@ -15,6 +15,8 @@ import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.impl.BlockingQueueTask;
 import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
+import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
@@ -27,7 +29,7 @@ public class AudioThread extends Thread implements IObsConnection {
 	private IUdpConnection connection;
 	private AtomicBoolean isConnected;
 	private Semaphore semaphore;
-	private BlockingQueueTask<DataReceivedEvent> speakQueue;
+	private BlockingQueueTask<PlayerSpeakEvent> speakQueue;
 	private boolean isStarted, isDisconnectionRequested;
 
 	public AudioThread(IUdpConnection connection) {
@@ -37,7 +39,7 @@ public class AudioThread extends Thread implements IObsConnection {
 
 		isConnected = new AtomicBoolean(false);
 		semaphore = new Semaphore(1);
-		speakQueue = new BlockingQueueTask<>("Speakers", event -> speak(event));
+		speakQueue = new BlockingQueueTask<PlayerSpeakEvent>("Speakers", event -> speak(event));
 		isStarted = false;
 		isDisconnectionRequested = false;
 
@@ -116,7 +118,12 @@ public class AudioThread extends Thread implements IObsConnection {
 
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
-		speakQueue.add(event);
+		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
+		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK)
+			return;
+
+		Object[] payload = message.getPayload();
+		speakQueue.add(new PlayerSpeakEvent((byte[]) payload[0]));
 	}
 
 	@Override
@@ -165,8 +172,39 @@ public class AudioThread extends Thread implements IObsConnection {
 		semaphore.release();
 	}
 
-	private void speak(DataReceivedEvent event) {
-		byte[] buffer = (byte[]) MumbleMessageFactory.parse(event.getBuffer()).getPayload()[0];
-		speakers.write(buffer, 0, buffer.length);
+	private void speak(PlayerSpeakEvent event) {
+		speakers.write(event.getData(), 0, event.getData().length);
+	}
+
+	private class PlayerSpeakEvent {
+		private byte[] data;
+		private float volume, right, left;
+
+		public PlayerSpeakEvent(byte[] data, float volume, float right, float left) {
+			this.data = data;
+			this.volume = volume;
+			this.right = right;
+			this.left = left;
+		}
+
+		public PlayerSpeakEvent(byte[] data) {
+			this(data, 1, 1, 1);
+		}
+
+		public byte[] getData() {
+			return data;
+		}
+
+		public float getVolume() {
+			return volume;
+		}
+
+		public float getRight() {
+			return right;
+		}
+
+		public float getLeft() {
+			return left;
+		}
 	}
 }
