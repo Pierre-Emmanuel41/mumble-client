@@ -41,7 +41,7 @@ public class MumbleConnection implements IMumbleConnection {
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
 	private AudioThread audioThread;
-	private InternalObserver observers;
+	private InternalObserver internalObservers;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
 	private AtomicBoolean isDisposed;
@@ -53,9 +53,9 @@ public class MumbleConnection implements IMumbleConnection {
 		audioThread = new AudioThread(udpConnection);
 		player = new InternalPlayer(false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
-		observers = new InternalObserver(this, player, channelList);
+		internalObservers = new InternalObserver(this, player, channelList);
 
-		tcpConnection.addObserver(observers);
+		tcpConnection.addObserver(internalObservers);
 
 		isDisposed = new AtomicBoolean(false);
 	}
@@ -65,11 +65,11 @@ public class MumbleConnection implements IMumbleConnection {
 	}
 
 	public void addObserver(IObsMumbleConnection obs) {
-		observers.addObserver(obs);
+		internalObservers.addObserver(obs);
 	}
 
 	public void removeObserver(IObsMumbleConnection obs) {
-		observers.removeObserver(obs);
+		internalObservers.removeObserver(obs);
 	}
 
 	@Override
@@ -111,6 +111,7 @@ public class MumbleConnection implements IMumbleConnection {
 	@Override
 	public void getChannels(Consumer<IResponse<IChannelList>> callback) {
 		Objects.requireNonNull(callback, "The callback cannot be null.");
+		internalObservers.setIgnoreChannelModifications(true);
 		send(create(Idc.CHANNELS), args -> filter(args, callback, payload -> {
 			int currentIndex = 0;
 			int numberOfChannels = (int) payload[currentIndex++];
@@ -127,6 +128,7 @@ public class MumbleConnection implements IMumbleConnection {
 				channelList.internalAdd(new InternalChannel(this, channelName, players));
 			}
 			callback.accept(new Response<IChannelList>(channelList));
+			internalObservers.setIgnoreChannelModifications(false);
 		}));
 	}
 
