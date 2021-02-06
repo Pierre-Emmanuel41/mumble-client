@@ -45,10 +45,11 @@ public class MumbleConnection implements IMumbleConnection {
 	private InternalPlayer player;
 	private InternalChannelList channelList;
 	private AtomicBoolean isDisposed;
+	private String remoteAddress;
 
-	private MumbleConnection(String remoteAddress, int tcpPort, int udpPort, boolean isEnabled) {
+	private MumbleConnection(String remoteAddress, int tcpPort, boolean isEnabled) {
+		this.remoteAddress = remoteAddress;
 		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
-		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), isEnabled, 20000);
 
 		audioThread = new AudioThread(udpConnection);
 		player = new InternalPlayer(false, DEFAULT_PLAYER_NAME, null, false);
@@ -60,8 +61,8 @@ public class MumbleConnection implements IMumbleConnection {
 		isDisposed = new AtomicBoolean(false);
 	}
 
-	public static IMumbleConnection of(String remoteAddress, int tcpPort, int udpPort) {
-		return new MumbleConnection(remoteAddress, tcpPort, udpPort, true);
+	public static IMumbleConnection of(String remoteAddress, int tcpPort) {
+		return new MumbleConnection(remoteAddress, tcpPort, true);
 	}
 
 	public void addObserver(IObsMumbleConnection obs) {
@@ -169,6 +170,14 @@ public class MumbleConnection implements IMumbleConnection {
 	public void removePlayerfromChannel(String channelName, String playerName, Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
 		send(create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channelName, playerName),
 				args -> answer(args, callback, new PlayerRemovedFromChannelEvent(channelName, playerName)));
+	}
+
+	public void getUdpPort() {
+		send(create(Idc.UDP_PORT), args -> {
+			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
+			udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
+			audioThread = new AudioThread(udpConnection);
+		});
 	}
 
 	private void getUniqueIdentifier(Consumer<IResponse<IPlayer>> callback) {
