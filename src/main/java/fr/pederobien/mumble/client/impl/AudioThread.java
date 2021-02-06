@@ -12,7 +12,6 @@ import javax.sound.sampled.TargetDataLine;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
-import fr.pederobien.communication.impl.BlockingQueueTask;
 import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
@@ -23,13 +22,13 @@ import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.utils.ByteWrapper;
 
 public class AudioThread extends Thread implements IObsConnection {
+	public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
 	private static final int CHUNK_SIZE = 17640;
 	private TargetDataLine microphone;
 	private SourceDataLine speakers;
 	private IUdpConnection connection;
 	private AtomicBoolean isConnected;
 	private Semaphore semaphore;
-	private BlockingQueueTask<PlayerSpeakEvent> speakQueue;
 	private boolean isStarted, isDisconnectionRequested;
 
 	public AudioThread(IUdpConnection connection) {
@@ -38,8 +37,7 @@ public class AudioThread extends Thread implements IObsConnection {
 		connection.addObserver(this);
 
 		isConnected = new AtomicBoolean(false);
-		semaphore = new Semaphore(1);
-		speakQueue = new BlockingQueueTask<PlayerSpeakEvent>("Speakers", event -> speak(event));
+		semaphore = new Semaphore(1, true);
 		isStarted = false;
 		isDisconnectionRequested = false;
 
@@ -51,12 +49,11 @@ public class AudioThread extends Thread implements IObsConnection {
 		if (isStarted)
 			return;
 
-		AudioFormat format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
 		try {
-			microphone = (TargetDataLine) AudioSystem.getLine(new DataLine.Info(TargetDataLine.class, format));
-			speakers = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, format));
-			microphone.open(format);
-			speakers.open(format);
+			microphone = (TargetDataLine) AudioSystem.getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
+			speakers = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+			microphone.open(FORMAT);
+			speakers.open(FORMAT);
 			semaphore.acquire();
 			super.start();
 			isStarted = true;
@@ -73,7 +70,6 @@ public class AudioThread extends Thread implements IObsConnection {
 		byte[] data = new byte[microphone.getBufferSize() / 5];
 		microphone.start();
 		speakers.start();
-		speakQueue.start();
 		while (!isInterrupted()) {
 			try {
 				semaphore.acquire();
@@ -113,7 +109,6 @@ public class AudioThread extends Thread implements IObsConnection {
 			speakers.close();
 		}
 		interrupt();
-		speakQueue.dispose();
 	}
 
 	@Override
@@ -121,9 +116,6 @@ public class AudioThread extends Thread implements IObsConnection {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
 		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK)
 			return;
-
-		Object[] payload = message.getPayload();
-		speakQueue.add(new PlayerSpeakEvent((byte[]) payload[0]));
 	}
 
 	@Override
@@ -170,41 +162,5 @@ public class AudioThread extends Thread implements IObsConnection {
 		speakers.start();
 		isConnected.set(true);
 		semaphore.release();
-	}
-
-	private void speak(PlayerSpeakEvent event) {
-		speakers.write(event.getData(), 0, event.getData().length);
-	}
-
-	private class PlayerSpeakEvent {
-		private byte[] data;
-		private float volume, right, left;
-
-		public PlayerSpeakEvent(byte[] data, float volume, float right, float left) {
-			this.data = data;
-			this.volume = volume;
-			this.right = right;
-			this.left = left;
-		}
-
-		public PlayerSpeakEvent(byte[] data) {
-			this(data, 1, 1, 1);
-		}
-
-		public byte[] getData() {
-			return data;
-		}
-
-		public float getVolume() {
-			return volume;
-		}
-
-		public float getRight() {
-			return right;
-		}
-
-		public float getLeft() {
-			return left;
-		}
 	}
 }
