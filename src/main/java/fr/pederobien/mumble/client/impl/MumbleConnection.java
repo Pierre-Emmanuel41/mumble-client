@@ -94,7 +94,10 @@ public class MumbleConnection implements IMumbleConnection {
 			return;
 
 		tcpConnection.dispose();
-		udpConnection.dispose();
+
+		// Could be null if disposing the connection whereas the server was not reachable.
+		if (udpConnection != null)
+			udpConnection.dispose();
 	}
 
 	@Override
