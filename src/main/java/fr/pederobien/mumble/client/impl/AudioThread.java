@@ -7,7 +7,6 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 
 import fr.pederobien.communication.event.DataReceivedEvent;
@@ -25,10 +24,11 @@ public class AudioThread extends Thread implements IObsConnection {
 	public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
 	private static final int CHUNK_SIZE = 17640;
 	private TargetDataLine microphone;
-	private SourceDataLine speakers;
 	private IUdpConnection connection;
 	private AtomicBoolean isConnected;
 	private Semaphore semaphore;
+	private Mixer mixer;
+	private SpeakerThread speakerThread;
 	private boolean isStarted, isDisconnectionRequested;
 
 	public AudioThread(IUdpConnection connection) {
@@ -41,6 +41,9 @@ public class AudioThread extends Thread implements IObsConnection {
 		isStarted = false;
 		isDisconnectionRequested = false;
 
+		mixer = new Mixer();
+		speakerThread = new SpeakerThread(mixer);
+
 		setDaemon(true);
 	}
 
@@ -51,10 +54,9 @@ public class AudioThread extends Thread implements IObsConnection {
 
 		try {
 			microphone = (TargetDataLine) AudioSystem.getLine(new DataLine.Info(TargetDataLine.class, FORMAT));
-			speakers = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
 			microphone.open(FORMAT);
-			speakers.open(FORMAT);
 			semaphore.acquire();
+			speakerThread.start();
 			super.start();
 			isStarted = true;
 		} catch (LineUnavailableException e) {
@@ -69,7 +71,6 @@ public class AudioThread extends Thread implements IObsConnection {
 		int numBytesRead;
 		byte[] data = new byte[microphone.getBufferSize() / 5];
 		microphone.start();
-		speakers.start();
 		while (!isInterrupted()) {
 			try {
 				semaphore.acquire();
@@ -102,13 +103,12 @@ public class AudioThread extends Thread implements IObsConnection {
 
 	@Override
 	public void onConnectionDisposed() {
-		if (microphone != null && speakers != null) {
+		if (microphone != null) {
 			microphone.stop();
 			microphone.close();
-			speakers.stop();
-			speakers.close();
 		}
 		interrupt();
+		speakerThread.interrupt();
 	}
 
 	@Override
@@ -116,6 +116,8 @@ public class AudioThread extends Thread implements IObsConnection {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
 		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK)
 			return;
+
+		mixer.put(event);
 	}
 
 	@Override
@@ -136,7 +138,7 @@ public class AudioThread extends Thread implements IObsConnection {
 		try {
 			semaphore.acquire();
 			microphone.stop();
-			speakers.stop();
+			speakerThread.pause();
 			connection.disconnect();
 			isConnected.set(false);
 		} catch (InterruptedException e) {
@@ -159,7 +161,7 @@ public class AudioThread extends Thread implements IObsConnection {
 
 		connection.connect();
 		microphone.start();
-		speakers.start();
+		speakerThread.relaunch();
 		isConnected.set(true);
 		semaphore.release();
 	}
