@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import fr.pederobien.communication.NonBlockingConsole;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
@@ -32,7 +31,6 @@ public class Mixer {
 		String playerName = (String) payload[0];
 		Sound sound = sounds.get(playerName);
 		if (sound == null) {
-			NonBlockingConsole.println("Creating sound for " + playerName);
 			sound = new Sound();
 			sounds.put(playerName, sound);
 		}
