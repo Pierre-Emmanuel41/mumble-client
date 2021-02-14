@@ -18,6 +18,7 @@ import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
+import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.ByteWrapper;
 
 public class AudioThread extends Thread implements IObsConnection {
@@ -114,10 +115,10 @@ public class AudioThread extends Thread implements IObsConnection {
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
-		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK)
+		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
 			return;
 
-		mixer.put(event);
+		mixer.put(message);
 	}
 
 	@Override

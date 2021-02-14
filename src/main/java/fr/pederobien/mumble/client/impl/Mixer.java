@@ -4,10 +4,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
-import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.utils.ByteWrapper;
 
 public class Mixer {
@@ -24,17 +22,14 @@ public class Mixer {
 	 * 
 	 * @param event The event that contains all informations about how to play the data.
 	 */
-	public void put(DataReceivedEvent event) {
-		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
-		Object[] payload = message.getPayload();
-
-		String playerName = (String) payload[0];
+	public void put(IMessage<Header> message) {
+		String playerName = (String) message.getPayload()[0];
 		Sound sound = sounds.get(playerName);
 		if (sound == null) {
 			sound = new Sound();
 			sounds.put(playerName, sound);
 		}
-		sound.extract((byte[]) payload[1]);
+		sound.extract((byte[]) message.getPayload()[1]);
 	}
 
 	/**
