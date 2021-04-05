@@ -29,7 +29,7 @@ public class AudioThread extends Thread implements IObsConnection {
 	private AtomicBoolean isConnected;
 	private Semaphore semaphore;
 	private Mixer mixer;
-	private SpeakerThread speakerThread;
+	private Speakers speakerThread;
 	private boolean isStarted, isDisconnectionRequested;
 
 	public AudioThread(IUdpConnection connection) {
@@ -43,7 +43,7 @@ public class AudioThread extends Thread implements IObsConnection {
 		isDisconnectionRequested = false;
 
 		mixer = new Mixer();
-		speakerThread = new SpeakerThread(mixer);
+		speakerThread = new Speakers(mixer);
 
 		setDaemon(true);
 	}

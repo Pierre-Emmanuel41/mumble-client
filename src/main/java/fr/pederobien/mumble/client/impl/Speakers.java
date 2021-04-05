@@ -8,13 +8,13 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
-public class SpeakerThread extends Thread {
+public class Speakers extends Thread {
 	private static final AudioFormat FORMAT = new AudioFormat(44100.0f, 16, 2, true, false);
 	private Mixer mixer;
 	private SourceDataLine speakers;
 	private Semaphore semaphore;
 
-	public SpeakerThread(Mixer mixer) {
+	public Speakers(Mixer mixer) {
 		super("SpeakerThread");
 		this.mixer = mixer;
 
