@@ -20,7 +20,7 @@ public class Mixer {
 
 	/**
 	 * Get or create an internal sound associated to the given key. This key is used to get a continuously sound when several sound
-	 * need to be played at the same time. The byte array should correspond to a mono signal.
+	 * need to be played at the same time. The byte array should correspond to a stereo signal.
 	 * 
 	 * @param key  The key used to get the associated sound
 	 * @param data The bytes array to extract.
@@ -144,11 +144,10 @@ public class Mixer {
 
 		public void extract(byte[] data) {
 			ByteWrapper wrapper = ByteWrapper.wrap(data);
-			while (wrapper.get().length >= 2) {
-				byte[] bytes = wrapper.take(0, 2);
+			while (wrapper.get().length >= 4) {
 				synchronized (mutex) {
-					left.put(bytes);
-					right.put(bytes);
+					left.put(wrapper.take(0, 2));
+					right.put(wrapper.take(0, 2));
 				}
 			}
 		}

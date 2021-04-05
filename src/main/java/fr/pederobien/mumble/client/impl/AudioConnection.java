@@ -20,6 +20,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	private static int N_SHORTS = 0xffff;
 	private static final short[] VOLUME_NORM_LUT = new short[N_SHORTS];
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
+
 	private IUdpConnection connection;
 	private Microphone microphone;
 	private AtomicBoolean isConnected;
@@ -55,7 +56,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
 			return;
 
-		mixer.put((String) message.getPayload()[0], (byte[]) message.getPayload()[1]);
+		mixer.put((String) message.getPayload()[0], toStereo(message));
 	}
 
 	@Override
@@ -178,5 +179,19 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 			// fitted exponential through (0,0), (10000, 25000), (32767, 32767)
 			VOLUME_NORM_LUT[s] = (short) (sign * (1.240769e-22 - (-4.66022 / 0.0001408133) * (1 - Math.exp(-0.0001408133 * v * sign))));
 		}
+	}
+
+	private byte[] toStereo(IMessage<Header> message) {
+		byte[] buffer = (byte[]) message.getPayload()[1];
+		byte[] data = new byte[buffer.length * 2];
+		int index = 0;
+		for (int i = 0; i < buffer.length - 2; i += 2) {
+			data[index++] = buffer[i];
+			data[index++] = buffer[i + 1];
+			data[index++] = buffer[i];
+			data[index++] = buffer[i + 1];
+		}
+
+		return data;
 	}
 }
