@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -11,10 +12,12 @@ import fr.pederobien.utils.ByteWrapper;
 public class Mixer {
 	private Map<String, Sound> sounds;
 	private double globalVolume;
+	private Object mutex;
 
 	public Mixer() {
 		sounds = new HashMap<String, Sound>();
 		globalVolume = 1.0;
+		mutex = new Object();
 	}
 
 	/**
@@ -27,7 +30,9 @@ public class Mixer {
 		Sound sound = sounds.get(playerName);
 		if (sound == null) {
 			sound = new Sound();
-			sounds.put(playerName, sound);
+			synchronized (mutex) {
+				sounds.put(playerName, sound);
+			}
 		}
 		sound.extract((byte[]) message.getPayload()[1]);
 	}
@@ -53,7 +58,11 @@ public class Mixer {
 			double leftValue = 0.0;
 			double rightValue = 0.0;
 
-			Iterator<Sound> iterator = sounds.values().iterator();
+			Iterator<Sound> iterator;
+			synchronized (mutex) {
+				iterator = new ArrayList<Sound>(sounds.values()).iterator();
+			}
+
 			while (iterator.hasNext()) {
 				Sound sound = iterator.next();
 
@@ -68,6 +77,7 @@ public class Mixer {
 				// we know we aren't done yet now
 				bytesRead = true;
 			}
+
 			// if we actually read bytes, store in the buffer
 			if (bytesRead) {
 				int finalLeftValue = (int) leftValue;
@@ -124,59 +134,46 @@ public class Mixer {
 	}
 
 	private class Sound {
-		private SynchronizedByteWrapper left, right;
+		private ByteWrapper left, right;
+		private Object mutex;
 
 		public Sound() {
-			left = new SynchronizedByteWrapper();
-			right = new SynchronizedByteWrapper();
+			left = ByteWrapper.create();
+			right = ByteWrapper.create();
+			mutex = new Object();
 		}
 
 		public void extract(byte[] data) {
 			ByteWrapper wrapper = ByteWrapper.wrap(data);
-			while (wrapper.get().length >= 4) {
-				left.put(wrapper.take(0, 2));
-				right.put(wrapper.take(0, 2));
+			while (wrapper.get().length >= 2) {
+				byte[] bytes = wrapper.take(0, 2);
+				synchronized (mutex) {
+					left.put(bytes);
+					right.put(bytes);
+				}
 			}
 		}
 
 		public void fillTwoBytes(int[] data) {
-			if (left.wrapper.get().length < 2 || right.wrapper.get().length < 2)
+			if (left.get().length < 2 || right.get().length < 2)
 				return;
 
-			byte[] leftBytes = left.take(0, 2), rightBytes = right.take(0, 2);
-			// left
-			data[0] = ((leftBytes[1] << 8) | (leftBytes[0] & 0xFF));
-			// right
-			data[1] = ((rightBytes[1] << 8) | (rightBytes[0] & 0xFF));
-		}
-
-		public void skip(int numBytes) {
-			if (left.wrapper.get().length < numBytes || right.wrapper.get().length < numBytes)
-				return;
-
-			left.take(0, numBytes);
-			right.take(0, numBytes);
-		}
-	}
-
-	private class SynchronizedByteWrapper {
-		private ByteWrapper wrapper;
-		private Object mutex;
-
-		public SynchronizedByteWrapper() {
-			wrapper = ByteWrapper.create();
-			mutex = new Object();
-		}
-
-		public void put(byte[] buffer) {
 			synchronized (mutex) {
-				wrapper.put(buffer);
+				byte[] leftBytes = left.take(0, 2), rightBytes = right.take(0, 2);
+				// left
+				data[0] = ((leftBytes[1] << 8) | (leftBytes[0] & 0xFF));
+				// right
+				data[1] = ((rightBytes[1] << 8) | (rightBytes[0] & 0xFF));
 			}
 		}
 
-		public byte[] take(int index, int length) {
+		public void skip(int numBytes) {
+			if (left.get().length < numBytes || right.get().length < numBytes)
+				return;
+
 			synchronized (mutex) {
-				return wrapper.take(index, length);
+				left.take(0, numBytes);
+				right.take(0, numBytes);
 			}
 		}
 	}
