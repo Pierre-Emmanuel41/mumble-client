@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.utils.ByteWrapper;
 
 public class Mixer {
@@ -21,20 +19,21 @@ public class Mixer {
 	}
 
 	/**
-	 * Register the event in order to extract the bytes that correspond to what the players says.
+	 * Get or create an internal sound associated to the given key. This key is used to get a continuously sound when several sound
+	 * need to be played at the same time. The byte array should correspond to a mono signal.
 	 * 
-	 * @param event The event that contains all informations about how to play the data.
+	 * @param key  The key used to get the associated sound
+	 * @param data The bytes array to extract.
 	 */
-	public void put(IMessage<Header> message) {
-		String playerName = (String) message.getPayload()[0];
-		Sound sound = sounds.get(playerName);
+	public void put(String key, byte[] data) {
+		Sound sound = sounds.get(key);
 		if (sound == null) {
 			sound = new Sound();
 			synchronized (mutex) {
-				sounds.put(playerName, sound);
+				sounds.put(key, sound);
 			}
 		}
-		sound.extract((byte[]) message.getPayload()[1]);
+		sound.extract(data);
 	}
 
 	/**

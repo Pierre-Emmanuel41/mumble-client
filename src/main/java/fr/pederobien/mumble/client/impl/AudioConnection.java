@@ -55,7 +55,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
 			return;
 
-		mixer.put(message);
+		mixer.put((String) message.getPayload()[0], (byte[]) message.getPayload()[1]);
 	}
 
 	@Override
