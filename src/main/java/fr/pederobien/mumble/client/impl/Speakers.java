@@ -28,11 +28,8 @@ public class Speakers extends Thread {
 		try {
 			speakers = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
 			speakers.open(FORMAT);
-			semaphore.acquire();
 			super.start();
 		} catch (LineUnavailableException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
@@ -96,7 +93,6 @@ public class Speakers extends Thread {
 				// give the CPU back to the OS for a bit
 
 				semaphore.release();
-				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				// do nothing
 			}

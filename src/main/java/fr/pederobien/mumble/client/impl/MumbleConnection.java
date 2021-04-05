@@ -19,6 +19,7 @@ import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
 import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
 import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
+import fr.pederobien.mumble.client.interfaces.IAudioConnection;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -40,7 +41,7 @@ public class MumbleConnection implements IMumbleConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
-	private AudioThread audioThread;
+	private AudioConnection audioConnection;
 	private InternalObserver internalObservers;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
@@ -136,8 +137,8 @@ public class MumbleConnection implements IMumbleConnection {
 	}
 
 	@Override
-	public AudioThread getAudioThread() {
-		return audioThread;
+	public IAudioConnection getAudioConnection() {
+		return audioConnection;
 	}
 
 	public void addChannel(String channelName, Consumer<IResponse<ChannelAddedEvent>> callback) {
@@ -178,7 +179,7 @@ public class MumbleConnection implements IMumbleConnection {
 		send(create(Idc.UDP_PORT), args -> {
 			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
-			audioThread = new AudioThread(udpConnection);
+			audioConnection = new AudioConnection(udpConnection);
 		});
 	}
 
