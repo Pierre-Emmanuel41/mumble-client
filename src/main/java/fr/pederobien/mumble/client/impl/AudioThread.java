@@ -22,8 +22,8 @@ import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.ByteWrapper;
 
 public class AudioThread extends Thread implements IObsConnection {
-	public static final AudioFormat FORMAT = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
-	private static final int CHUNK_SIZE = 17640;
+	private static final AudioFormat FORMAT = new AudioFormat(44100.0f, 16, 1, true, false);
+	private static final int CHUNK_SIZE = 8192;
 	private TargetDataLine microphone;
 	private IUdpConnection connection;
 	private AtomicBoolean isConnected;
@@ -98,18 +98,23 @@ public class AudioThread extends Thread implements IObsConnection {
 	}
 
 	@Override
+	public void interrupt() {
+		if (microphone != null) {
+			microphone.stop();
+			microphone.close();
+		}
+		speakerThread.interrupt();
+		super.interrupt();
+	}
+
+	@Override
 	public void onConnectionComplete() {
 
 	}
 
 	@Override
 	public void onConnectionDisposed() {
-		if (microphone != null) {
-			microphone.stop();
-			microphone.close();
-		}
 		interrupt();
-		speakerThread.interrupt();
 	}
 
 	@Override

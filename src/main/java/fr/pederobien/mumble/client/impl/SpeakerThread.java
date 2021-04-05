@@ -2,12 +2,14 @@ package fr.pederobien.mumble.client.impl;
 
 import java.util.concurrent.Semaphore;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 public class SpeakerThread extends Thread {
+	private static final AudioFormat FORMAT = new AudioFormat(44100.0f, 16, 2, true, false);
 	private Mixer mixer;
 	private SourceDataLine speakers;
 	private Semaphore semaphore;
@@ -24,8 +26,8 @@ public class SpeakerThread extends Thread {
 	@Override
 	public synchronized void start() {
 		try {
-			speakers = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, AudioThread.FORMAT));
-			speakers.open(AudioThread.FORMAT);
+			speakers = (SourceDataLine) AudioSystem.getLine(new DataLine.Info(SourceDataLine.class, FORMAT));
+			speakers.open(FORMAT);
 			semaphore.acquire();
 			super.start();
 		} catch (LineUnavailableException e) {
@@ -39,10 +41,10 @@ public class SpeakerThread extends Thread {
 	public void run() {
 		speakers.start();
 		// 1-sec buffer
-		int bufSize = (int) AudioThread.FORMAT.getFrameRate() * AudioThread.FORMAT.getFrameSize();
+		int bufSize = (int) FORMAT.getFrameRate() * FORMAT.getFrameSize();
 		byte[] audioBuffer = new byte[bufSize];
 		// only buffer some maximum number of frames each update (25ms)
-		int maxFramesPerUpdate = (int) ((AudioThread.FORMAT.getFrameRate() / 1000) * 25);
+		int maxFramesPerUpdate = (int) ((FORMAT.getFrameRate() / 1000) * 25);
 		int numBytesRead = 0;
 		double framesAccrued = 0;
 		long lastUpdate = System.nanoTime();
@@ -55,7 +57,7 @@ public class SpeakerThread extends Thread {
 				// accrue frames
 				double delta = currTime - lastUpdate;
 				double secDelta = (delta / 1000000000L);
-				framesAccrued += secDelta * AudioThread.FORMAT.getFrameRate();
+				framesAccrued += secDelta * FORMAT.getFrameRate();
 				// read frames if needed
 				int framesToRead = (int) framesAccrued;
 				int framesToSkip = 0;
@@ -66,13 +68,13 @@ public class SpeakerThread extends Thread {
 				}
 				// skip frames
 				if (framesToSkip > 0) {
-					int bytesToSkip = framesToSkip * AudioThread.FORMAT.getFrameSize();
+					int bytesToSkip = framesToSkip * FORMAT.getFrameSize();
 					mixer.skip(bytesToSkip);
 				}
 				// read frames
 				if (framesToRead > 0) {
 					// read from the mixer
-					int bytesToRead = framesToRead * AudioThread.FORMAT.getFrameSize();
+					int bytesToRead = framesToRead * FORMAT.getFrameSize();
 					int tmpBytesRead = mixer.read(audioBuffer, numBytesRead, bytesToRead);
 					numBytesRead += tmpBytesRead; // mark how many read
 					// fill rest with zeroes
