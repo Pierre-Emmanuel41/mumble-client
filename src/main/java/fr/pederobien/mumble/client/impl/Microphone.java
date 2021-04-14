@@ -40,7 +40,7 @@ public class Microphone extends Thread implements IObservable<IObsMicrophone> {
 
 	@Override
 	public void run() {
-		byte[] data = new byte[microphone.getBufferSize() / 5];
+		byte[] data = new byte[CHUNK_SIZE];
 		microphone.start();
 		while (!isInterrupted()) {
 			try {
