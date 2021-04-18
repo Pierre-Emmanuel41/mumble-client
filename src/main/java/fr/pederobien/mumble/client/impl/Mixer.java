@@ -133,12 +133,12 @@ public class Mixer {
 	}
 
 	private class Sound {
-		private ByteWrapper left, right;
+		private byte[] left, right;
 		private Object mutex;
 
 		public Sound() {
-			left = ByteWrapper.create();
-			right = ByteWrapper.create();
+			left = new byte[0];
+			right = new byte[0];
 			mutex = new Object();
 		}
 
@@ -146,33 +146,80 @@ public class Mixer {
 			ByteWrapper wrapper = ByteWrapper.wrap(data);
 			while (wrapper.get().length >= 4) {
 				synchronized (mutex) {
-					left.put(wrapper.take(0, 2));
-					right.put(wrapper.take(0, 2));
+					putLeft(wrapper.take(0, 2));
+					putRight(wrapper.take(0, 2));
 				}
 			}
 		}
 
 		public void fillTwoBytes(int[] data) {
-			if (left.get().length < 2 || right.get().length < 2)
+			if (left.length < 2 || right.length < 2)
 				return;
 
+			byte[] leftBytes, rightBytes;
 			synchronized (mutex) {
-				byte[] leftBytes = left.take(0, 2), rightBytes = right.take(0, 2);
-				// left
-				data[0] = ((leftBytes[1] << 8) | (leftBytes[0] & 0xFF));
-				// right
-				data[1] = ((rightBytes[1] << 8) | (rightBytes[0] & 0xFF));
+				leftBytes = takeLeft(2);
+				rightBytes = takeRight(2);
 			}
+
+			// left
+			data[0] = ((leftBytes[1] << 8) | (leftBytes[0] & 0xFF));
+			// right
+			data[1] = ((rightBytes[1] << 8) | (rightBytes[0] & 0xFF));
 		}
 
 		public void skip(int numBytes) {
-			if (left.get().length < numBytes || right.get().length < numBytes)
+			if (left.length < numBytes || right.length < numBytes)
 				return;
 
 			synchronized (mutex) {
-				left.take(0, numBytes);
-				right.take(0, numBytes);
+				removeLeft(numBytes);
+				removeRight(numBytes);
 			}
+		}
+
+		private void putLeft(byte[] data) {
+			byte[] intermediate = new byte[left.length + data.length];
+			System.arraycopy(left, 0, intermediate, 0, left.length);
+			System.arraycopy(data, 0, intermediate, left.length, data.length);
+			left = intermediate;
+		}
+
+		private void putRight(byte[] data) {
+			byte[] intermediate = new byte[right.length + data.length];
+			System.arraycopy(right, 0, intermediate, 0, right.length);
+			System.arraycopy(data, 0, intermediate, right.length, data.length);
+			right = intermediate;
+		}
+
+		private byte[] takeLeft(int length) {
+			byte[] leftTemps = new byte[left.length - length];
+			byte[] toReturn = new byte[length];
+			System.arraycopy(left, 0, toReturn, 0, length);
+			System.arraycopy(left, length, leftTemps, 0, leftTemps.length);
+			left = leftTemps;
+			return toReturn;
+		}
+
+		private byte[] takeRight(int length) {
+			byte[] rightTemps = new byte[right.length - length];
+			byte[] toReturn = new byte[length];
+			System.arraycopy(right, 0, toReturn, 0, length);
+			System.arraycopy(right, length, rightTemps, 0, rightTemps.length);
+			right = rightTemps;
+			return toReturn;
+		}
+
+		private void removeLeft(int length) {
+			byte[] leftTemps = new byte[left.length - length];
+			System.arraycopy(left, length, leftTemps, 0, leftTemps.length);
+			left = leftTemps;
+		}
+
+		private void removeRight(int length) {
+			byte[] rightTemps = new byte[right.length - length];
+			System.arraycopy(right, length, rightTemps, 0, rightTemps.length);
+			right = rightTemps;
 		}
 	}
 }
