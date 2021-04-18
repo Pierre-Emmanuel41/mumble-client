@@ -156,7 +156,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 	private void normalizeVolume(byte[] audioSamples) {
 		for (int i = 0; i < audioSamples.length; i += 2) {
-			short res = getShort(audioSamples[i + 1], audioSamples[i]);
+			short res = (short) ((audioSamples[i + 1] & 0xff) << 8 | audioSamples[i] & 0xff);
 
 			res = VOLUME_NORM_LUT[Math.min(res + MAX_NEGATIVE_AMPLITUDE, N_SHORTS - 1)];
 			audioSamples[i] = (byte) res;
@@ -183,7 +183,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		byte[] data = new byte[buffer.length * 2];
 		int index = 0;
 		for (int i = 0; i < buffer.length; i += 2) {
-			short initialShort = getShort(buffer[i + 1], buffer[i]);
+			short initialShort = (short) ((buffer[i + 1] & 0xff) << 8 | buffer[i] & 0xff);
 			short leftResult = (short) (((double) initialShort) * left * global);
 			short rightResult = (short) (((double) initialShort) * right * global);
 
@@ -194,16 +194,5 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		}
 
 		return data;
-	}
-
-	public short getShort(byte byte1, byte byte2) {
-		// convert byte pair to int
-		short s1 = byte1;
-		short s2 = byte2;
-
-		s1 = (short) ((s1 & 0xff) << 8);
-		s2 = (short) (s2 & 0xff);
-
-		return (short) (s1 | s2);
 	}
 }
