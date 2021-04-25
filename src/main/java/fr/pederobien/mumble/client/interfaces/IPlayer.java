@@ -31,4 +31,16 @@ public interface IPlayer extends IObservable<IObsPlayer> {
 	 * @return The channel in which the player is registered, or null if the player is not registered in any channel.
 	 */
 	IChannel getChannel();
+
+	/**
+	 * @return True if this player is mute, false otherwise.
+	 */
+	boolean isMute();
+
+	/**
+	 * Mute or unmute this player.
+	 * 
+	 * @param isMute The new player state.
+	 */
+	void setMute(boolean isMute);
 }

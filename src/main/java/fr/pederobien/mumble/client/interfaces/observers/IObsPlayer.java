@@ -26,4 +26,11 @@ public interface IObsPlayer {
 	 */
 	void onChannelChanged(IChannel channel);
 
+	/**
+	 * Notify this observer the admin status of the player has changed.
+	 * 
+	 * @param isMute The new mute status.
+	 */
+	void onMuteChanged(boolean isMute);
+
 }

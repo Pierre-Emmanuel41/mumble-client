@@ -10,7 +10,7 @@ import fr.pederobien.utils.Observable;
 public class InternalPlayer implements IPlayer {
 	private String name;
 	private UUID uuid;
-	private boolean isAdmin, isOnline;
+	private boolean isAdmin, isOnline, isMute;
 	private Observable<IObsPlayer> observers;
 	private IChannel channel;
 
@@ -101,6 +101,18 @@ public class InternalPlayer implements IPlayer {
 	}
 
 	@Override
+	public boolean isMute() {
+		return isMute;
+	}
+
+	@Override
+	public void setMute(boolean isMute) {
+		if (this.isMute == isMute)
+			return;
+
+	}
+
+	@Override
 	public String toString() {
 		return name + "[" + uuid + "]";
 	}
@@ -115,5 +127,10 @@ public class InternalPlayer implements IPlayer {
 
 		IPlayer other = (IPlayer) obj;
 		return getUUID().equals(other.getUUID());
+	}
+
+	public void internalSetIsMute(boolean isMute) {
+		this.isMute = isMute;
+		observers.notifyObservers(obs -> obs.onMuteChanged(isMute));
 	}
 }
