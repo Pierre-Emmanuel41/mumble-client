@@ -15,7 +15,7 @@ import fr.pederobien.utils.Observable;
 public class Microphone extends Thread implements IObservable<IObsMicrophone> {
 	private static final AudioFormat FORMAT = new AudioFormat(44100.0f, 16, 1, true, false);
 	private static final int CHUNK_SIZE = 8192;
-	private boolean pausedRequested;
+	private boolean pauseRequested;
 	private TargetDataLine microphone;
 	private Semaphore semaphore;
 	private Observable<IObsMicrophone> observers;
@@ -47,9 +47,9 @@ public class Microphone extends Thread implements IObservable<IObsMicrophone> {
 				semaphore.acquire();
 				final int numBytesRead = microphone.read(data, 0, CHUNK_SIZE);
 
-				if (pausedRequested) {
+				if (pauseRequested) {
 					semaphore.release();
-					Thread.sleep(1);
+					Thread.sleep(100);
 					continue;
 				}
 
@@ -81,16 +81,16 @@ public class Microphone extends Thread implements IObservable<IObsMicrophone> {
 	}
 
 	public void pause() {
-		pausedRequested = false;
-		semaphore.release();
-	}
-
-	public void relaunch() {
-		pausedRequested = true;
+		pauseRequested = true;
 		try {
 			semaphore.acquire();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void relaunch() {
+		pauseRequested = false;
+		semaphore.release();
 	}
 }

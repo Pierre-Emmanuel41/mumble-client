@@ -10,6 +10,7 @@ import javax.sound.sampled.SourceDataLine;
 
 public class Speakers extends Thread {
 	private static final AudioFormat FORMAT = new AudioFormat(44100.0f, 16, 2, true, false);
+	private boolean pauseRequested;
 	private Mixer mixer;
 	private SourceDataLine speakers;
 	private Semaphore semaphore;
@@ -90,7 +91,12 @@ public class Speakers extends Thread {
 				}
 				// mark last update
 				lastUpdate = currTime;
-				// give the CPU back to the OS for a bit
+
+				if (pauseRequested) {
+					semaphore.release();
+					Thread.sleep(100);
+					continue;
+				}
 
 				semaphore.release();
 			} catch (InterruptedException e) {
