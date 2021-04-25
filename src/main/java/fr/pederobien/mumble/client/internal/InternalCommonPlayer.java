@@ -52,7 +52,10 @@ public class InternalCommonPlayer<T extends IObsCommonPlayer> implements ICommon
 		if (this.isMute == isMute)
 			return;
 
-		// Send message to the server.
+		if (isMute)
+			connection.getAudioConnection().pauseMicrophone();
+		else
+			connection.getAudioConnection().resumeMicrophone();
 	}
 
 	/**

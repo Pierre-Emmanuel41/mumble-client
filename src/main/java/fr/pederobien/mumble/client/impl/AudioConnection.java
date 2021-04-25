@@ -113,13 +113,17 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		observers.notifyObservers(obs -> obs.onAudioDisconnect());
 	}
 
-	@Override
+	/**
+	 * Stops the microphone and the speakers. But does not disconnected the internal connection from the remote.
+	 */
 	public void pause() {
 		pauseMicrophone();
 		pauseSpeakers();
 	}
 
-	@Override
+	/**
+	 * Pause the microphone, no data are sent to the remote.
+	 */
 	public void pauseMicrophone() {
 		if (pauseMicrophone)
 			return;
@@ -129,7 +133,9 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		observers.notifyObservers(obs -> obs.onPauseMicrophone());
 	}
 
-	@Override
+	/**
+	 * Pause the speakers, data are received from the remote but no played by the speakers.
+	 */
 	public void pauseSpeakers() {
 		if (pauseSpeakers)
 			return;
@@ -139,13 +145,17 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		observers.notifyObservers(obs -> obs.onPauseSpeakers());
 	}
 
-	@Override
+	/**
+	 * Resumes the microphone and the speakers in order to send again data to the remote and receive data from the remote.
+	 */
 	public void resume() {
 		resumeMicrophone();
 		resumeSpeakers();
 	}
 
-	@Override
+	/**
+	 * Resume the microphone, data are sent to the remote.
+	 */
 	public void resumeMicrophone() {
 		if (!pauseMicrophone)
 			return;
@@ -155,7 +165,9 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		observers.notifyObservers(obs -> obs.onResumeMicrophone());
 	}
 
-	@Override
+	/**
+	 * Resume the speakers, data are received from the remote and played by the speakers.
+	 */
 	public void resumeSpeakers() {
 		if (!pauseSpeakers)
 			return;

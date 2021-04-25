@@ -19,7 +19,6 @@ import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
 import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
 import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
-import fr.pederobien.mumble.client.interfaces.IAudioConnection;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -78,7 +77,7 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 
 	@Override
 	public void onAudioConnect() {
-
+		player.internalSetMute(false);
 	}
 
 	@Override
@@ -170,7 +169,7 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 	}
 
 	@Override
-	public IAudioConnection getAudioConnection() {
+	public AudioConnection getAudioConnection() {
 		return audioConnection;
 	}
 
