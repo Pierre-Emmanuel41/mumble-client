@@ -8,6 +8,7 @@ import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IAudioConnection;
+import fr.pederobien.mumble.client.interfaces.observers.IObsAudioConnection;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMicrophone;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -15,8 +16,10 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.ByteWrapper;
+import fr.pederobien.utils.IObservable;
+import fr.pederobien.utils.Observable;
 
-public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsConnection {
+public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsConnection, IObservable<IObsAudioConnection> {
 	private static int N_SHORTS = 0xffff;
 	private static final short[] VOLUME_NORM_LUT = new short[N_SHORTS];
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
@@ -27,13 +30,25 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	private Mixer mixer;
 	private Speakers speakers;
 	private boolean pauseMicrophone, pauseSpeakers;
+	private Observable<IObsAudioConnection> observers;
 
 	public AudioConnection(IUdpConnection connection) {
 		this.connection = connection;
 		connection.addObserver(this);
 
 		isConnected = new AtomicBoolean(false);
+		observers = new Observable<IObsAudioConnection>();
 		preComputeVolumeNormLUT();
+	}
+
+	@Override
+	public void addObserver(IObsAudioConnection obs) {
+		observers.addObserver(obs);
+	}
+
+	@Override
+	public void removeObserver(IObsAudioConnection obs) {
+		observers.removeObserver(obs);
 	}
 
 	@Override
@@ -83,6 +98,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 			return;
 
 		connection.connect();
+		observers.notifyObservers(obs -> obs.onAudioConnect());
 	}
 
 	@Override
@@ -94,6 +110,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		microphone.interrupt();
 		speakers.interrupt();
 		connection.disconnect();
+		observers.notifyObservers(obs -> obs.onAudioDisconnect());
 	}
 
 	@Override
@@ -109,6 +126,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 		pauseMicrophone = true;
 		microphone.pause();
+		observers.notifyObservers(obs -> obs.onPauseMicrophone());
 	}
 
 	@Override
@@ -118,6 +136,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 		pauseSpeakers = true;
 		speakers.pause();
+		observers.notifyObservers(obs -> obs.onPauseSpeakers());
 	}
 
 	@Override
@@ -133,6 +152,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 		pauseMicrophone = false;
 		microphone.relaunch();
+		observers.notifyObservers(obs -> obs.onResumeMicrophone());
 	}
 
 	@Override
@@ -142,6 +162,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 		pauseSpeakers = false;
 		speakers.relaunch();
+		observers.notifyObservers(obs -> obs.onResumeSpeakers());
 	}
 
 	private void start() {

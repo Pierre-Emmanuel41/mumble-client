@@ -24,6 +24,7 @@ import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.client.interfaces.observers.IObsAudioConnection;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.mumble.client.internal.InternalChannel;
 import fr.pederobien.mumble.client.internal.InternalChannelList;
@@ -37,7 +38,7 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 
-public class MumbleConnection implements IMumbleConnection {
+public class MumbleConnection implements IMumbleConnection, IObsAudioConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
@@ -65,12 +66,44 @@ public class MumbleConnection implements IMumbleConnection {
 		return new MumbleConnection(remoteAddress, tcpPort, true);
 	}
 
+	@Override
 	public void addObserver(IObsMumbleConnection obs) {
 		internalObservers.addObserver(obs);
 	}
 
+	@Override
 	public void removeObserver(IObsMumbleConnection obs) {
 		internalObservers.removeObserver(obs);
+	}
+
+	@Override
+	public void onAudioConnect() {
+
+	}
+
+	@Override
+	public void onAudioDisconnect() {
+
+	}
+
+	@Override
+	public void onPauseMicrophone() {
+		send(create(Idc.PLAYER_MUTE, true));
+	}
+
+	@Override
+	public void onPauseSpeakers() {
+		send(create(Idc.PLAYER_DEAFEN, true));
+	}
+
+	@Override
+	public void onResumeMicrophone() {
+		send(create(Idc.PLAYER_MUTE, false));
+	}
+
+	@Override
+	public void onResumeSpeakers() {
+		send(create(Idc.PLAYER_DEAFEN, false));
 	}
 
 	@Override
@@ -180,6 +213,7 @@ public class MumbleConnection implements IMumbleConnection {
 			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
 			audioConnection = new AudioConnection(udpConnection);
+			audioConnection.addObserver(this);
 		});
 	}
 
@@ -208,6 +242,11 @@ public class MumbleConnection implements IMumbleConnection {
 
 	private void send(IMessage<Header> message, Consumer<ResponseCallbackArgs> callback) {
 		tcpConnection.send(new MumbleCallbackMessage(message, callback));
+	}
+
+	private void send(IMessage<Header> message) {
+		tcpConnection.send(new MumbleCallbackMessage(message, args -> {
+		}));
 	}
 
 	private <T> void filter(ResponseCallbackArgs args, Consumer<IResponse<T>> callback, Consumer<Object[]> consumer) {

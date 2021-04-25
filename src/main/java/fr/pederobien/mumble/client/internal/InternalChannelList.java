@@ -99,6 +99,10 @@ public class InternalChannelList implements IChannelList {
 			internalRemove(channels.get(0).getName());
 	}
 
+	public void onPlayerMuteChanged(String playerName, boolean isMute) {
+		channels.forEach(channel -> channel.onPlayerMuteChanged(playerName, isMute));
+	}
+
 	private void notifyObservers(Consumer<IObsChannelList> consumer) {
 		observers.notifyObservers(consumer);
 	}

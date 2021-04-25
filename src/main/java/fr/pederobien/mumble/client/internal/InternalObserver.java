@@ -121,6 +121,9 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 				break;
 			}
 			break;
+		case PLAYER_MUTE:
+			channelList.onPlayerMuteChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
+			break;
 		default:
 			break;
 		}

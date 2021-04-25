@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
@@ -18,7 +19,7 @@ import fr.pederobien.utils.Observable;
 
 public class InternalChannel implements IChannel {
 	private String name;
-	private List<IOtherPlayer> players;
+	private List<InternalOtherPlayer> players;
 	private Observable<IObsChannel> observers;
 	private MumbleConnection connection;
 	private InternalPlayer player;
@@ -26,7 +27,7 @@ public class InternalChannel implements IChannel {
 	public InternalChannel(MumbleConnection connection, String name, List<String> players) {
 		this.connection = connection;
 		this.name = name;
-		this.players = new ArrayList<IOtherPlayer>();
+		this.players = new ArrayList<InternalOtherPlayer>();
 		for (String playerName : players)
 			this.players.add(new InternalOtherPlayer(connection, playerName));
 
@@ -95,7 +96,7 @@ public class InternalChannel implements IChannel {
 	}
 
 	public void internalAddPlayer(String playerName) {
-		IOtherPlayer added = new InternalOtherPlayer(connection, playerName);
+		InternalOtherPlayer added = new InternalOtherPlayer(connection, playerName);
 		players.add(added);
 		if (player.getName().equals(added.getName()))
 			this.player.setChannel(this);
@@ -103,7 +104,7 @@ public class InternalChannel implements IChannel {
 	}
 
 	public void internalRemovePlayer(String playerName) {
-		Iterator<IOtherPlayer> iterator = players.iterator();
+		Iterator<InternalOtherPlayer> iterator = players.iterator();
 		while (iterator.hasNext()) {
 			IOtherPlayer removed = iterator.next();
 			if (removed.getName().equals(playerName)) {
@@ -120,6 +121,13 @@ public class InternalChannel implements IChannel {
 		String oldName = new String(this.name);
 		this.name = name;
 		notifyObservers(obs -> obs.onChannelRename(this, oldName, name));
+	}
+
+	public void onPlayerMuteChanged(String playerName, boolean isMute) {
+		Optional<InternalOtherPlayer> otherPlayer = players.stream().filter(player -> player.getName().equals(playerName)).findFirst();
+		if (!otherPlayer.isPresent())
+			return;
+		otherPlayer.get().internalSetMute(isMute);
 	}
 
 	private void notifyObservers(Consumer<IObsChannel> consumer) {
