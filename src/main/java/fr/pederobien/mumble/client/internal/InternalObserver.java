@@ -122,7 +122,14 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 			}
 			break;
 		case PLAYER_MUTE:
-			channelList.onPlayerMuteChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
+			playerName = (String) message.getPayload()[0];
+			boolean isMute = (boolean) message.getPayload()[1];
+
+			// In order to update the PlayerView
+			if (player.getName().equals(playerName))
+				player.internalSetMute(isMute);
+
+			channelList.onPlayerMuteChanged(playerName, isMute);
 			break;
 		default:
 			break;
