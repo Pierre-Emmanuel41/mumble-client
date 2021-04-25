@@ -152,6 +152,9 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		mixer = new Mixer();
 		speakers = new Speakers(mixer);
 		speakers.start();
+
+		pauseMicrophone = false;
+		pauseSpeakers = false;
 	}
 
 	private void normalizeVolume(byte[] audioSamples) {
