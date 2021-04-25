@@ -2,6 +2,7 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -10,13 +11,14 @@ import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
+import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.observers.IObsChannel;
 import fr.pederobien.utils.Observable;
 
 public class InternalChannel implements IChannel {
 	private String name;
-	private List<String> players;
+	private List<IOtherPlayer> players;
 	private Observable<IObsChannel> observers;
 	private MumbleConnection connection;
 	private InternalPlayer player;
@@ -24,7 +26,9 @@ public class InternalChannel implements IChannel {
 	public InternalChannel(MumbleConnection connection, String name, List<String> players) {
 		this.connection = connection;
 		this.name = name;
-		this.players = players;
+		this.players = new ArrayList<IOtherPlayer>();
+		for (String playerName : players)
+			this.players.add(new InternalOtherPlayer(connection, playerName));
 
 		observers = new Observable<IObsChannel>();
 	}
@@ -57,7 +61,7 @@ public class InternalChannel implements IChannel {
 	}
 
 	@Override
-	public List<String> getPlayers() {
+	public List<IOtherPlayer> getPlayers() {
 		return Collections.unmodifiableList(players);
 	}
 
@@ -90,18 +94,25 @@ public class InternalChannel implements IChannel {
 		this.player = player;
 	}
 
-	public void internalAddPlayer(String player) {
-		players.add(player);
-		if (player.equals(this.player.getName()))
+	public void internalAddPlayer(String playerName) {
+		IOtherPlayer added = new InternalOtherPlayer(connection, playerName);
+		players.add(added);
+		if (player.getName().equals(added.getName()))
 			this.player.setChannel(this);
-		notifyObservers(obs -> obs.onPlayerAdded(this, player));
+		notifyObservers(obs -> obs.onPlayerAdded(this, added));
 	}
 
-	public void internalRemovePlayer(String player) {
-		if (players.remove(player)) {
-			if (player.equals(this.player.getName()))
-				this.player.setChannel(null);
-			notifyObservers(obs -> obs.onPlayerRemoved(this, player));
+	public void internalRemovePlayer(String playerName) {
+		Iterator<IOtherPlayer> iterator = players.iterator();
+		while (iterator.hasNext()) {
+			IOtherPlayer removed = iterator.next();
+			if (removed.getName().equals(playerName)) {
+				iterator.remove();
+				if (player.getName().equals(removed.getName()))
+					this.player.setChannel(null);
+				notifyObservers(obs -> obs.onPlayerRemoved(this, removed));
+				break;
+			}
 		}
 	}
 

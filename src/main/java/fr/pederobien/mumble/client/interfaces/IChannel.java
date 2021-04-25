@@ -41,5 +41,5 @@ public interface IChannel extends IObservable<IObsChannel> {
 	/**
 	 * @return A list that contains players registered on this channel. This list is unmodifiable.
 	 */
-	List<String> getPlayers();
+	List<IOtherPlayer> getPlayers();
 }

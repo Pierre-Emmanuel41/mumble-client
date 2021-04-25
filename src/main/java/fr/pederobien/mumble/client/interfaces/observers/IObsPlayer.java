@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.interfaces.observers;
 
 import fr.pederobien.mumble.client.interfaces.IChannel;
 
-public interface IObsPlayer {
+public interface IObsPlayer extends IObsCommonPlayer {
 
 	/**
 	 * Notify this observer the connection status of the player has changed.
@@ -25,12 +25,4 @@ public interface IObsPlayer {
 	 * @param channel The new channel in which the player is registered.
 	 */
 	void onChannelChanged(IChannel channel);
-
-	/**
-	 * Notify this observer the admin status of the player has changed.
-	 * 
-	 * @param isMute The new mute status.
-	 */
-	void onMuteChanged(boolean isMute);
-
 }

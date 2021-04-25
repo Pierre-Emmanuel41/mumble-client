@@ -52,7 +52,7 @@ public class MumbleConnection implements IMumbleConnection {
 		this.remoteAddress = remoteAddress;
 		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
 
-		player = new InternalPlayer(false, DEFAULT_PLAYER_NAME, null, false);
+		player = new InternalPlayer(this, false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
 		internalObservers = new InternalObserver(this, player, channelList);
 

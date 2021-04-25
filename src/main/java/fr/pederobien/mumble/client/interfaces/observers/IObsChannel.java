@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.client.interfaces.observers;
 
 import fr.pederobien.mumble.client.interfaces.IChannel;
+import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 
 public interface IObsChannel {
 
@@ -19,7 +20,7 @@ public interface IObsChannel {
 	 * @param channel The channel involved in this event.
 	 * @param player  The added player.
 	 */
-	void onPlayerAdded(IChannel channel, String player);
+	void onPlayerAdded(IChannel channel, IOtherPlayer player);
 
 	/**
 	 * Notify this observer a player has been removed from the given channel.
@@ -27,5 +28,5 @@ public interface IObsChannel {
 	 * @param channel The channel involved int this event.
 	 * @param player  The remove player.
 	 */
-	void onPlayerRemoved(IChannel channel, String player);
+	void onPlayerRemoved(IChannel channel, IOtherPlayer player);
 }

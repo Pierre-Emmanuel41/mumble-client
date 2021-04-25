@@ -2,44 +2,21 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.UUID;
 
+import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
-import fr.pederobien.utils.Observable;
 
-public class InternalPlayer implements IPlayer {
-	private String name;
+public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements IPlayer {
 	private UUID uuid;
-	private boolean isAdmin, isOnline, isMute;
-	private Observable<IObsPlayer> observers;
+	private boolean isAdmin, isOnline;
 	private IChannel channel;
 
-	public InternalPlayer(boolean isOnline, String name, UUID uuid, boolean isAdmin) {
+	public InternalPlayer(MumbleConnection connection, boolean isOnline, String name, UUID uuid, boolean isAdmin) {
+		super(connection, name);
 		this.isOnline = isOnline;
-		this.name = name;
 		this.uuid = uuid;
 		this.isAdmin = isAdmin;
-
-		observers = new Observable<IObsPlayer>();
-	}
-
-	@Override
-	public void addObserver(IObsPlayer obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsPlayer obs) {
-		observers.removeObserver(obs);
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	@Override
@@ -57,7 +34,7 @@ public class InternalPlayer implements IPlayer {
 			return;
 
 		this.isAdmin = isAdmin;
-		observers.notifyObservers(obs -> obs.onAdminStatusChanged(isAdmin));
+		getObservers().notifyObservers(obs -> obs.onAdminStatusChanged(isAdmin));
 	}
 
 	@Override
@@ -84,7 +61,7 @@ public class InternalPlayer implements IPlayer {
 			return;
 
 		this.isOnline = isOnline;
-		observers.notifyObservers(obs -> obs.onConnectionStatusChanged(isOnline));
+		getObservers().notifyObservers(obs -> obs.onConnectionStatusChanged(isOnline));
 	}
 
 	@Override
@@ -97,24 +74,12 @@ public class InternalPlayer implements IPlayer {
 			return;
 
 		this.channel = channel;
-		observers.notifyObservers(obs -> obs.onChannelChanged(channel));
-	}
-
-	@Override
-	public boolean isMute() {
-		return isMute;
-	}
-
-	@Override
-	public void setMute(boolean isMute) {
-		if (this.isMute == isMute)
-			return;
-
+		getObservers().notifyObservers(obs -> obs.onChannelChanged(channel));
 	}
 
 	@Override
 	public String toString() {
-		return name + "[" + uuid + "]";
+		return getName() + "[" + uuid + "]";
 	}
 
 	@Override
@@ -127,10 +92,5 @@ public class InternalPlayer implements IPlayer {
 
 		IPlayer other = (IPlayer) obj;
 		return getUUID().equals(other.getUUID());
-	}
-
-	public void internalSetIsMute(boolean isMute) {
-		this.isMute = isMute;
-		observers.notifyObservers(obs -> obs.onMuteChanged(isMute));
 	}
 }
