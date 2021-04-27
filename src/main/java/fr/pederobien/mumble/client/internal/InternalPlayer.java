@@ -1,7 +1,9 @@
 package fr.pederobien.mumble.client.internal;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.impl.AudioConnection;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -9,7 +11,7 @@ import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
 
 public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements IPlayer {
 	private UUID uuid;
-	private boolean isAdmin, isOnline;
+	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private IChannel channel;
 
 	public InternalPlayer(MumbleConnection connection, boolean isOnline, String name, UUID uuid, boolean isAdmin) {
@@ -78,6 +80,32 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 	}
 
 	@Override
+	public boolean isMute() {
+		return isMute;
+	}
+
+	@Override
+	public void setMute(boolean isMute) {
+		if (this.isMute == isMute)
+			return;
+
+		updateMumbleConnection(isMute, connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
+	}
+
+	@Override
+	public boolean isDeafen() {
+		return isDeafen;
+	}
+
+	@Override
+	public void setDeafen(boolean isDeafen) {
+		if (this.isDeafen == isDeafen)
+			return;
+
+		updateMumbleConnection(isMute, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+	}
+
+	@Override
 	public String toString() {
 		return getName() + "[" + uuid + "]";
 	}
@@ -92,5 +120,41 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 
 		IPlayer other = (IPlayer) obj;
 		return getUUID().equals(other.getUUID());
+	}
+
+	/**
+	 * Set the status mute of this player. When set, it will notify each observers.
+	 * 
+	 * @param isMute The new mute player status.
+	 */
+	public void internalSetMute(boolean isMute) {
+		this.isMute = isMute;
+		updateAudioConnection(isMute, audio -> audio.pauseMicrophone(), audio -> audio.resumeMicrophone());
+		getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute));
+	}
+
+	/**
+	 * Set the status mute of this player. When set, it will notify each observers.
+	 * 
+	 * @param isMute The new mute player status.
+	 */
+	public void internalSetDeafen(boolean isDeafen) {
+		this.isDeafen = isDeafen;
+		updateAudioConnection(isDeafen, audio -> audio.pauseSpeakers(), audio -> audio.resumeSpeakers());
+		getObservers().notifyObservers(obs -> obs.onDeafenChanged(isDeafen));
+	}
+
+	private void updateAudioConnection(boolean condition, Consumer<AudioConnection> onTrue, Consumer<AudioConnection> onFalse) {
+		if (condition)
+			onTrue.accept(getConnection().getAudioConnection());
+		else
+			onFalse.accept(getConnection().getAudioConnection());
+	}
+
+	private void updateMumbleConnection(boolean condition, Consumer<MumbleConnection> onTrue, Consumer<MumbleConnection> onFalse) {
+		if (condition)
+			onTrue.accept(getConnection());
+		else
+			onFalse.accept(getConnection());
 	}
 }

@@ -23,7 +23,6 @@ import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.interfaces.observers.IObsAudioConnection;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.mumble.client.internal.InternalChannel;
 import fr.pederobien.mumble.client.internal.InternalChannelList;
@@ -37,7 +36,7 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 
-public class MumbleConnection implements IMumbleConnection, IObsAudioConnection {
+public class MumbleConnection implements IMumbleConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
@@ -73,52 +72,6 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 	@Override
 	public void removeObserver(IObsMumbleConnection obs) {
 		internalObservers.removeObserver(obs);
-	}
-
-	@Override
-	public void onAudioConnect() {
-
-	}
-
-	@Override
-	public void onAudioDisconnect() {
-
-	}
-
-	/**
-	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other players when the player
-	 * mute itself.
-	 */
-	@Override
-	public void onPauseMicrophone() {
-		send(create(Idc.PLAYER_MUTE, true));
-	}
-
-	/**
-	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other player when the player
-	 * deafen itself.
-	 */
-	@Override
-	public void onPauseSpeakers() {
-		send(create(Idc.PLAYER_DEAFEN, true));
-	}
-
-	/**
-	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other player when the player
-	 * unmute itself.
-	 */
-	@Override
-	public void onResumeMicrophone() {
-		send(create(Idc.PLAYER_MUTE, false));
-	}
-
-	/**
-	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other player when the player
-	 * undeafen itself.
-	 */
-	@Override
-	public void onResumeSpeakers() {
-		send(create(Idc.PLAYER_DEAFEN, false));
 	}
 
 	@Override
@@ -291,8 +244,43 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
 			audioConnection = new AudioConnection(udpConnection);
-			audioConnection.addObserver(this);
 		});
+	}
+
+	/**
+	 * Stops the microphone in the audio connection and send a request to the server in order to update the graphical user interface
+	 * of other players when the player mute itself.
+	 */
+	public void pauseMicrophone() {
+		audioConnection.pauseMicrophone();
+		send(create(Idc.PLAYER_MUTE, true));
+	}
+
+	/**
+	 * Stops the speakers in the audio connection and send a request to the server in order to update the graphical user interface of
+	 * other player when the player deafen itself.
+	 */
+	public void pauseSpeakers() {
+		audioConnection.pauseSpeakers();
+		send(create(Idc.PLAYER_DEAFEN, true));
+	}
+
+	/**
+	 * Resume the microphone in the audio connection and send a request to the server in order to update the graphical user interface
+	 * of other player when the player unmute itself.
+	 */
+	public void resumeMicrophone() {
+		audioConnection.resumeMicrophone();
+		send(create(Idc.PLAYER_MUTE, false));
+	}
+
+	/**
+	 * Resume the speakers in the audio connection and send a request to the server in order to update the graphical user interface of
+	 * other player when the player undeafen itself.
+	 */
+	public void resumeSpeakers() {
+		audioConnection.resumeSpeakers();
+		send(create(Idc.PLAYER_DEAFEN, false));
 	}
 
 	private void getUniqueIdentifier(Consumer<IResponse<IPlayer>> callback) {

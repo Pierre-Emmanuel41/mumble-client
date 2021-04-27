@@ -29,7 +29,7 @@ public class InternalChannel implements IChannel {
 		this.name = name;
 		this.players = new ArrayList<InternalOtherPlayer>();
 		for (String playerName : players)
-			this.players.add(new InternalOtherPlayer(connection, playerName));
+			this.players.add(new InternalOtherPlayer(connection, player, playerName));
 
 		observers = new Observable<IObsChannel>();
 	}
@@ -96,7 +96,7 @@ public class InternalChannel implements IChannel {
 	}
 
 	public void internalAddPlayer(String playerName) {
-		InternalOtherPlayer added = new InternalOtherPlayer(connection, playerName);
+		InternalOtherPlayer added = new InternalOtherPlayer(connection, player, playerName);
 		players.add(added);
 		if (player.getName().equals(added.getName()))
 			this.player.setChannel(this);
@@ -134,7 +134,7 @@ public class InternalChannel implements IChannel {
 		Optional<InternalOtherPlayer> otherPlayer = players.stream().filter(player -> player.getName().equals(playerName)).findFirst();
 		if (!otherPlayer.isPresent())
 			return;
-		otherPlayer.get().internalSetDeafen(isDeafen);
+		otherPlayer.get().setDeafen(isDeafen);
 	}
 
 	private void notifyObservers(Consumer<IObsChannel> consumer) {

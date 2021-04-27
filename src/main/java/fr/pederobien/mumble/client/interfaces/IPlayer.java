@@ -3,8 +3,14 @@ package fr.pederobien.mumble.client.interfaces;
 import java.util.UUID;
 
 import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
+import fr.pederobien.utils.IObservable;
 
-public interface IPlayer extends ICommonPlayer<IObsPlayer> {
+public interface IPlayer extends IObservable<IObsPlayer> {
+
+	/**
+	 * @return The player name.
+	 */
+	String getName();
 
 	/**
 	 * @return True if this player is an admin for this server.
@@ -25,4 +31,28 @@ public interface IPlayer extends ICommonPlayer<IObsPlayer> {
 	 * @return The channel in which the player is registered, or null if the player is not registered in any channel.
 	 */
 	IChannel getChannel();
+
+	/**
+	 * @return True if this player is mute, false otherwise.
+	 */
+	boolean isMute();
+
+	/**
+	 * Mute or unmute this player.
+	 * 
+	 * @param isMute The new player state.
+	 */
+	void setMute(boolean isMute);
+
+	/**
+	 * @return True is this player is deafen, false otherwise.
+	 */
+	boolean isDeafen();
+
+	/**
+	 * deafen or undeafen this player.
+	 * 
+	 * @param isDeafen The new player state.
+	 */
+	void setDeafen(boolean isDeafen);
 }
