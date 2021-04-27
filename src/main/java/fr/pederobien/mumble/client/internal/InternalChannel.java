@@ -130,6 +130,13 @@ public class InternalChannel implements IChannel {
 		otherPlayer.get().internalSetMute(isMute);
 	}
 
+	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
+		Optional<InternalOtherPlayer> otherPlayer = players.stream().filter(player -> player.getName().equals(playerName)).findFirst();
+		if (!otherPlayer.isPresent())
+			return;
+		otherPlayer.get().internalSetDeafen(isDeafen);
+	}
+
 	private void notifyObservers(Consumer<IObsChannel> consumer) {
 		observers.notifyObservers(consumer);
 	}

@@ -116,13 +116,16 @@ public class Speakers extends Thread {
 
 	public void pause() {
 		try {
+			pauseRequested = true;
 			semaphore.acquire();
+			speakers.flush();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void relaunch() {
+		pauseRequested = false;
 		semaphore.release();
 	}
 }

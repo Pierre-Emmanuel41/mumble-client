@@ -68,7 +68,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	@Override
 	public void onDataReceived(DataReceivedEvent event) {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
-		if (message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
+		if (pauseSpeakers || message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
 			return;
 
 		mixer.put((String) message.getPayload()[0], toStereo(message));

@@ -131,6 +131,16 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 
 			channelList.onPlayerMuteChanged(playerName, isMute);
 			break;
+		case PLAYER_DEAFEN:
+			playerName = (String) message.getPayload()[0];
+			boolean isDeafen = (boolean) message.getPayload()[1];
+
+			// In order to update the PlayerView
+			if (player.getName().equals(playerName))
+				player.internalSetDeafen(isDeafen);
+
+			channelList.onPlayerDeafenChanged(playerName, isDeafen);
+			break;
 		default:
 			break;
 		}

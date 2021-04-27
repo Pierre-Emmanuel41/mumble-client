@@ -103,6 +103,10 @@ public class InternalChannelList implements IChannelList {
 		channels.forEach(channel -> channel.onPlayerMuteChanged(playerName, isMute));
 	}
 
+	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
+		channels.forEach(channel -> channel.onPlayerDeafenChanged(playerName, isDeafen));
+	}
+
 	private void notifyObservers(Consumer<IObsChannelList> consumer) {
 		observers.notifyObservers(consumer);
 	}

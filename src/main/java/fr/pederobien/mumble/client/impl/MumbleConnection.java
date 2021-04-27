@@ -77,7 +77,7 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 
 	@Override
 	public void onAudioConnect() {
-		player.internalSetMute(false);
+
 	}
 
 	@Override
@@ -85,21 +85,37 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 
 	}
 
+	/**
+	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other players when the player
+	 * mute itself.
+	 */
 	@Override
 	public void onPauseMicrophone() {
 		send(create(Idc.PLAYER_MUTE, true));
 	}
 
+	/**
+	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other player when the player
+	 * deafen itself.
+	 */
 	@Override
 	public void onPauseSpeakers() {
 		send(create(Idc.PLAYER_DEAFEN, true));
 	}
 
+	/**
+	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other player when the player
+	 * unmute itself.
+	 */
 	@Override
 	public void onResumeMicrophone() {
 		send(create(Idc.PLAYER_MUTE, false));
 	}
 
+	/**
+	 * {@inheritDoc} Send a request to the server in order to update the graphical user interface of other player when the player
+	 * undeafen itself.
+	 */
 	@Override
 	public void onResumeSpeakers() {
 		send(create(Idc.PLAYER_DEAFEN, false));
@@ -173,6 +189,17 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 		return audioConnection;
 	}
 
+	/**
+	 * Send a request to the server in order to add a mumble channel on the server.
+	 * 
+	 * @param channelName The channel name to add.
+	 * @param callback    The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException          if the channelName is null.
+	 * @throws NullPointerException          if the callback is null.
+	 * @throws UnsupportedOperationException If the player is not connected in game.
+	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
+	 */
 	public void addChannel(String channelName, Consumer<IResponse<ChannelAddedEvent>> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
@@ -181,6 +208,17 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 		send(create(Idc.CHANNELS, Oid.ADD, channelName), args -> answer(args, callback, new ChannelAddedEvent(channelName)));
 	}
 
+	/**
+	 * Send a request to the server in order to remove a mumble channel from the server.
+	 * 
+	 * @param channelName The channel name to remove.
+	 * @param callback    The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException          if the channelName is null.
+	 * @throws NullPointerException          if the callback is null.
+	 * @throws UnsupportedOperationException If the player is not connected in game.
+	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
+	 */
 	public void removeChannel(String channelName, Consumer<IResponse<ChannelRemovedEvent>> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
@@ -189,6 +227,19 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 		send(create(Idc.CHANNELS, Oid.REMOVE, channelName), args -> answer(args, callback, new ChannelRemovedEvent(channelName)));
 	}
 
+	/**
+	 * Send a request to the server in order to rename a mumble channel.
+	 * 
+	 * @param oldName  The old channel name to rename.
+	 * @param newName  The new channel name to rename.
+	 * @param callback The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException          if the oldName is null.
+	 * @throws NullPointerException          if the newName is null.
+	 * @throws NullPointerException          if the callback is null.
+	 * @throws UnsupportedOperationException If the player is not connected in game.
+	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
+	 */
 	public void renameChannel(String oldName, String newName, Consumer<IResponse<ChannelRenamedEvent>> callback) {
 		Objects.requireNonNull(oldName, "The old channel name cannot be null");
 		Objects.requireNonNull(newName, "The new channel name cannot be null");
@@ -198,15 +249,43 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 		send(create(Idc.CHANNELS, Oid.SET, oldName, newName), args -> answer(args, callback, new ChannelRenamedEvent(oldName, newName)));
 	}
 
+	/**
+	 * Send a request to the server in order to add a player to a channel.
+	 * 
+	 * @param channelName The channel name in which the player should be added.
+	 * @param playerName  The player name.
+	 * @param callback    The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException if the channelName is null.
+	 * @throws NullPointerException if the playerName is null.
+	 * @throws NullPointerException if the callback is null.
+	 */
 	public void addPlayerToChannel(String channelName, String playerName, Consumer<IResponse<PlayerAddedToChannelEvent>> callback) {
+		Objects.requireNonNull(channelName, "The channel name cannot be null");
+		Objects.requireNonNull(playerName, "The player name cannot be null");
+		Objects.requireNonNull(callback, "The callback cannot be null");
 		send(create(Idc.CHANNELS_PLAYER, Oid.ADD, channelName, playerName), args -> answer(args, callback, new PlayerAddedToChannelEvent(channelName, playerName)));
 	}
 
+	/**
+	 * Send a request to the server in order to remove a player from a channel.
+	 * 
+	 * @param channelName The channel name in which the player should be added.
+	 * @param playerName  The player name.
+	 * @param callback    The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException if the channelName is null.
+	 * @throws NullPointerException if the playerName is null.
+	 * @throws NullPointerException if the callback is null.
+	 */
 	public void removePlayerfromChannel(String channelName, String playerName, Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
 		send(create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channelName, playerName),
 				args -> answer(args, callback, new PlayerRemovedFromChannelEvent(channelName, playerName)));
 	}
 
+	/**
+	 * Send a request to the server in order to get the udp port on which the voice udp packets are sent.
+	 */
 	public void getUdpPort() {
 		send(create(Idc.UDP_PORT), args -> {
 			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
@@ -275,7 +354,7 @@ public class MumbleConnection implements IMumbleConnection, IObsAudioConnection 
 	private void checkPlayerProperties() {
 		throwIf(player == null, "The player is null");
 		throwIf(!player.isOnline(), "The player is not connected.");
-		throwIf(!player.isAdmin(), "The player has to be an adminisrator of the server.");
+		throwIf(!player.isAdmin(), "The player has to be an administrator of the server.");
 	}
 
 	private void throwIf(boolean condition, String message) {
