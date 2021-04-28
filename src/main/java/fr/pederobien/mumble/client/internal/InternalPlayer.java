@@ -102,7 +102,7 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 		if (this.isDeafen == isDeafen)
 			return;
 
-		updateMumbleConnection(isMute, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+		updateMumbleConnection(isDeafen, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
 	}
 
 	@Override
