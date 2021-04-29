@@ -1,28 +1,40 @@
 package fr.pederobien.mumble.client.internal;
 
+import java.util.function.Consumer;
+
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
+import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.observers.IObsCommonPlayer;
 
 public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> implements IOtherPlayer {
-	private boolean isMute, isDeafen;
+	private IPlayer player;
+	private boolean isMute, isMuteBy, isDeafen;
 
 	public InternalOtherPlayer(MumbleConnection connection, IPlayer player, String name) {
 		super(connection, name);
+		this.player = player;
+		isMute = false;
 	}
 
 	@Override
 	public boolean isMute() {
-		return isMute;
+		return isMuteBy || isMute;
 	}
 
 	@Override
-	public void setMute(boolean isMute) {
-		if (this.isMute == isMute)
+	public void setMute(boolean isMute, Consumer<IResponse<Boolean>> callback) {
+		if (this.isMuteBy == isMute)
 			return;
 
-		// Send message to server in order to mute this player for this client.
+		this.isMuteBy = isMute;
+		getConnection().mutePlayerBy(player.getName(), getName(), isMute, response -> {
+			callback.accept(response);
+			if (response.hasFailed())
+				return;
+			getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute()));
+		});
 	}
 
 	@Override
@@ -45,6 +57,6 @@ public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> 
 
 	public void internalSetMute(boolean isMute) {
 		this.isMute = isMute;
-		getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute));
+		getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute()));
 	}
 }

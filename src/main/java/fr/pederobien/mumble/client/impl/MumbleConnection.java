@@ -283,6 +283,23 @@ public class MumbleConnection implements IMumbleConnection {
 		send(create(Idc.PLAYER_DEAFEN, false));
 	}
 
+	/**
+	 * Mute or unmute the player associated to the playerMutedOrUnmutedName for the player associated to the playerName.
+	 * 
+	 * @param playerName The player that mute a player. @param playerMutedOrUnmutedName The player name that is muted by a
+	 *                   player. @param isMute True if the player should be muted, false if the player should be unmuted.
+	 * 
+	 * @throws NullPointerException if the playerName is null.
+	 * @throws NullPointerException If the playerMutedOrUnmutedName is null.
+	 */
+	public void mutePlayerBy(String playerName, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse<Boolean>> callback) {
+		Objects.requireNonNull(playerName, "The playerName cannot be null");
+		Objects.requireNonNull(playerMutedOrUnmutedName, "The playerMutedOrUnmutedName cannot be null");
+		Objects.requireNonNull(callback, "The callback cannot be null");
+		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, playerName, playerMutedOrUnmutedName, isMute),
+				args -> filter(args, callback, payload -> callback.accept(new Response<Boolean>(true))));
+	}
+
 	private void getUniqueIdentifier(Consumer<IResponse<IPlayer>> callback) {
 		send(create(Idc.UNIQUE_IDENTIFIER), args -> filter(args, callback, payload -> getPlayerName(callback, (UUID) payload[0])));
 	}
@@ -294,7 +311,7 @@ public class MumbleConnection implements IMumbleConnection {
 			player.setName(isOnline ? (String) payload[1] : DEFAULT_PLAYER_NAME);
 			player.setUUID(uuid);
 			player.setIsAdmin(isOnline ? (boolean) payload[2] : false);
-			callback.accept(new Response<>(player));
+			callback.accept(new Response<IPlayer>(player));
 		}));
 	}
 
