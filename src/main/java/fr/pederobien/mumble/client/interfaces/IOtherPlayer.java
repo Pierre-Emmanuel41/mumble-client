@@ -29,4 +29,11 @@ public interface IOtherPlayer extends IObservable<IObsCommonPlayer> {
 	 * @return True is this player is deafen, false otherwise.
 	 */
 	boolean isDeafen();
+
+	/**
+	 * Kick this player from its current channel.
+	 * 
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	void kick(Consumer<IResponse<Boolean>> callback);
 }

@@ -286,11 +286,14 @@ public class MumbleConnection implements IMumbleConnection {
 	/**
 	 * Mute or unmute the player associated to the playerMutedOrUnmutedName for the player associated to the playerName.
 	 * 
-	 * @param playerName The player that mute a player. @param playerMutedOrUnmutedName The player name that is muted by a
-	 *                   player. @param isMute True if the player should be muted, false if the player should be unmuted.
+	 * @param playerName               The player that mute a player.
+	 * @param playerMutedOrUnmutedName The player name that is muted by a player.
+	 * @param isMute                   True if the player should be muted, false if the player should be unmuted.
+	 * @param callback                 The callback to run when an answer is received from the server.
 	 * 
 	 * @throws NullPointerException if the playerName is null.
 	 * @throws NullPointerException If the playerMutedOrUnmutedName is null.
+	 * @throws NullPointerException if the callback is null.
 	 */
 	public void mutePlayerBy(String playerName, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse<Boolean>> callback) {
 		Objects.requireNonNull(playerName, "The playerName cannot be null");
@@ -298,6 +301,24 @@ public class MumbleConnection implements IMumbleConnection {
 		Objects.requireNonNull(callback, "The callback cannot be null");
 		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, playerName, playerMutedOrUnmutedName, isMute),
 				args -> filter(args, callback, payload -> callback.accept(new Response<Boolean>(true))));
+	}
+
+	/**
+	 * kick the player associated to the given playerKickName by the player associated to the playerName.
+	 * 
+	 * @param playerName     The player name that kick another player.
+	 * @param playerKickName The player name that is kicked byt another player.
+	 * @param callback       The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException if the playerName is null.
+	 * @throws NullPointerException if the playerKickName is null.
+	 * @throws NullPointerException if the callback is null.
+	 */
+	public void kickPlayer(String playerName, String playerKickName, Consumer<IResponse<Boolean>> callback) {
+		Objects.requireNonNull(playerName, "The playerName cannot be null");
+		Objects.requireNonNull(playerKickName, "The playerKickName cannot be null");
+		Objects.requireNonNull(callback, "The callback cannot be null");
+		send(create(Idc.PLAYER_KICK, Oid.SET, playerName, playerKickName), args -> filter(args, callback, payload -> callback.accept(new Response<Boolean>(true))));
 	}
 
 	private void getUniqueIdentifier(Consumer<IResponse<IPlayer>> callback) {

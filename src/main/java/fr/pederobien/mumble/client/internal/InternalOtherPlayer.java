@@ -51,6 +51,11 @@ public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> 
 	}
 
 	@Override
+	public void kick(Consumer<IResponse<Boolean>> callback) {
+		getConnection().kickPlayer(player.getName(), getName(), callback);
+	}
+
+	@Override
 	public String toString() {
 		return getName();
 	}
