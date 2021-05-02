@@ -2,7 +2,6 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.communication.NonBlockingConsole;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
@@ -12,6 +11,7 @@ import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
+import fr.pederobien.utils.AsyncConsole;
 import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
 
@@ -64,7 +64,7 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 
 	@Override
 	public void onLog(LogEvent event) {
-		NonBlockingConsole.println(event.getMessage());
+		AsyncConsole.print(event.getMessage());
 	}
 
 	@Override
