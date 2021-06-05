@@ -43,7 +43,6 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 
 	@Override
 	public void onConnectionComplete() {
-		connection.getUdpPort();
 		notifyObservers(obs -> obs.onConnectionComplete());
 	}
 

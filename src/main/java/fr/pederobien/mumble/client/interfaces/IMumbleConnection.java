@@ -40,18 +40,30 @@ public interface IMumbleConnection extends IObservable<IObsMumbleConnection> {
 	public boolean isDisposed();
 
 	/**
+	 * Send a request to the server in order to join it.
+	 * 
+	 * @param callback Callback when the response is received.
+	 */
+	void join(Consumer<IResponse<Boolean>> callback);
+
+	/**
+	 * Send a request to the server to leave it.
+	 */
+	void leave();
+
+	/**
 	 * Get the player associated to this client.
 	 * 
-	 * @param response Callback when the response is received.
+	 * @param callback Callback when the response is received.
 	 */
-	void getPlayer(Consumer<IResponse<IPlayer>> response);
+	void getPlayer(Consumer<IResponse<IPlayer>> callback);
 
 	/**
 	 * Get the list of channel currently registered on the server.
 	 * 
-	 * @param response Callback when response is received.
+	 * @param callback Callback when response is received.
 	 */
-	void getChannels(Consumer<IResponse<IChannelList>> response);
+	void getChannels(Consumer<IResponse<IChannelList>> callback);
 
 	/**
 	 * Get the audio connection. The connection is responsible for sending data coming from the microphone and playing data received

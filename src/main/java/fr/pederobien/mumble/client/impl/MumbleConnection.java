@@ -108,6 +108,19 @@ public class MumbleConnection implements IMumbleConnection {
 	}
 
 	@Override
+	public void join(Consumer<IResponse<Boolean>> callback) {
+		send(create(Idc.SERVER_JOIN), args -> filter(args, callback, payload -> {
+			callback.accept(new Response<Boolean>(true));
+			getUdpPort();
+		}));
+	}
+
+	@Override
+	public void leave() {
+		send(create(Idc.SERVER_LEAVE));
+	}
+
+	@Override
 	public void getPlayer(Consumer<IResponse<IPlayer>> callback) {
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		getUniqueIdentifier(callback);
