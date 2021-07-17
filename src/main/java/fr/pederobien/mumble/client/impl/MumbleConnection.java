@@ -109,15 +109,12 @@ public class MumbleConnection implements IMumbleConnection {
 
 	@Override
 	public void join(Consumer<IResponse<Boolean>> callback) {
-		send(create(Idc.SERVER_JOIN), args -> filter(args, callback, payload -> {
-			callback.accept(new Response<Boolean>(true));
-			getUdpPort();
-		}));
+		send(create(Idc.SERVER_JOIN, Oid.SET), args -> filter(args, callback, payload -> getUdpPort(callback)));
 	}
 
 	@Override
 	public void leave() {
-		send(create(Idc.SERVER_LEAVE));
+		send(create(Idc.SERVER_LEAVE, Oid.SET));
 	}
 
 	@Override
@@ -252,11 +249,12 @@ public class MumbleConnection implements IMumbleConnection {
 	/**
 	 * Send a request to the server in order to get the udp port on which the voice udp packets are sent.
 	 */
-	public void getUdpPort() {
+	public void getUdpPort(Consumer<IResponse<Boolean>> callback) {
 		send(create(Idc.UDP_PORT), args -> {
 			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
 			audioConnection = new AudioConnection(udpConnection);
+			callback.accept(new Response<Boolean>(true));
 		});
 	}
 
@@ -339,7 +337,7 @@ public class MumbleConnection implements IMumbleConnection {
 	}
 
 	private void getPlayerName(Consumer<IResponse<IPlayer>> callback, UUID uuid) {
-		send(create(Idc.PLAYER_STATUS), args -> filter(args, callback, payload -> {
+		send(create(Idc.PLAYER_INFO), args -> filter(args, callback, payload -> {
 			boolean isOnline = (boolean) payload[0];
 			player.setIsOnline(isOnline);
 			player.setName(isOnline ? (String) payload[1] : DEFAULT_PLAYER_NAME);

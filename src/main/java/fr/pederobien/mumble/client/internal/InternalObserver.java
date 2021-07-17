@@ -73,7 +73,7 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
 		switch (message.getHeader().getIdc()) {
-		case PLAYER_STATUS:
+		case PLAYER_INFO:
 			if (message.getPayload().length > 1)
 				player.setName((String) message.getPayload()[1]);
 			player.setIsOnline((boolean) message.getPayload()[0]);
