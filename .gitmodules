@@ -1,3 +1,5 @@
 [submodule "mumble-common"]
 	path = mumble-common
 	url = https://github.com/Pierre-Emmanuel41/mumble-common.git
+	update = rebase
+	branch = master
