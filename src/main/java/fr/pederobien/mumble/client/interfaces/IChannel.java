@@ -42,4 +42,9 @@ public interface IChannel extends IObservable<IObsChannel> {
 	 * @return A list that contains players registered on this channel. This list is unmodifiable.
 	 */
 	List<IOtherPlayer> getPlayers();
+
+	/**
+	 * @return The sound modifier attached to this channel.
+	 */
+	ISoundModifier getSoundModifier();
 }

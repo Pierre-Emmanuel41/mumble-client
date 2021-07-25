@@ -2,6 +2,7 @@ package fr.pederobien.mumble.client.interfaces.observers;
 
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
+import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 
 public interface IObsChannel {
 
@@ -29,4 +30,12 @@ public interface IObsChannel {
 	 * @param player  The remove player.
 	 */
 	void onPlayerRemoved(IChannel channel, IOtherPlayer player);
+
+	/**
+	 * Notify this observer the sound modifier associated to the given channel has changed.
+	 * 
+	 * @param channel       The channel whose the modifier has changed.
+	 * @param soundModifier The new sound modifier.
+	 */
+	void onSoundModifierChanged(IChannel channel, ISoundModifier soundModifier);
 }

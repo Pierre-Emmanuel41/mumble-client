@@ -39,8 +39,8 @@ public class InternalChannelList implements IChannelList {
 	}
 
 	@Override
-	public void addChannel(String channelName, Consumer<IResponse<ChannelAddedEvent>> callback) {
-		connection.addChannel(channelName, callback);
+	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse<ChannelAddedEvent>> callback) {
+		connection.addChannel(channelName, soundModifierName == null ? "default" : soundModifierName, callback);
 	}
 
 	@Override

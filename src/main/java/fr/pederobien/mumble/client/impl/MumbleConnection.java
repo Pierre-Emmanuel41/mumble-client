@@ -126,7 +126,6 @@ public class MumbleConnection implements IMumbleConnection {
 	@Override
 	public void getChannels(Consumer<IResponse<IChannelList>> callback) {
 		Objects.requireNonNull(callback, "The callback cannot be null.");
-		internalObservers.setIgnoreChannelModifications(true);
 		send(create(Idc.CHANNELS), args -> filter(args, callback, payload -> {
 			int currentIndex = 0;
 			int numberOfChannels = (int) payload[currentIndex++];
@@ -134,16 +133,16 @@ public class MumbleConnection implements IMumbleConnection {
 			channelList.clear();
 			for (int i = 0; i < numberOfChannels; i++) {
 				String channelName = (String) payload[currentIndex++];
+				String soundModifierName = (String) payload[currentIndex++];
 				int numberOfPlayers = (int) payload[currentIndex++];
 				List<String> players = new ArrayList<String>();
 
 				for (int j = 0; j < numberOfPlayers; j++)
 					players.add((String) payload[currentIndex++]);
 
-				channelList.internalAdd(new InternalChannel(this, channelName, players));
+				channelList.internalAdd(new InternalChannel(this, channelName, players, soundModifierName));
 			}
 			callback.accept(new Response<IChannelList>(channelList));
-			internalObservers.setIgnoreChannelModifications(false);
 		}));
 	}
 
@@ -155,20 +154,22 @@ public class MumbleConnection implements IMumbleConnection {
 	/**
 	 * Send a request to the server in order to add a mumble channel on the server.
 	 * 
-	 * @param channelName The channel name to add.
-	 * @param callback    The callback to run when an answer is received from the server.
+	 * @param channelName       The channel name to add.
+	 * @param soundModifierName the sound modifier name attached to this channel.
+	 * @param callback          The callback to run when an answer is received from the server.
 	 * 
 	 * @throws NullPointerException          if the channelName is null.
 	 * @throws NullPointerException          if the callback is null.
 	 * @throws UnsupportedOperationException If the player is not connected in game.
 	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
 	 */
-	public void addChannel(String channelName, Consumer<IResponse<ChannelAddedEvent>> callback) {
+	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse<ChannelAddedEvent>> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
+		Objects.requireNonNull(soundModifierName, "The sound modifier name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		checkPlayerProperties();
 
-		send(create(Idc.CHANNELS, Oid.ADD, channelName), args -> answer(args, callback, new ChannelAddedEvent(channelName)));
+		send(create(Idc.CHANNELS, Oid.ADD, channelName, soundModifierName), args -> answer(args, callback, new ChannelAddedEvent(channelName)));
 	}
 
 	/**
@@ -330,6 +331,24 @@ public class MumbleConnection implements IMumbleConnection {
 		Objects.requireNonNull(playerKickName, "The playerKickName cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
 		send(create(Idc.PLAYER_KICK, Oid.SET, playerName, playerKickName), args -> filter(args, callback, payload -> callback.accept(new Response<Boolean>(true))));
+	}
+
+	/**
+	 * Set the modifier name associated to a channel.
+	 * 
+	 * @param channelName       The name of the channel whose the modifier name should be changed.
+	 * @param soundModifierName The new sound modifier name.
+	 * @param callback          The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException if the channelName is null.
+	 * @throws NullPointerException if the soundModifierName is null.
+	 * @throws NullPointerException if the callback is null.
+	 */
+	public void setChannelModifierName(String channelName, String soundModifierName, Consumer<IResponse<String>> callback) {
+		Objects.requireNonNull(channelName, "The name of the channel cannot be null");
+		Objects.requireNonNull(soundModifierName, "The name of the sound modifier cannot be null");
+		Objects.requireNonNull(callback, "The callback cannot be null");
+		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> filter(args, callback, payload -> new Response<String>((String) payload[1])));
 	}
 
 	private void getUniqueIdentifier(Consumer<IResponse<IPlayer>> callback) {

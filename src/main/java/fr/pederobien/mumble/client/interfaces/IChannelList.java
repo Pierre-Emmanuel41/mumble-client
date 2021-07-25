@@ -13,10 +13,11 @@ public interface IChannelList extends IObservable<IObsChannelList> {
 	/**
 	 * Create a channel with the given name and add it to this server configuration.
 	 * 
-	 * @param channelName The name of the channel to add.
-	 * @param callback    the callback that is executed after reception of the answer from the remote.
+	 * @param channelName       The name of the channel to add.
+	 * @param soundModifierName The sound modifier associated to the channel to add.
+	 * @param callback          the callback that is executed after reception of the answer from the remote.
 	 */
-	void addChannel(String channelName, Consumer<IResponse<ChannelAddedEvent>> callback);
+	void addChannel(String channelName, String soundModifierName, Consumer<IResponse<ChannelAddedEvent>> callback);
 
 	/**
 	 * Remove the channel associated to the given name if it exists.

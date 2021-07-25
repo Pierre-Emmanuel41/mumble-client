@@ -14,6 +14,7 @@ import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.interfaces.observers.IObsChannel;
 import fr.pederobien.utils.Observable;
 
@@ -23,19 +24,21 @@ public class InternalChannel implements IChannel {
 	private Observable<IObsChannel> observers;
 	private MumbleConnection connection;
 	private InternalPlayer player;
+	private ISoundModifier soundModifier;
 
-	public InternalChannel(MumbleConnection connection, String name, List<String> players) {
+	public InternalChannel(MumbleConnection connection, String name, List<String> players, String soundModifierName) {
 		this.connection = connection;
 		this.name = name;
 		this.players = new ArrayList<InternalOtherPlayer>();
+		this.soundModifier = new InternalSoundModifier(connection, this, soundModifierName);
 		for (String playerName : players)
 			this.players.add(new InternalOtherPlayer(connection, player, playerName));
 
 		observers = new Observable<IObsChannel>();
 	}
 
-	public InternalChannel(MumbleConnection connection, String name) {
-		this(connection, name, new ArrayList<String>());
+	public InternalChannel(MumbleConnection connection, String name, String soundModifierName) {
+		this(connection, name, new ArrayList<String>(), soundModifierName);
 	}
 
 	@Override
@@ -62,11 +65,6 @@ public class InternalChannel implements IChannel {
 	}
 
 	@Override
-	public List<IOtherPlayer> getPlayers() {
-		return Collections.unmodifiableList(players);
-	}
-
-	@Override
 	public void addPlayer(Consumer<IResponse<PlayerAddedToChannelEvent>> callback) {
 		connection.addPlayerToChannel(getName(), player.getName(), callback);
 	}
@@ -74,6 +72,16 @@ public class InternalChannel implements IChannel {
 	@Override
 	public void removePlayer(Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
 		connection.removePlayerfromChannel(getName(), player.getName(), callback);
+	}
+
+	@Override
+	public List<IOtherPlayer> getPlayers() {
+		return Collections.unmodifiableList(players);
+	}
+
+	@Override
+	public ISoundModifier getSoundModifier() {
+		return soundModifier;
 	}
 
 	@Override

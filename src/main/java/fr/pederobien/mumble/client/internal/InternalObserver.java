@@ -20,7 +20,6 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 	private InternalPlayer player;
 	private InternalChannelList channelList;
 	private Observable<IObsMumbleConnection> observers;
-	private boolean ignoreChannelModifications;
 
 	public InternalObserver(MumbleConnection connection, InternalPlayer player, InternalChannelList channelList) {
 		this.connection = connection;
@@ -28,7 +27,6 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 		this.channelList = channelList;
 
 		observers = new Observable<IObsMumbleConnection>();
-		ignoreChannelModifications = true;
 	}
 
 	@Override
@@ -82,12 +80,9 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 			player.setIsAdmin((boolean) message.getPayload()[0]);
 			break;
 		case CHANNELS:
-			if (ignoreChannelModifications)
-				return;
-
 			switch (message.getHeader().getOid()) {
 			case ADD:
-				channelList.internalAdd(new InternalChannel(connection, (String) message.getPayload()[0]));
+				channelList.internalAdd(new InternalChannel(connection, (String) message.getPayload()[0], (String) message.getPayload()[1]));
 				break;
 			case REMOVE:
 				channelList.internalRemove((String) message.getPayload()[0]);
@@ -101,9 +96,6 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 			}
 			break;
 		case CHANNELS_PLAYER:
-			if (ignoreChannelModifications)
-				return;
-
 			String channelName, playerName;
 			switch (message.getHeader().getOid()) {
 			case ADD:
@@ -143,16 +135,6 @@ public class InternalObserver implements IObservable<IObsMumbleConnection>, IObs
 		default:
 			break;
 		}
-	}
-
-	/**
-	 * Set to true in order to ignore when a channel is added, removed or renamed and when a player is added or removed from a
-	 * channel.
-	 * 
-	 * @param ignoreChannelModifications True ignore channel modifications, false otherwise.
-	 */
-	public void setIgnoreChannelModifications(boolean ignoreChannelModifications) {
-		this.ignoreChannelModifications = ignoreChannelModifications;
 	}
 
 	private void notifyObservers(Consumer<IObsMumbleConnection> consumer) {
