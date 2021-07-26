@@ -47,4 +47,9 @@ public interface IChannel extends IObservable<IObsChannel> {
 	 * @return The sound modifier attached to this channel.
 	 */
 	ISoundModifier getSoundModifier();
+
+	/**
+	 * @return An unmodifiable list that contains the supported sound modifiers on the server.
+	 */
+	List<String> getSupportedSoundModifiers();
 }

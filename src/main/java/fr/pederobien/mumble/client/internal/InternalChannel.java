@@ -20,13 +20,14 @@ import fr.pederobien.utils.Observable;
 
 public class InternalChannel implements IChannel {
 	private String name;
+	private List<String> modifierNames;
 	private List<InternalOtherPlayer> players;
 	private Observable<IObsChannel> observers;
 	private MumbleConnection connection;
 	private InternalPlayer player;
 	private ISoundModifier soundModifier;
 
-	public InternalChannel(MumbleConnection connection, String name, List<String> players, String soundModifierName) {
+	public InternalChannel(MumbleConnection connection, String name, List<String> players, String soundModifierName, List<String> modifierNames) {
 		this.connection = connection;
 		this.name = name;
 		this.players = new ArrayList<InternalOtherPlayer>();
@@ -35,10 +36,11 @@ public class InternalChannel implements IChannel {
 			this.players.add(new InternalOtherPlayer(connection, player, playerName));
 
 		observers = new Observable<IObsChannel>();
+		this.modifierNames = modifierNames;
 	}
 
-	public InternalChannel(MumbleConnection connection, String name, String soundModifierName) {
-		this(connection, name, new ArrayList<String>(), soundModifierName);
+	public InternalChannel(MumbleConnection connection, String name, String soundModifierName, List<String> modifierNames) {
+		this(connection, name, new ArrayList<String>(), soundModifierName, modifierNames);
 	}
 
 	@Override
@@ -82,6 +84,11 @@ public class InternalChannel implements IChannel {
 	@Override
 	public ISoundModifier getSoundModifier() {
 		return soundModifier;
+	}
+
+	@Override
+	public List<String> getSupportedSoundModifiers() {
+		return modifierNames;
 	}
 
 	@Override

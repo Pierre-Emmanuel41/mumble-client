@@ -55,6 +55,8 @@ public interface IMumbleConnection extends IObservable<IObsMumbleConnection> {
 	 * Get the player associated to this client.
 	 * 
 	 * @param callback Callback when the response is received.
+	 * 
+	 * @throws NullPointerException if the callback is null.
 	 */
 	void getPlayer(Consumer<IResponse<IPlayer>> callback);
 
@@ -62,6 +64,8 @@ public interface IMumbleConnection extends IObservable<IObsMumbleConnection> {
 	 * Get the list of channel currently registered on the server.
 	 * 
 	 * @param callback Callback when response is received.
+	 * 
+	 * @throws NullPointerException if the callback is null.
 	 */
 	void getChannels(Consumer<IResponse<IChannelList>> callback);
 

@@ -9,8 +9,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
+import fr.pederobien.communication.event.DataReceivedEvent;
+import fr.pederobien.communication.event.LogEvent;
+import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientConnection;
 import fr.pederobien.communication.impl.UdpClientConnection;
+import fr.pederobien.communication.interfaces.IObsTcpConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
@@ -26,7 +30,6 @@ import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.mumble.client.internal.InternalChannel;
 import fr.pederobien.mumble.client.internal.InternalChannelList;
-import fr.pederobien.mumble.client.internal.InternalObserver;
 import fr.pederobien.mumble.client.internal.InternalPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
@@ -35,17 +38,20 @@ import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.utils.AsyncConsole;
+import fr.pederobien.utils.Observable;
 
-public class MumbleConnection implements IMumbleConnection {
+public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
+	private Observable<IObsMumbleConnection> observers;
 	private AudioConnection audioConnection;
-	private InternalObserver internalObservers;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
 	private AtomicBoolean isDisposed;
 	private String remoteAddress;
+	private List<String> modifierNames;
 
 	private MumbleConnection(String remoteAddress, int tcpPort, boolean isEnabled) {
 		this.remoteAddress = remoteAddress;
@@ -53,11 +59,10 @@ public class MumbleConnection implements IMumbleConnection {
 
 		player = new InternalPlayer(this, false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
-		internalObservers = new InternalObserver(this, player, channelList);
-
-		tcpConnection.addObserver(internalObservers);
-
+		observers = new Observable<IObsMumbleConnection>();
 		isDisposed = new AtomicBoolean(false);
+
+		tcpConnection.addObserver(this);
 	}
 
 	public static IMumbleConnection of(String remoteAddress, int tcpPort) {
@@ -66,12 +71,109 @@ public class MumbleConnection implements IMumbleConnection {
 
 	@Override
 	public void addObserver(IObsMumbleConnection obs) {
-		internalObservers.addObserver(obs);
+		observers.addObserver(obs);
 	}
 
 	@Override
 	public void removeObserver(IObsMumbleConnection obs) {
-		internalObservers.removeObserver(obs);
+		observers.removeObserver(obs);
+	}
+
+	@Override
+	public void onConnectionComplete() {
+		observers.notifyObservers(obs -> obs.onConnectionComplete());
+	}
+
+	@Override
+	public void onConnectionDisposed() {
+		observers.notifyObservers(obs -> obs.onConnectionDisposed());
+	}
+
+	@Override
+	public void onDataReceived(DataReceivedEvent event) {
+	}
+
+	@Override
+	public void onLog(LogEvent event) {
+		AsyncConsole.print(event.getMessage());
+	}
+
+	@Override
+	public void onConnectionLost() {
+		observers.notifyObservers(obs -> obs.onConnectionLost());
+	}
+
+	@Override
+	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
+		if (player == null)
+			return;
+
+		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
+		switch (message.getHeader().getIdc()) {
+		case PLAYER_INFO:
+			if (message.getPayload().length > 1)
+				player.setName((String) message.getPayload()[1]);
+			player.setIsOnline((boolean) message.getPayload()[0]);
+			break;
+		case PLAYER_ADMIN:
+			player.setIsAdmin((boolean) message.getPayload()[0]);
+			break;
+		case CHANNELS:
+			switch (message.getHeader().getOid()) {
+			case ADD:
+				channelList.internalAdd(new InternalChannel(this, (String) message.getPayload()[0], (String) message.getPayload()[1], modifierNames));
+				break;
+			case REMOVE:
+				channelList.internalRemove((String) message.getPayload()[0]);
+				break;
+			case SET:
+				String oldName = (String) message.getPayload()[0];
+				String newName = (String) message.getPayload()[1];
+				channelList.getChannel(oldName).internalSetName(newName);
+			default:
+				break;
+			}
+			break;
+		case CHANNELS_PLAYER:
+			String channelName, playerName;
+			switch (message.getHeader().getOid()) {
+			case ADD:
+				channelName = (String) message.getPayload()[0];
+				playerName = (String) message.getPayload()[1];
+				channelList.getChannel(channelName).internalAddPlayer(playerName);
+				break;
+			case REMOVE:
+				channelName = (String) message.getPayload()[0];
+				playerName = (String) message.getPayload()[1];
+				channelList.getChannel(channelName).internalRemovePlayer(playerName);
+				break;
+			default:
+				break;
+			}
+			break;
+		case PLAYER_MUTE:
+			playerName = (String) message.getPayload()[0];
+			boolean isMute = (boolean) message.getPayload()[1];
+
+			// In order to update the PlayerView
+			if (player.getName().equals(playerName))
+				player.internalSetMute(isMute);
+
+			channelList.onPlayerMuteChanged(playerName, isMute);
+			break;
+		case PLAYER_DEAFEN:
+			playerName = (String) message.getPayload()[0];
+			boolean isDeafen = (boolean) message.getPayload()[1];
+
+			// In order to update the PlayerView
+			if (player.getName().equals(playerName))
+				player.internalSetDeafen(isDeafen);
+
+			channelList.onPlayerDeafenChanged(playerName, isDeafen);
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
@@ -109,7 +211,27 @@ public class MumbleConnection implements IMumbleConnection {
 
 	@Override
 	public void join(Consumer<IResponse<Boolean>> callback) {
-		send(create(Idc.SERVER_JOIN, Oid.SET), args -> filter(args, callback, payload -> getUdpPort(callback)));
+		send(create(Idc.SERVER_JOIN, Oid.SET), joinArgs -> filter(joinArgs, callback, joinPayload -> {
+
+			// First getting the udp port.
+			send(create(Idc.UDP_PORT), udpArgs -> filter(udpArgs, callback, udpPayload -> {
+				IMessage<Header> answer = MumbleMessageFactory.parse(udpArgs.getResponse().getBytes());
+				udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
+				audioConnection = new AudioConnection(udpConnection);
+			}));
+
+			// Then getting the list of supported modifiers.
+			send(create(Idc.SOUND_MODIFIER, Oid.INFO), args -> filter(args, callback, payload -> {
+				int currentIndex = 0;
+				int numberOfModifiers = (int) payload[currentIndex++];
+
+				modifierNames = new ArrayList<String>();
+				for (int i = 0; i < numberOfModifiers; i++)
+					modifierNames.add((String) payload[currentIndex++]);
+			}));
+
+			callback.accept(new Response<Boolean>(true));
+		}));
 	}
 
 	@Override
@@ -140,7 +262,7 @@ public class MumbleConnection implements IMumbleConnection {
 				for (int j = 0; j < numberOfPlayers; j++)
 					players.add((String) payload[currentIndex++]);
 
-				channelList.internalAdd(new InternalChannel(this, channelName, players, soundModifierName));
+				channelList.internalAdd(new InternalChannel(this, channelName, players, soundModifierName, modifierNames));
 			}
 			callback.accept(new Response<IChannelList>(channelList));
 		}));
@@ -245,18 +367,6 @@ public class MumbleConnection implements IMumbleConnection {
 	public void removePlayerfromChannel(String channelName, String playerName, Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
 		send(create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channelName, playerName),
 				args -> answer(args, callback, new PlayerRemovedFromChannelEvent(channelName, playerName)));
-	}
-
-	/**
-	 * Send a request to the server in order to get the udp port on which the voice udp packets are sent.
-	 */
-	public void getUdpPort(Consumer<IResponse<Boolean>> callback) {
-		send(create(Idc.UDP_PORT), args -> {
-			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
-			udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
-			audioConnection = new AudioConnection(udpConnection);
-			callback.accept(new Response<Boolean>(true));
-		});
 	}
 
 	/**
