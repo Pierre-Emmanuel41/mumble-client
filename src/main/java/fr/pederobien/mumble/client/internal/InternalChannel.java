@@ -25,7 +25,7 @@ public class InternalChannel implements IChannel {
 	private Observable<IObsChannel> observers;
 	private MumbleConnection connection;
 	private InternalPlayer player;
-	private ISoundModifier soundModifier;
+	private InternalSoundModifier soundModifier;
 
 	public InternalChannel(MumbleConnection connection, String name, List<String> players, String soundModifierName, List<String> modifierNames) {
 		this.connection = connection;
@@ -115,7 +115,7 @@ public class InternalChannel implements IChannel {
 		players.add(added);
 		if (player.getName().equals(added.getName()))
 			this.player.setChannel(this);
-		notifyObservers(obs -> obs.onPlayerAdded(this, added));
+		observers.notifyObservers(obs -> obs.onPlayerAdded(this, added));
 	}
 
 	public void internalRemovePlayer(String playerName) {
@@ -126,7 +126,7 @@ public class InternalChannel implements IChannel {
 				iterator.remove();
 				if (player.getName().equals(removed.getName()))
 					this.player.setChannel(null);
-				notifyObservers(obs -> obs.onPlayerRemoved(this, removed));
+				observers.notifyObservers(obs -> obs.onPlayerRemoved(this, removed));
 				break;
 			}
 		}
@@ -135,7 +135,7 @@ public class InternalChannel implements IChannel {
 	public void internalSetName(String name) {
 		String oldName = new String(this.name);
 		this.name = name;
-		notifyObservers(obs -> obs.onChannelRename(this, oldName, name));
+		observers.notifyObservers(obs -> obs.onChannelRename(this, oldName, name));
 	}
 
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
@@ -152,7 +152,10 @@ public class InternalChannel implements IChannel {
 		otherPlayer.get().setDeafen(isDeafen);
 	}
 
-	private void notifyObservers(Consumer<IObsChannel> consumer) {
-		observers.notifyObservers(consumer);
+	public void internalSetModifierName(String name) {
+		if (getSoundModifier().getName().equals(name))
+			return;
+		soundModifier.internalSetName(name);
+		observers.notifyObservers(obs -> obs.onSoundModifierChanged(this, soundModifier));
 	}
 }

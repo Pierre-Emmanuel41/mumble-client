@@ -171,6 +171,11 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 
 			channelList.onPlayerDeafenChanged(playerName, isDeafen);
 			break;
+		case SOUND_MODIFIER:
+			String involvedChannel = (String) message.getPayload()[0];
+			String soundModifierName = (String) message.getPayload()[1];
+			channelList.getChannel(involvedChannel).internalSetModifierName(soundModifierName);
+			break;
 		default:
 			break;
 		}
@@ -218,19 +223,20 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 				IMessage<Header> answer = MumbleMessageFactory.parse(udpArgs.getResponse().getBytes());
 				udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
 				audioConnection = new AudioConnection(udpConnection);
+
+				// Then getting the list of supported modifiers.
+				send(create(Idc.SOUND_MODIFIER, Oid.INFO), args -> filter(args, callback, payload -> {
+					int currentIndex = 0;
+					int numberOfModifiers = (int) payload[currentIndex++];
+
+					modifierNames = new ArrayList<String>();
+					for (int i = 0; i < numberOfModifiers; i++)
+						modifierNames.add((String) payload[currentIndex++]);
+
+					// Finally calling initial callback
+					callback.accept(new Response<Boolean>(true));
+				}));
 			}));
-
-			// Then getting the list of supported modifiers.
-			send(create(Idc.SOUND_MODIFIER, Oid.INFO), args -> filter(args, callback, payload -> {
-				int currentIndex = 0;
-				int numberOfModifiers = (int) payload[currentIndex++];
-
-				modifierNames = new ArrayList<String>();
-				for (int i = 0; i < numberOfModifiers; i++)
-					modifierNames.add((String) payload[currentIndex++]);
-			}));
-
-			callback.accept(new Response<Boolean>(true));
 		}));
 	}
 
