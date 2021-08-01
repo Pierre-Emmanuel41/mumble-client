@@ -1,6 +1,9 @@
 package fr.pederobien.mumble.client.interfaces;
 
-public interface IAudioConnection {
+import fr.pederobien.mumble.client.interfaces.observers.IObsAudioConnection;
+import fr.pederobien.utils.IObservable;
+
+public interface IAudioConnection extends IObservable<IObsAudioConnection> {
 
 	/**
 	 * Starts the microphone, starts the speakers, connects the internal connection to the remote and send to the remote the data

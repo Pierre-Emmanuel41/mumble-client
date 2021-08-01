@@ -20,10 +20,9 @@ import fr.pederobien.sound.interfaces.IObsMicrophone;
 import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
 import fr.pederobien.sound.interfaces.ISpeakers;
 import fr.pederobien.utils.ByteWrapper;
-import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
 
-public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsConnection, IObservable<IObsAudioConnection> {
+public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsConnection {
 	private static int N_SHORTS = 0xffff;
 	private static final short[] VOLUME_NORM_LUT = new short[N_SHORTS];
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
