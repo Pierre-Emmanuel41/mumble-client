@@ -9,12 +9,16 @@ import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IAudioConnection;
 import fr.pederobien.mumble.client.interfaces.observers.IObsAudioConnection;
-import fr.pederobien.mumble.client.interfaces.observers.IObsMicrophone;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.sound.interfaces.IMicrophone;
+import fr.pederobien.sound.interfaces.IMixer;
+import fr.pederobien.sound.interfaces.IObsMicrophone;
+import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
+import fr.pederobien.sound.interfaces.ISpeakers;
 import fr.pederobien.utils.ByteWrapper;
 import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
@@ -25,16 +29,20 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
 
 	private IUdpConnection connection;
-	private Microphone microphone;
+	private IMicrophone microphone;
+	private IMixer mixer;
+	private ISpeakers speakers;
 	private AtomicBoolean isConnected;
-	private Mixer mixer;
-	private Speakers speakers;
 	private boolean pauseMicrophone, pauseSpeakers;
 	private Observable<IObsAudioConnection> observers;
 
-	public AudioConnection(IUdpConnection connection) {
+	public AudioConnection(IUdpConnection connection, ISoundResourcesProvider soundResourcesProvider) {
 		this.connection = connection;
 		connection.addObserver(this);
+
+		microphone = soundResourcesProvider.getMicrophone();
+		mixer = soundResourcesProvider.getMixer();
+		speakers = soundResourcesProvider.getSpeakers();
 
 		isConnected = new AtomicBoolean(false);
 		observers = new Observable<IObsAudioConnection>();
@@ -71,7 +79,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		if (pauseSpeakers || message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
 			return;
 
-		mixer.put((String) message.getPayload()[0], toStereo(message));
+		mixer.put((String) message.getPayload()[0], toStereo(message), (double) message.getPayload()[2], false);
 	}
 
 	@Override
@@ -178,12 +186,8 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	}
 
 	private void start() {
-		microphone = new Microphone();
 		microphone.addObserver(this);
 		microphone.start();
-
-		mixer = new Mixer();
-		speakers = new Speakers(mixer);
 		speakers.start();
 
 		pauseMicrophone = false;
@@ -212,7 +216,6 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 	private byte[] toStereo(IMessage<Header> message) {
 		byte[] buffer = (byte[]) message.getPayload()[1];
-		double global = (double) message.getPayload()[2];
 		double left = (double) message.getPayload()[3];
 		double right = (double) message.getPayload()[4];
 
@@ -220,8 +223,8 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		int index = 0;
 		for (int i = 0; i < buffer.length; i += 2) {
 			short initialShort = (short) ((buffer[i + 1] & 0xff) << 8 | buffer[i] & 0xff);
-			short leftResult = (short) (((double) initialShort) * left * global);
-			short rightResult = (short) (((double) initialShort) * right * global);
+			short leftResult = (short) (((double) initialShort) * left);
+			short rightResult = (short) (((double) initialShort) * right);
 
 			data[index++] = (byte) leftResult;
 			data[index++] = (byte) (leftResult >> 8);

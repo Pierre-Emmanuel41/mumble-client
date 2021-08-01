@@ -38,6 +38,8 @@ import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.sound.impl.SoundResourcesProvider;
+import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
 import fr.pederobien.utils.AsyncConsole;
 import fr.pederobien.utils.Observable;
 
@@ -45,6 +47,7 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
+	private ISoundResourcesProvider soundResourcesProvider;
 	private Observable<IObsMumbleConnection> observers;
 	private AudioConnection audioConnection;
 	private InternalPlayer player;
@@ -57,6 +60,7 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 		this.remoteAddress = remoteAddress;
 		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
 
+		soundResourcesProvider = new SoundResourcesProvider(true, 5000, 100);
 		player = new InternalPlayer(this, false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
 		observers = new Observable<IObsMumbleConnection>();
@@ -222,7 +226,7 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 			send(create(Idc.UDP_PORT), udpArgs -> filter(udpArgs, callback, udpPayload -> {
 				IMessage<Header> answer = MumbleMessageFactory.parse(udpArgs.getResponse().getBytes());
 				udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
-				audioConnection = new AudioConnection(udpConnection);
+				audioConnection = new AudioConnection(udpConnection, soundResourcesProvider);
 
 				// Then getting the list of supported modifiers.
 				send(create(Idc.SOUND_MODIFIER, Oid.INFO), args -> filter(args, callback, payload -> {
