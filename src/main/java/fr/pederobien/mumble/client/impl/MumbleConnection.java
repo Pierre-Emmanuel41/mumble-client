@@ -60,7 +60,7 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 		this.remoteAddress = remoteAddress;
 		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
 
-		soundResourcesProvider = new SoundResourcesProvider(true, 5000, 100);
+		soundResourcesProvider = new SoundResourcesProvider();
 		player = new InternalPlayer(this, false, DEFAULT_PLAYER_NAME, null, false);
 		channelList = new InternalChannelList(this, player);
 		observers = new Observable<IObsMumbleConnection>();
