@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,13 +23,9 @@ import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
 import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
-import fr.pederobien.mumble.client.interfaces.IMumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
-import fr.pederobien.mumble.client.internal.InternalChannel;
-import fr.pederobien.mumble.client.internal.InternalChannelList;
-import fr.pederobien.mumble.client.internal.InternalPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -38,39 +33,26 @@ import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.sound.impl.SoundResourcesProvider;
-import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
 import fr.pederobien.utils.AsyncConsole;
+import fr.pederobien.utils.IObservable;
 import fr.pederobien.utils.Observable;
 
-public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
-	protected static final String DEFAULT_PLAYER_NAME = "Unknown";
+public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumbleConnection> {
+	private MumbleServer mumbleServer;
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
-	private ISoundResourcesProvider soundResourcesProvider;
 	private Observable<IObsMumbleConnection> observers;
 	private AudioConnection audioConnection;
-	private InternalPlayer player;
-	private InternalChannelList channelList;
 	private AtomicBoolean isDisposed;
-	private String remoteAddress;
-	private List<String> modifierNames;
 
-	private MumbleConnection(String remoteAddress, int tcpPort, boolean isEnabled) {
-		this.remoteAddress = remoteAddress;
-		tcpConnection = new TcpClientConnection(remoteAddress, tcpPort, new MessageExtractor(), isEnabled);
+	protected MumbleConnection(MumbleServer mumbleServer) {
+		this.mumbleServer = mumbleServer;
+		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 
-		soundResourcesProvider = new SoundResourcesProvider();
-		player = new InternalPlayer(this, false, DEFAULT_PLAYER_NAME, null, false);
-		channelList = new InternalChannelList(this, player);
 		observers = new Observable<IObsMumbleConnection>();
 		isDisposed = new AtomicBoolean(false);
 
 		tcpConnection.addObserver(this);
-	}
-
-	public static IMumbleConnection of(String remoteAddress, int tcpPort) {
-		return new MumbleConnection(remoteAddress, tcpPort, true);
 	}
 
 	@Override
@@ -109,99 +91,68 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 
 	@Override
 	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
-		if (player == null)
-			return;
-
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
 		switch (message.getHeader().getIdc()) {
 		case PLAYER_INFO:
 			if (message.getPayload().length > 1)
-				player.setName((String) message.getPayload()[1]);
-			player.setIsOnline((boolean) message.getPayload()[0]);
+				mumbleServer.getInternalPlayer().setName((String) message.getPayload()[1]);
+			mumbleServer.getInternalPlayer().setIsOnline((boolean) message.getPayload()[0]);
 			break;
 		case PLAYER_ADMIN:
-			player.setIsAdmin((boolean) message.getPayload()[0]);
+			mumbleServer.getInternalPlayer().setIsAdmin((boolean) message.getPayload()[0]);
 			break;
 		case CHANNELS:
 			switch (message.getHeader().getOid()) {
 			case ADD:
-				channelList.internalAdd(new InternalChannel(this, (String) message.getPayload()[0], (String) message.getPayload()[1], modifierNames));
+				mumbleServer.internalAddChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
 				break;
 			case REMOVE:
-				channelList.internalRemove((String) message.getPayload()[0]);
+				mumbleServer.internalRemoveChannel((String) message.getPayload()[0]);
 				break;
 			case SET:
-				String oldName = (String) message.getPayload()[0];
-				String newName = (String) message.getPayload()[1];
-				channelList.getChannel(oldName).internalSetName(newName);
+				mumbleServer.internalSetChannelName((String) message.getPayload()[0], (String) message.getPayload()[1]);
 			default:
 				break;
 			}
 			break;
 		case CHANNELS_PLAYER:
-			String channelName, playerName;
 			switch (message.getHeader().getOid()) {
 			case ADD:
-				channelName = (String) message.getPayload()[0];
-				playerName = (String) message.getPayload()[1];
-				channelList.getChannel(channelName).internalAddPlayer(playerName);
+				mumbleServer.internalAddPlayerToChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
 				break;
 			case REMOVE:
-				channelName = (String) message.getPayload()[0];
-				playerName = (String) message.getPayload()[1];
-				channelList.getChannel(channelName).internalRemovePlayer(playerName);
+				mumbleServer.internalRemovePlayerFromChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
 				break;
 			default:
 				break;
 			}
 			break;
 		case PLAYER_MUTE:
-			playerName = (String) message.getPayload()[0];
-			boolean isMute = (boolean) message.getPayload()[1];
-
-			// In order to update the PlayerView
-			if (player.getName().equals(playerName))
-				player.internalSetMute(isMute);
-
-			channelList.onPlayerMuteChanged(playerName, isMute);
+			mumbleServer.onPlayerMuteChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
 			break;
 		case PLAYER_DEAFEN:
-			playerName = (String) message.getPayload()[0];
-			boolean isDeafen = (boolean) message.getPayload()[1];
-
-			// In order to update the PlayerView
-			if (player.getName().equals(playerName))
-				player.internalSetDeafen(isDeafen);
-
-			channelList.onPlayerDeafenChanged(playerName, isDeafen);
+			mumbleServer.onPlayerDeafenChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
 			break;
 		case SOUND_MODIFIER:
-			String involvedChannel = (String) message.getPayload()[0];
-			String soundModifierName = (String) message.getPayload()[1];
-			channelList.getChannel(involvedChannel).internalSetModifierName(soundModifierName);
+			mumbleServer.internalSetSoundModifierOfChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
 			break;
 		default:
 			break;
 		}
 	}
 
-	@Override
-	public InetSocketAddress getAddress() {
-		return tcpConnection.getAddress();
-	}
-
-	@Override
 	public void connect() {
 		tcpConnection.connect();
 	}
 
-	@Override
 	public void disconnect() {
 		tcpConnection.disconnect();
-		udpConnection.disconnect();
+
+		// Could be null if disposing the connection whereas the server was not reachable.
+		if (udpConnection != null)
+			udpConnection.disconnect();
 	}
 
-	@Override
 	public void dispose() {
 		if (!isDisposed.compareAndSet(false, true))
 			return;
@@ -209,60 +160,56 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 		tcpConnection.dispose();
 
 		// Could be null if disposing the connection whereas the server was not reachable.
-		if (udpConnection != null)
+		if (udpConnection != null && !udpConnection.isDisposed())
 			udpConnection.dispose();
 	}
 
-	@Override
 	public boolean isDisposed() {
 		return isDisposed.get();
 	}
 
-	@Override
-	public void join(Consumer<IResponse<Boolean>> callback) {
+	public void join(Consumer<IResponse<List<String>>> callback) {
 		send(create(Idc.SERVER_JOIN, Oid.SET), joinArgs -> filter(joinArgs, callback, joinPayload -> {
 
 			// First getting the udp port.
 			send(create(Idc.UDP_PORT), udpArgs -> filter(udpArgs, callback, udpPayload -> {
 				IMessage<Header> answer = MumbleMessageFactory.parse(udpArgs.getResponse().getBytes());
-				udpConnection = new UdpClientConnection(remoteAddress, (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
-				audioConnection = new AudioConnection(udpConnection, soundResourcesProvider);
+				udpConnection = new UdpClientConnection(mumbleServer.getAddress(), (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
+				audioConnection = new AudioConnection(udpConnection);
 
 				// Then getting the list of supported modifiers.
 				send(create(Idc.SOUND_MODIFIER, Oid.INFO), args -> filter(args, callback, payload -> {
 					int currentIndex = 0;
 					int numberOfModifiers = (int) payload[currentIndex++];
 
-					modifierNames = new ArrayList<String>();
+					List<String> modifierNames = new ArrayList<String>();
 					for (int i = 0; i < numberOfModifiers; i++)
 						modifierNames.add((String) payload[currentIndex++]);
 
 					// Finally calling initial callback
-					callback.accept(new Response<Boolean>(true));
+					callback.accept(new Response<List<String>>(modifierNames));
 				}));
 			}));
 		}));
 	}
 
-	@Override
 	public void leave() {
 		send(create(Idc.SERVER_LEAVE, Oid.SET));
+		udpConnection.dispose();
 	}
 
-	@Override
 	public void getPlayer(Consumer<IResponse<IPlayer>> callback) {
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		getUniqueIdentifier(callback);
 	}
 
-	@Override
 	public void getChannels(Consumer<IResponse<IChannelList>> callback) {
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		send(create(Idc.CHANNELS), args -> filter(args, callback, payload -> {
 			int currentIndex = 0;
 			int numberOfChannels = (int) payload[currentIndex++];
 
-			channelList.clear();
+			mumbleServer.getInternalChannelList().clear();
 			for (int i = 0; i < numberOfChannels; i++) {
 				String channelName = (String) payload[currentIndex++];
 				String soundModifierName = (String) payload[currentIndex++];
@@ -272,13 +219,12 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 				for (int j = 0; j < numberOfPlayers; j++)
 					players.add((String) payload[currentIndex++]);
 
-				channelList.internalAdd(new InternalChannel(this, channelName, players, soundModifierName, modifierNames));
+				mumbleServer.internalAddChannel(channelName, players, soundModifierName);
 			}
-			callback.accept(new Response<IChannelList>(channelList));
+			callback.accept(new Response<IChannelList>(mumbleServer.getChannelList()));
 		}));
 	}
 
-	@Override
 	public AudioConnection getAudioConnection() {
 		return audioConnection;
 	}
@@ -477,12 +423,12 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 
 	private void getPlayerName(Consumer<IResponse<IPlayer>> callback, UUID uuid) {
 		send(create(Idc.PLAYER_INFO), args -> filter(args, callback, payload -> {
-			boolean isOnline = (boolean) payload[0];
-			player.setIsOnline(isOnline);
-			player.setName(isOnline ? (String) payload[1] : DEFAULT_PLAYER_NAME);
-			player.setUUID(uuid);
-			player.setIsAdmin(isOnline ? (boolean) payload[2] : false);
-			callback.accept(new Response<IPlayer>(player));
+			// Case online
+			if ((boolean) payload[0])
+				mumbleServer.updatePlayerInfo((boolean) payload[0], (String) payload[1], uuid, (boolean) payload[2]);
+			else
+				mumbleServer.updatePlayerInfo((boolean) payload[0], null, uuid, false);
+			callback.accept(new Response<IPlayer>(mumbleServer.getPlayer()));
 		}));
 	}
 
@@ -528,9 +474,8 @@ public class MumbleConnection implements IMumbleConnection, IObsTcpConnection {
 	}
 
 	private void checkPlayerProperties() {
-		throwIf(player == null, "The player is null");
-		throwIf(!player.isOnline(), "The player is not connected.");
-		throwIf(!player.isAdmin(), "The player has to be an administrator of the server.");
+		throwIf(!mumbleServer.getPlayer().isOnline(), "The player is not connected.");
+		throwIf(!mumbleServer.getPlayer().isAdmin(), "The player has to be an administrator of the server.");
 	}
 
 	private void throwIf(boolean condition, String message) {

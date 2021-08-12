@@ -14,11 +14,9 @@ import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.sound.interfaces.IMicrophone;
-import fr.pederobien.sound.interfaces.IMixer;
+import fr.pederobien.sound.impl.SoundResourcesProvider;
 import fr.pederobien.sound.interfaces.IObsMicrophone;
 import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
-import fr.pederobien.sound.interfaces.ISpeakers;
 import fr.pederobien.utils.ByteWrapper;
 import fr.pederobien.utils.Observable;
 
@@ -27,21 +25,15 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	private static final short[] VOLUME_NORM_LUT = new short[N_SHORTS];
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
 
+	private ISoundResourcesProvider soundProvider;
 	private IUdpConnection connection;
-	private IMicrophone microphone;
-	private IMixer mixer;
-	private ISpeakers speakers;
 	private AtomicBoolean isConnected;
 	private boolean pauseMicrophone, pauseSpeakers;
 	private Observable<IObsAudioConnection> observers;
 
-	public AudioConnection(IUdpConnection connection, ISoundResourcesProvider soundResourcesProvider) {
+	public AudioConnection(IUdpConnection connection) {
 		this.connection = connection;
 		connection.addObserver(this);
-
-		microphone = soundResourcesProvider.getMicrophone();
-		mixer = soundResourcesProvider.getMixer();
-		speakers = soundResourcesProvider.getSpeakers();
 
 		isConnected = new AtomicBoolean(false);
 		observers = new Observable<IObsAudioConnection>();
@@ -65,11 +57,11 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 	@Override
 	public void onConnectionDisposed() {
-		if (microphone != null)
-			microphone.interrupt();
-
-		if (speakers != null)
-			speakers.interrupt();
+		if (soundProvider != null) {
+			soundProvider.getMicrophone().interrupt();
+			soundProvider.getSpeakers().interrupt();
+		}
+		connection.removeObserver(this);
 	}
 
 	@Override
@@ -78,7 +70,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		if (pauseSpeakers || message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
 			return;
 
-		mixer.put((String) message.getPayload()[0], toStereo(message), (double) message.getPayload()[2], false);
+		soundProvider.getMixer().put((String) message.getPayload()[0], toStereo(message), (double) message.getPayload()[2], false);
 	}
 
 	@Override
@@ -113,15 +105,16 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		if (!isConnected.compareAndSet(true, false))
 			return;
 
-		microphone.removeObserver(this);
-		microphone.interrupt();
-		speakers.interrupt();
+		soundProvider.getMicrophone().removeObserver(this);
+		soundProvider.getMicrophone().interrupt();
+		soundProvider.getSpeakers().interrupt();
 		connection.disconnect();
 		observers.notifyObservers(obs -> obs.onAudioDisconnect());
 	}
 
 	/**
-	 * Stops the microphone and the speakers. But does not disconnected the internal connection from the remote.
+	 * Stops the soundProvider.getMicrophone() and the soundProvider.getSpeakers(). But does not disconnected the internal connection
+	 * from the remote.
 	 */
 	public void pause() {
 		pauseMicrophone();
@@ -129,31 +122,32 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	}
 
 	/**
-	 * Pause the microphone, no data are sent to the remote.
+	 * Pause the soundProvider.getMicrophone(), no data are sent to the remote.
 	 */
 	public void pauseMicrophone() {
 		if (pauseMicrophone)
 			return;
 
 		pauseMicrophone = true;
-		microphone.pause();
+		soundProvider.getMicrophone().pause();
 		observers.notifyObservers(obs -> obs.onPauseMicrophone());
 	}
 
 	/**
-	 * Pause the speakers, data are received from the remote but no played by the speakers.
+	 * Pause the soundProvider.getSpeakers(), data are received from the remote but no played by the soundProvider.getSpeakers().
 	 */
 	public void pauseSpeakers() {
 		if (pauseSpeakers)
 			return;
 
 		pauseSpeakers = true;
-		speakers.pause();
+		soundProvider.getSpeakers().pause();
 		observers.notifyObservers(obs -> obs.onPauseSpeakers());
 	}
 
 	/**
-	 * Resumes the microphone and the speakers in order to send again data to the remote and receive data from the remote.
+	 * Resumes the soundProvider.getMicrophone() and the soundProvider.getSpeakers() in order to send again data to the remote and
+	 * receive data from the remote.
 	 */
 	public void resume() {
 		resumeMicrophone();
@@ -161,33 +155,34 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	}
 
 	/**
-	 * Resume the microphone, data are sent to the remote.
+	 * Resume the soundProvider.getMicrophone(), data are sent to the remote.
 	 */
 	public void resumeMicrophone() {
 		if (!pauseMicrophone)
 			return;
 
 		pauseMicrophone = false;
-		microphone.relaunch();
+		soundProvider.getMicrophone().relaunch();
 		observers.notifyObservers(obs -> obs.onResumeMicrophone());
 	}
 
 	/**
-	 * Resume the speakers, data are received from the remote and played by the speakers.
+	 * Resume the soundProvider.getSpeakers(), data are received from the remote and played by the soundProvider.getSpeakers().
 	 */
 	public void resumeSpeakers() {
 		if (!pauseSpeakers)
 			return;
 
 		pauseSpeakers = false;
-		speakers.relaunch();
+		soundProvider.getSpeakers().relaunch();
 		observers.notifyObservers(obs -> obs.onResumeSpeakers());
 	}
 
 	private void start() {
-		microphone.addObserver(this);
-		microphone.start();
-		speakers.start();
+		soundProvider = new SoundResourcesProvider();
+		soundProvider.getMicrophone().addObserver(this);
+		soundProvider.getMicrophone().start();
+		soundProvider.getSpeakers().start();
 
 		pauseMicrophone = false;
 		pauseSpeakers = false;
