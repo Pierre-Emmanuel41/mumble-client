@@ -14,13 +14,16 @@ import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.sound.event.MicrophoneDataReadEvent;
 import fr.pederobien.sound.impl.SoundResourcesProvider;
-import fr.pederobien.sound.interfaces.IObsMicrophone;
 import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
-import fr.pederobien.utils.ByteWrapper;
 import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsConnection {
+public class AudioConnection implements IAudioConnection, IEventListener, IObsConnection {
 	private static int N_SHORTS = 0xffff;
 	private static final short[] VOLUME_NORM_LUT = new short[N_SHORTS];
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
@@ -79,19 +82,6 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 	}
 
 	@Override
-	public void onDataRead(byte[] data, int size) {
-		byte[] buffer = data;
-		if (data.length != size)
-			buffer = ByteWrapper.wrap(data).extract(0, size);
-
-		if (connection.isDisposed())
-			return;
-
-		normalizeVolume(buffer);
-		connection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, buffer)));
-	}
-
-	@Override
 	public void connect() {
 		if (!isConnected.compareAndSet(false, true))
 			return;
@@ -105,7 +95,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		if (!isConnected.compareAndSet(true, false))
 			return;
 
-		soundProvider.getMicrophone().removeObserver(this);
+		EventManager.unregisterListener(this);
 		soundProvider.getMicrophone().interrupt();
 		soundProvider.getSpeakers().interrupt();
 		connection.disconnect();
@@ -180,7 +170,7 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 
 	private void start() {
 		soundProvider = new SoundResourcesProvider();
-		soundProvider.getMicrophone().addObserver(this);
+		EventManager.registerListener(this);
 		soundProvider.getMicrophone().start();
 		soundProvider.getSpeakers().start();
 
@@ -227,5 +217,14 @@ public class AudioConnection implements IAudioConnection, IObsMicrophone, IObsCo
 		}
 
 		return data;
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onMicrophoneDataRead(MicrophoneDataReadEvent event) {
+		if (connection.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
+			return;
+
+		normalizeVolume(event.getData());
+		connection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, event.getData())));
 	}
 }
