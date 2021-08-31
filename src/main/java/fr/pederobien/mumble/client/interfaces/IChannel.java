@@ -1,15 +1,14 @@
 package fr.pederobien.mumble.client.interfaces;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
 import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
-import fr.pederobien.mumble.client.interfaces.observers.IObsChannel;
-import fr.pederobien.utils.IObservable;
 
-public interface IChannel extends IObservable<IObsChannel> {
+public interface IChannel {
 
 	/**
 	 * @return The channel's name.
@@ -39,9 +38,9 @@ public interface IChannel extends IObservable<IObsChannel> {
 	void removePlayer(Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback);
 
 	/**
-	 * @return A list that contains players registered on this channel. This list is unmodifiable.
+	 * @return A map that contains players registered on this channel. This list is unmodifiable.
 	 */
-	List<IOtherPlayer> getPlayers();
+	Map<String, IOtherPlayer> getPlayers();
 
 	/**
 	 * @return The sound modifier attached to this channel.

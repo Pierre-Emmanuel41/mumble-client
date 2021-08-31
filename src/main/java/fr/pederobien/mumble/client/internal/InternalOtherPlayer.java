@@ -42,7 +42,7 @@ public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> 
 		return isDeafen;
 	}
 
-	public void setDeafen(boolean isDeafen) {
+	public void internalSetDeafen(boolean isDeafen) {
 		if (this.isDeafen == isDeafen)
 			return;
 

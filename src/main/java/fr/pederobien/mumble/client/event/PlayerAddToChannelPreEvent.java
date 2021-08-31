@@ -1,22 +1,21 @@
 package fr.pederobien.mumble.client.event;
 
 import fr.pederobien.mumble.client.interfaces.IChannel;
-import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerAddToChannelPreEvent extends ChannelEvent implements ICancellable {
 	private boolean isCancelled;
-	private IOtherPlayer player;
+	private String playerName;
 
 	/**
 	 * Creates an event thrown when a player is about to be added to a channel.
 	 * 
-	 * @param channel The channel to which the player is about to be added.
-	 * @param player  The player that is about to be added.
+	 * @param channel    The channel to which the player is about to be added.
+	 * @param playerName The name of the player that is about to be added.
 	 */
-	public PlayerAddToChannelPreEvent(IChannel channel, IOtherPlayer player) {
+	public PlayerAddToChannelPreEvent(IChannel channel, String playerName) {
 		super(channel);
-		this.player = player;
+		this.playerName = playerName;
 	}
 
 	@Override
@@ -30,9 +29,9 @@ public class PlayerAddToChannelPreEvent extends ChannelEvent implements ICancell
 	}
 
 	/**
-	 * @return The player about to be added to the channel.
+	 * @return The name of the player about to be added to the channel.
 	 */
-	public IOtherPlayer getPlayer() {
-		return player;
+	public String getPlayer() {
+		return playerName;
 	}
 }

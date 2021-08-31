@@ -2,27 +2,31 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
+import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
+import fr.pederobien.mumble.client.event.PlayerAddToChannelPostEvent;
+import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
 import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
+import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
+import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPreEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
-import fr.pederobien.mumble.client.interfaces.observers.IObsChannel;
-import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventManager;
 
 public class InternalChannel implements IChannel {
 	private String name;
 	private List<String> modifierNames;
-	private List<InternalOtherPlayer> players;
-	private Observable<IObsChannel> observers;
+	private Map<String, InternalOtherPlayer> players;
 	private MumbleConnection connection;
 	private InternalPlayer player;
 	private InternalSoundModifier soundModifier;
@@ -30,27 +34,16 @@ public class InternalChannel implements IChannel {
 	public InternalChannel(MumbleConnection connection, String name, List<String> players, String soundModifierName, List<String> modifierNames) {
 		this.connection = connection;
 		this.name = name;
-		this.players = new ArrayList<InternalOtherPlayer>();
+		this.players = new HashMap<String, InternalOtherPlayer>();
 		this.soundModifier = new InternalSoundModifier(connection, this, soundModifierName);
 		for (String playerName : players)
-			this.players.add(new InternalOtherPlayer(connection, player, playerName));
+			this.players.put(playerName, new InternalOtherPlayer(connection, player, playerName));
 
-		observers = new Observable<IObsChannel>();
 		this.modifierNames = modifierNames;
 	}
 
 	public InternalChannel(MumbleConnection connection, String name, String soundModifierName, List<String> modifierNames) {
 		this(connection, name, new ArrayList<String>(), soundModifierName, modifierNames);
-	}
-
-	@Override
-	public void addObserver(IObsChannel obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsChannel obs) {
-		observers.removeObserver(obs);
 	}
 
 	@Override
@@ -63,22 +56,23 @@ public class InternalChannel implements IChannel {
 		if (this.name == name)
 			return;
 
-		connection.renameChannel(this.name, name, callback);
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> connection.renameChannel(this.name, name, callback));
 	}
 
 	@Override
 	public void addPlayer(Consumer<IResponse<PlayerAddedToChannelEvent>> callback) {
-		connection.addPlayerToChannel(getName(), player.getName(), callback);
+		EventManager.callEvent(new PlayerAddToChannelPreEvent(this, player.getName()), () -> connection.addPlayerToChannel(getName(), player.getName(), callback));
 	}
 
 	@Override
 	public void removePlayer(Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
-		connection.removePlayerfromChannel(getName(), player.getName(), callback);
+		IOtherPlayer removed = players.get(player.getName());
+		EventManager.callEvent(new PlayerRemoveFromChannelPreEvent(this, removed), () -> connection.removePlayerfromChannel(getName(), player.getName(), callback));
 	}
 
 	@Override
-	public List<IOtherPlayer> getPlayers() {
-		return Collections.unmodifiableList(players);
+	public Map<String, IOtherPlayer> getPlayers() {
+		return Collections.unmodifiableMap(players);
 	}
 
 	@Override
@@ -110,52 +104,51 @@ public class InternalChannel implements IChannel {
 		this.player = player;
 	}
 
-	public void internalAddPlayer(String playerName) {
-		InternalOtherPlayer added = new InternalOtherPlayer(connection, player, playerName);
-		players.add(added);
-		if (player.getName().equals(added.getName()))
-			this.player.setChannel(this);
-		observers.notifyObservers(obs -> obs.onPlayerAdded(this, added));
-	}
-
-	public void internalRemovePlayer(String playerName) {
-		Iterator<InternalOtherPlayer> iterator = players.iterator();
-		while (iterator.hasNext()) {
-			IOtherPlayer removed = iterator.next();
-			if (removed.getName().equals(playerName)) {
-				iterator.remove();
-				if (player.getName().equals(removed.getName()))
-					this.player.setChannel(null);
-				observers.notifyObservers(obs -> obs.onPlayerRemoved(this, removed));
-				break;
-			}
-		}
-	}
-
 	public void internalSetName(String name) {
 		String oldName = new String(this.name);
 		this.name = name;
-		observers.notifyObservers(obs -> obs.onChannelRename(this, oldName, name));
+		EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
+	}
+
+	public void internalAddPlayer(String playerName) {
+		if (players.get(playerName) != null)
+			return;
+
+		InternalOtherPlayer added = new InternalOtherPlayer(connection, player, playerName);
+		players.put(playerName, added);
+		if (player.getName().equals(added.getName()))
+			this.player.setChannel(this);
+		EventManager.callEvent(new PlayerAddToChannelPostEvent(this, added));
+	}
+
+	public void internalRemovePlayer(String playerName) {
+		IOtherPlayer removed = players.remove(playerName);
+		if (removed == null)
+			return;
+
+		if (removed.getName().equals(player.getName()))
+			player.setChannel(null);
+
+		EventManager.callEvent(new PlayerRemoveFromChannelPostEvent(this, removed));
 	}
 
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		Optional<InternalOtherPlayer> otherPlayer = players.stream().filter(player -> player.getName().equals(playerName)).findFirst();
-		if (!otherPlayer.isPresent())
+		InternalOtherPlayer otherPlayer = players.get(playerName);
+		if (otherPlayer == null)
 			return;
-		otherPlayer.get().internalSetMute(isMute);
+		otherPlayer.internalSetMute(isMute);
 	}
 
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		Optional<InternalOtherPlayer> otherPlayer = players.stream().filter(player -> player.getName().equals(playerName)).findFirst();
-		if (!otherPlayer.isPresent())
+		InternalOtherPlayer otherPlayer = players.get(playerName);
+		if (otherPlayer == null)
 			return;
-		otherPlayer.get().setDeafen(isDeafen);
+		otherPlayer.internalSetDeafen(isDeafen);
 	}
 
 	public void internalSetModifierName(String name) {
 		if (getSoundModifier().getName().equals(name))
 			return;
 		soundModifier.internalSetName(name);
-		observers.notifyObservers(obs -> obs.onSoundModifierChanged(this, soundModifier));
 	}
 }
