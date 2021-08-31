@@ -2,10 +2,7 @@ package fr.pederobien.mumble.client.interfaces;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.interfaces.observers.IObsSoundModifier;
-import fr.pederobien.utils.IObservable;
-
-public interface ISoundModifier extends IObservable<IObsSoundModifier> {
+public interface ISoundModifier {
 
 	/**
 	 * @return The name of the sound modifier.

@@ -2,15 +2,15 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.SoundModifierNameChangePostEvent;
+import fr.pederobien.mumble.client.event.SoundModifierNameChangePreEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
-import fr.pederobien.mumble.client.interfaces.observers.IObsSoundModifier;
-import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventManager;
 
 public class InternalSoundModifier implements ISoundModifier {
-	private Observable<IObsSoundModifier> observers;
 	private MumbleConnection connection;
 	private IChannel channel;
 	private String name;
@@ -19,18 +19,6 @@ public class InternalSoundModifier implements ISoundModifier {
 		this.connection = connection;
 		this.channel = channel;
 		this.name = name;
-
-		observers = new Observable<IObsSoundModifier>();
-	}
-
-	@Override
-	public void addObserver(IObsSoundModifier obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsSoundModifier obs) {
-		observers.removeObserver(obs);
 	}
 
 	@Override
@@ -40,7 +28,7 @@ public class InternalSoundModifier implements ISoundModifier {
 
 	@Override
 	public void setName(String name, Consumer<IResponse<String>> callback) {
-		connection.setChannelModifierName(channel.getName(), name, callback);
+		EventManager.callEvent(new SoundModifierNameChangePreEvent(this, name), () -> connection.setChannelModifierName(channel.getName(), name, callback));
 	}
 
 	@Override
@@ -65,6 +53,6 @@ public class InternalSoundModifier implements ISoundModifier {
 			return;
 		String oldName = new String(this.name);
 		this.name = name;
-		observers.notifyObservers(obs -> obs.onNameChanged(this, oldName, name));
+		EventManager.callEvent(new SoundModifierNameChangePostEvent(this, oldName));
 	}
 }
