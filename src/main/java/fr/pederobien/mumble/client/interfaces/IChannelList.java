@@ -1,14 +1,12 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelAddedEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
-import fr.pederobien.mumble.client.interfaces.observers.IObsChannelList;
-import fr.pederobien.utils.IObservable;
 
-public interface IChannelList extends IObservable<IObsChannelList> {
+public interface IChannelList {
 
 	/**
 	 * Create a channel with the given name and add it to this server configuration.
@@ -30,5 +28,5 @@ public interface IChannelList extends IObservable<IObsChannelList> {
 	/**
 	 * @return The list of channels registered on the server. This list is unmodifiable.
 	 */
-	List<IChannel> getChannels();
+	Map<String, IChannel> getChannels();
 }
