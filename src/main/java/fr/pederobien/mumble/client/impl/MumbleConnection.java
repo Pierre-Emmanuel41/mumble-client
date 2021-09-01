@@ -8,6 +8,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
+import fr.pederobien.communication.event.ConnectionCompleteEvent;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
@@ -25,7 +28,6 @@ import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
@@ -35,14 +37,12 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.AsyncConsole;
-import fr.pederobien.utils.IObservable;
-import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventManager;
 
-public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumbleConnection> {
+public class MumbleConnection implements IObsTcpConnection {
 	private MumbleServer mumbleServer;
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
-	private Observable<IObsMumbleConnection> observers;
 	private AudioConnection audioConnection;
 	private AtomicBoolean isDisposed;
 
@@ -50,30 +50,19 @@ public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumb
 		this.mumbleServer = mumbleServer;
 		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 
-		observers = new Observable<IObsMumbleConnection>();
 		isDisposed = new AtomicBoolean(false);
 
 		tcpConnection.addObserver(this);
 	}
 
 	@Override
-	public void addObserver(IObsMumbleConnection obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsMumbleConnection obs) {
-		observers.removeObserver(obs);
-	}
-
-	@Override
 	public void onConnectionComplete() {
-		observers.notifyObservers(obs -> obs.onConnectionComplete());
+		EventManager.callEvent(new ConnectionCompleteEvent(tcpConnection));
 	}
 
 	@Override
 	public void onConnectionDisposed() {
-		observers.notifyObservers(obs -> obs.onConnectionDisposed());
+		EventManager.callEvent(new ConnectionDisposedEvent(tcpConnection));
 	}
 
 	@Override
@@ -87,7 +76,7 @@ public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumb
 
 	@Override
 	public void onConnectionLost() {
-		observers.notifyObservers(obs -> obs.onConnectionLost());
+		EventManager.callEvent(new ConnectionLostEvent(tcpConnection));
 	}
 
 	@Override
@@ -140,6 +129,14 @@ public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumb
 		default:
 			break;
 		}
+	}
+
+	public ITcpConnection getTcpConnection() {
+		return tcpConnection;
+	}
+
+	public IUdpConnection getUdpConnection() {
+		return udpConnection;
 	}
 
 	public void connect() {

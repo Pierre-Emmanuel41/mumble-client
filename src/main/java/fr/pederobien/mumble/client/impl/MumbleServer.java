@@ -6,6 +6,9 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import fr.pederobien.communication.event.ConnectionCompleteEvent;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.event.ServerIpAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerIpAddressChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
@@ -18,13 +21,15 @@ import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
 import fr.pederobien.mumble.client.internal.InternalChannel;
 import fr.pederobien.mumble.client.internal.InternalChannelList;
 import fr.pederobien.mumble.client.internal.InternalPlayer;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
+public class MumbleServer implements IMumbleServer, IEventListener {
 	private String name, address;
 	private int port;
 	private AtomicBoolean isDisposed, isReachable, isOpened;
@@ -159,21 +164,6 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 		return mumbleConnection.getAudioConnection();
 	}
 
-	@Override
-	public void onConnectionComplete() {
-		setIsReachable(true);
-	}
-
-	@Override
-	public void onConnectionDisposed() {
-		setIsReachable(false);
-	}
-
-	@Override
-	public void onConnectionLost() {
-		setIsReachable(false);
-	}
-
 	public IPlayer getPlayer() {
 		return player;
 	}
@@ -251,6 +241,30 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 		channelList.onPlayerDeafenChanged(playerName, isDeafen);
 	}
 
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onConnectionComplete(ConnectionCompleteEvent event) {
+		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
+			return;
+
+		setIsReachable(true);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onConnectionDisposed(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
+			return;
+
+		setIsReachable(false);
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onConnectionLost(ConnectionLostEvent event) {
+		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
+			return;
+
+		setIsReachable(false);
+	}
+
 	private void checkIsDisposed() {
 		if (isDisposed.get())
 			throw new UnsupportedOperationException("Object disposed");
@@ -272,10 +286,10 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	private void openConnection() {
 		if (!isOpened.compareAndSet(false, true))
 			return;
+		EventManager.registerListener(this);
 		mumbleConnection = new MumbleConnection(this);
 		player = new InternalPlayer(mumbleConnection, false, "Unknown", null, false);
 		channelList = new InternalChannelList(mumbleConnection, player);
-		mumbleConnection.addObserver(this);
 		mumbleConnection.connect();
 	}
 
@@ -283,7 +297,7 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 		if (!isOpened.compareAndSet(true, false))
 			return;
 		mumbleConnection.dispose();
-		mumbleConnection.removeObserver(this);
+		EventManager.unregisterListener(this);
 		setIsReachable(false);
 	}
 }
