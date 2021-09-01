@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.event;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerChannelChangePostEvent extends PlayerEvent {
+public class PlayerChannelChangePostEvent extends MainPlayerEvent {
 	private IChannel oldChannel;
 
 	/**

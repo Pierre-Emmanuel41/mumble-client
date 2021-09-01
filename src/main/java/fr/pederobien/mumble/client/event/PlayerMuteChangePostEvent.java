@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.event;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerMuteChangePostEvent extends PlayerEvent {
+public class PlayerMuteChangePostEvent extends MainPlayerEvent {
 	private boolean isMute;
 
 	/**

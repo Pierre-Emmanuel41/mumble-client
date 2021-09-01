@@ -2,10 +2,7 @@ package fr.pederobien.mumble.client.interfaces;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.interfaces.observers.IObsCommonPlayer;
-import fr.pederobien.utils.IObservable;
-
-public interface IOtherPlayer extends IObservable<IObsCommonPlayer> {
+public interface IOtherPlayer {
 
 	/**
 	 * @return The player name.

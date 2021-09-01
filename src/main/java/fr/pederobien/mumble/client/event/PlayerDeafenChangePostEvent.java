@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.event;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerDeafenChangePostEvent extends PlayerEvent {
+public class PlayerDeafenChangePostEvent extends MainPlayerEvent {
 	private boolean isDeafen;
 
 	/**

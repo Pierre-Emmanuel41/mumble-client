@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.event;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerEvent extends MumbleEvent {
+public class MainPlayerEvent extends MumbleEvent {
 	private IPlayer player;
 
 	/**
@@ -10,7 +10,7 @@ public class PlayerEvent extends MumbleEvent {
 	 * 
 	 * @param player The player source involved in this event.
 	 */
-	public PlayerEvent(IPlayer player) {
+	public MainPlayerEvent(IPlayer player) {
 		this.player = player;
 	}
 

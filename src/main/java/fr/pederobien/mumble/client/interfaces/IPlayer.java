@@ -2,10 +2,7 @@ package fr.pederobien.mumble.client.interfaces;
 
 import java.util.UUID;
 
-import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
-import fr.pederobien.utils.IObservable;
-
-public interface IPlayer extends IObservable<IObsPlayer> {
+public interface IPlayer {
 
 	/**
 	 * @return The player name.

@@ -2,13 +2,16 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.OtherPlayerDeafenPostEvent;
+import fr.pederobien.mumble.client.event.OtherPlayerMuteByPreEvent;
+import fr.pederobien.mumble.client.event.OtherPlayerMutePostEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.interfaces.observers.IObsCommonPlayer;
+import fr.pederobien.utils.event.EventManager;
 
-public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> implements IOtherPlayer {
+public class InternalOtherPlayer extends InternalCommonPlayer implements IOtherPlayer {
 	private IPlayer player;
 	private boolean isMute, isMuteBy, isDeafen;
 
@@ -28,13 +31,7 @@ public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> 
 		if (this.isMuteBy == isMute)
 			return;
 
-		this.isMuteBy = isMute;
-		getConnection().mutePlayerBy(player.getName(), getName(), isMute, response -> {
-			callback.accept(response);
-			if (response.hasFailed())
-				return;
-			getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute()));
-		});
+		EventManager.callEvent(new OtherPlayerMuteByPreEvent(this, player, isMute), () -> getConnection().mutePlayerBy(this, player.getName(), isMute, callback));
 	}
 
 	@Override
@@ -47,7 +44,7 @@ public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> 
 			return;
 
 		this.isDeafen = isDeafen;
-		getObservers().notifyObservers(obs -> obs.onDeafenChanged(isDeafen));
+		EventManager.callEvent(new OtherPlayerDeafenPostEvent(this, isDeafen));
 	}
 
 	@Override
@@ -62,6 +59,6 @@ public class InternalOtherPlayer extends InternalCommonPlayer<IObsCommonPlayer> 
 
 	public void internalSetMute(boolean isMute) {
 		this.isMute = isMute;
-		getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute()));
+		EventManager.callEvent(new OtherPlayerMutePostEvent(this, isMute));
 	}
 }

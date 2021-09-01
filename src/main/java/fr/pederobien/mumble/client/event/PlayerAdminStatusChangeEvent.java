@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.event;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerAdminStatusChangeEvent extends PlayerEvent {
+public class PlayerAdminStatusChangeEvent extends MainPlayerEvent {
 	private boolean isAdmin;
 
 	/**

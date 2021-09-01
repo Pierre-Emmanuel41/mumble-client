@@ -26,6 +26,7 @@ import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
+import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -363,7 +364,6 @@ public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumb
 	/**
 	 * Mute or unmute the player associated to the playerMutedOrUnmutedName for the player associated to the playerName.
 	 * 
-	 * @param playerName               The player that mute a player.
 	 * @param playerMutedOrUnmutedName The player name that is muted by a player.
 	 * @param isMute                   True if the player should be muted, false if the player should be unmuted.
 	 * @param callback                 The callback to run when an answer is received from the server.
@@ -372,12 +372,13 @@ public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumb
 	 * @throws NullPointerException If the playerMutedOrUnmutedName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void mutePlayerBy(String playerName, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse<Boolean>> callback) {
-		Objects.requireNonNull(playerName, "The playerName cannot be null");
+	public void mutePlayerBy(InternalOtherPlayer player, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse<Boolean>> callback) {
 		Objects.requireNonNull(playerMutedOrUnmutedName, "The playerMutedOrUnmutedName cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
-		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, playerName, playerMutedOrUnmutedName, isMute),
-				args -> filter(args, callback, payload -> callback.accept(new Response<Boolean>(true))));
+		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, player.getName(), playerMutedOrUnmutedName, isMute), args -> filter(args, callback, payload -> {
+			player.internalSetMute(isMute);
+			callback.accept(new Response<Boolean>(true));
+		}));
 	}
 
 	/**

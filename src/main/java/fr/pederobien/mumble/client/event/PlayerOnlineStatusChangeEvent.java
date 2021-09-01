@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.event;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerOnlineStatusChangeEvent extends PlayerEvent {
+public class PlayerOnlineStatusChangeEvent extends MainPlayerEvent {
 	private boolean isOnline;
 
 	/**
@@ -13,6 +13,7 @@ public class PlayerOnlineStatusChangeEvent extends PlayerEvent {
 	 */
 	public PlayerOnlineStatusChangeEvent(IPlayer player, boolean isOnline) {
 		super(player);
+		this.isOnline = isOnline;
 	}
 
 	/**

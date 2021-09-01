@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.event;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
-public class PlayerMuteChangePreEvent extends PlayerEvent implements ICancellable {
+public class PlayerMuteChangePreEvent extends MainPlayerEvent implements ICancellable {
 	private boolean isCancelled, isMute;
 
 	/**

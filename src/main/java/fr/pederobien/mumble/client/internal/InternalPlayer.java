@@ -3,13 +3,21 @@ package fr.pederobien.mumble.client.internal;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.PlayerAdminStatusChangeEvent;
+import fr.pederobien.mumble.client.event.PlayerChannelChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerChannelChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerDeafenChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerDeafenChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangeEvent;
 import fr.pederobien.mumble.client.impl.AudioConnection;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
-import fr.pederobien.mumble.client.interfaces.observers.IObsPlayer;
+import fr.pederobien.utils.event.EventManager;
 
-public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements IPlayer {
+public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 	private UUID uuid;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private IChannel channel;
@@ -36,7 +44,7 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 			return;
 
 		this.isAdmin = isAdmin;
-		getObservers().notifyObservers(obs -> obs.onAdminStatusChanged(isAdmin));
+		EventManager.callEvent(new PlayerAdminStatusChangeEvent(this, isAdmin));
 	}
 
 	@Override
@@ -63,7 +71,7 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 			return;
 
 		this.isOnline = isOnline;
-		getObservers().notifyObservers(obs -> obs.onConnectionStatusChanged(isOnline));
+		EventManager.callEvent(new PlayerOnlineStatusChangeEvent(this, isOnline));
 	}
 
 	@Override
@@ -75,8 +83,11 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 		if (this.channel != null && this.channel.equals(channel))
 			return;
 
-		this.channel = channel;
-		getObservers().notifyObservers(obs -> obs.onChannelChanged(channel));
+		EventManager.callEvent(new PlayerChannelChangePreEvent(this, channel), () -> {
+			IChannel oldChannel = this.channel;
+			this.channel = channel;
+			EventManager.callEvent(new PlayerChannelChangePostEvent(this, oldChannel));
+		});
 	}
 
 	@Override
@@ -89,7 +100,9 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 		if (this.isMute == isMute)
 			return;
 
-		updateMumbleConnection(isMute, connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
+		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute), () -> {
+			updateMumbleConnection(isMute, connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
+		});
 	}
 
 	@Override
@@ -102,7 +115,9 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 		if (this.isDeafen == isDeafen)
 			return;
 
-		updateMumbleConnection(isDeafen, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), () -> {
+			updateMumbleConnection(isDeafen, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+		});
 	}
 
 	@Override
@@ -130,7 +145,7 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 	public void internalSetMute(boolean isMute) {
 		this.isMute = isMute;
 		updateAudioConnection(isMute, audio -> audio.pauseMicrophone(), audio -> audio.resumeMicrophone());
-		getObservers().notifyObservers(obs -> obs.onMuteChanged(isMute));
+		EventManager.callEvent(new PlayerMuteChangePostEvent(this, isMute));
 	}
 
 	/**
@@ -141,7 +156,7 @@ public class InternalPlayer extends InternalCommonPlayer<IObsPlayer> implements 
 	public void internalSetDeafen(boolean isDeafen) {
 		this.isDeafen = isDeafen;
 		updateAudioConnection(isDeafen, audio -> audio.pauseSpeakers(), audio -> audio.resumeSpeakers());
-		getObservers().notifyObservers(obs -> obs.onDeafenChanged(isDeafen));
+		EventManager.callEvent(new PlayerDeafenChangePostEvent(this, isDeafen));
 	}
 
 	private void updateAudioConnection(boolean condition, Consumer<AudioConnection> onTrue, Consumer<AudioConnection> onFalse) {

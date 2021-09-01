@@ -4,7 +4,7 @@ import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
-public class PlayerChannelChangePreEvent extends PlayerEvent implements ICancellable {
+public class PlayerChannelChangePreEvent extends MainPlayerEvent implements ICancellable {
 	private boolean isCancelled;
 	private IChannel newChannel;
 
