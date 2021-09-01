@@ -1,18 +1,21 @@
 package fr.pederobien.mumble.client.event;
 
+import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.utils.ICancellable;
 
-public class ChannelAddPreEvent extends MumbleEvent implements ICancellable {
+public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable {
 	private boolean isCancelled;
 	private String channelName, soundModifierName;
 
 	/**
 	 * Creates an event thrown when a channel is about to be added.
 	 * 
+	 * @param channelList       The channel list to which a channel is about to be added.
 	 * @param channelName       The name of the channel that is about to be added.
 	 * @param soundModifierName The sound modifier name associated to the future channel.
 	 */
-	public ChannelAddPreEvent(String channelName, String soundModifierName) {
+	public ChannelAddPreEvent(IChannelList channelList, String channelName, String soundModifierName) {
+		super(channelList);
 		this.channelName = channelName;
 		this.soundModifierName = soundModifierName;
 	}

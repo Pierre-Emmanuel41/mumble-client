@@ -32,12 +32,12 @@ public class InternalChannelList implements IChannelList {
 	@Override
 	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse<ChannelAddedEvent>> callback) {
 		String modifierName = soundModifierName == null ? "default" : soundModifierName;
-		EventManager.callEvent(new ChannelAddPreEvent(channelName, modifierName), () -> connection.addChannel(channelName, modifierName, callback));
+		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifierName), () -> connection.addChannel(channelName, modifierName, callback));
 	}
 
 	@Override
 	public void removeChannel(String channelName, Consumer<IResponse<ChannelRemovedEvent>> callback) {
-		EventManager.callEvent(new ChannelRemovePostEvent(getChannel(channelName)), () -> connection.removeChannel(channelName, callback));
+		EventManager.callEvent(new ChannelRemovePostEvent(this, getChannel(channelName)), () -> connection.removeChannel(channelName, callback));
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class InternalChannelList implements IChannelList {
 	public void internalAdd(InternalChannel channel) {
 		channel.internalSetPlayer(player);
 		channels.put(channel.getName(), channel);
-		EventManager.callEvent(new ChannelAddPostEvent(channel));
+		EventManager.callEvent(new ChannelAddPostEvent(this, channel));
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class InternalChannelList implements IChannelList {
 		if (channel == null)
 			return;
 
-		EventManager.callEvent(new ChannelRemovePostEvent(channel));
+		EventManager.callEvent(new ChannelRemovePostEvent(this, channel));
 	}
 
 	/**
