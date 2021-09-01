@@ -6,23 +6,28 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.ServerIpAddressChangePostEvent;
+import fr.pederobien.mumble.client.event.ServerIpAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
+import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerPortNumberChangePostEvent;
+import fr.pederobien.mumble.client.event.ServerPortNumberChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.interfaces.IAudioConnection;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleConnection;
-import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleServer;
 import fr.pederobien.mumble.client.internal.InternalChannel;
 import fr.pederobien.mumble.client.internal.InternalChannelList;
 import fr.pederobien.mumble.client.internal.InternalPlayer;
-import fr.pederobien.utils.Observable;
+import fr.pederobien.utils.event.EventManager;
 
 public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	private String name, address;
 	private int port;
 	private AtomicBoolean isDisposed, isReachable, isOpened;
-	private Observable<IObsMumbleServer> observers;
 	private MumbleConnection mumbleConnection;
 	private InternalPlayer player;
 	private InternalChannelList channelList;
@@ -33,22 +38,11 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 		this.address = remoteAddress;
 		this.port = tcpPort;
 
-		observers = new Observable<IObsMumbleServer>();
 		modifierNames = new ArrayList<String>();
 
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
 		isOpened = new AtomicBoolean(false);
-	}
-
-	@Override
-	public void addObserver(IObsMumbleServer obs) {
-		observers.addObserver(obs);
-	}
-
-	@Override
-	public void removeObserver(IObsMumbleServer obs) {
-		observers.removeObserver(obs);
 	}
 
 	@Override
@@ -60,9 +54,12 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	public void setName(String name) {
 		if (this.name != null && this.name.equals(name))
 			return;
-		String oldName = this.name;
-		this.name = name;
-		observers.notifyObservers(obs -> obs.onNameChanged(this, oldName, name));
+
+		EventManager.callEvent(new ServerNameChangePreEvent(this, name), () -> {
+			String oldName = this.name;
+			this.name = name;
+			EventManager.callEvent(new ServerNameChangePostEvent(this, oldName));
+		});
 	}
 
 	@Override
@@ -74,10 +71,13 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	public void setAddress(String address) {
 		if (this.address != null && this.address.equals(address))
 			return;
-		String oldAddress = this.address;
-		this.address = address;
-		observers.notifyObservers(obs -> obs.onIpAddressChanged(this, oldAddress, address));
-		reinitialize();
+
+		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address), () -> {
+			String oldAddress = this.address;
+			this.address = address;
+			reinitialize();
+			EventManager.callEvent(new ServerIpAddressChangePostEvent(this, oldAddress));
+		});
 	}
 
 	@Override
@@ -89,10 +89,13 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	public void setPort(int port) {
 		if (this.port == port)
 			return;
-		int oldPort = this.port;
-		this.port = port;
-		observers.notifyObservers(obs -> obs.onPortChanged(this, oldPort, port));
-		reinitialize();
+
+		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), () -> {
+			int oldPort = this.port;
+			this.port = port;
+			reinitialize();
+			EventManager.callEvent(new ServerPortNumberChangePostEvent(this, oldPort));
+		});
 	}
 
 	@Override
@@ -145,8 +148,10 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	}
 
 	@Override
-	public void getChannels(Consumer<IResponse<IChannelList>> callback) {
+	public IChannelList getChannels(Consumer<IResponse<IChannelList>> callback) {
+		channelList.clear();
 		mumbleConnection.getChannels(callback);
+		return channelList;
 	}
 
 	@Override
@@ -194,10 +199,6 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 	}
 
 	public IChannelList getChannelList() {
-		return channelList;
-	}
-
-	protected InternalChannelList getInternalChannelList() {
 		return channelList;
 	}
 
@@ -265,7 +266,7 @@ public class MumbleServer implements IObsMumbleConnection, IMumbleServer {
 		if (!this.isReachable.compareAndSet(!isReachable, isReachable))
 			return;
 		this.isReachable.set(isReachable);
-		observers.notifyObservers(obs -> obs.onReachableStatusChanged(this, isReachable));
+		EventManager.callEvent(new ServerReachableChangeEvent(this, isReachable));
 	}
 
 	private void openConnection() {

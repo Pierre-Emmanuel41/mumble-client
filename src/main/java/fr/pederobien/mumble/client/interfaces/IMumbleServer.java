@@ -2,10 +2,7 @@ package fr.pederobien.mumble.client.interfaces;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.interfaces.observers.IObsMumbleServer;
-import fr.pederobien.utils.IObservable;
-
-public interface IMumbleServer extends IObservable<IObsMumbleServer> {
+public interface IMumbleServer {
 	public static final String DEFAULT_NAME = "";
 	public static final String DEFAULT_ADDRESS = "0.0.0.0";
 	public static final int DEFAULT_PORT = 0;
@@ -89,8 +86,10 @@ public interface IMumbleServer extends IObservable<IObsMumbleServer> {
 	 * Get the list of channel currently registered on the server.
 	 * 
 	 * @param callback The callback to run when a response has been received from the server.
+	 * 
+	 * @return The empty list of the server.
 	 */
-	void getChannels(Consumer<IResponse<IChannelList>> callback);
+	IChannelList getChannels(Consumer<IResponse<IChannelList>> callback);
 
 	/**
 	 * @return The Audio connect that is responsible to collect data from the microphone and send it to the remote but also to receive

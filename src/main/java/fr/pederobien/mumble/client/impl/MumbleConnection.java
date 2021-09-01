@@ -209,7 +209,6 @@ public class MumbleConnection implements IObsTcpConnection, IObservable<IObsMumb
 			int currentIndex = 0;
 			int numberOfChannels = (int) payload[currentIndex++];
 
-			mumbleServer.getInternalChannelList().clear();
 			for (int i = 0; i < numberOfChannels; i++) {
 				String channelName = (String) payload[currentIndex++];
 				String soundModifierName = (String) payload[currentIndex++];
