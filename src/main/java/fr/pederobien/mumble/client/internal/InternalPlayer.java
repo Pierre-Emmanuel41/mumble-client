@@ -102,6 +102,7 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 
 		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute), () -> {
 			updateMumbleConnection(isMute, connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
+			EventManager.callEvent(new PlayerMuteChangePostEvent(this, isMute));
 		});
 	}
 
@@ -117,6 +118,7 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 
 		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), () -> {
 			updateMumbleConnection(isDeafen, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+			EventManager.callEvent(new PlayerDeafenChangePostEvent(this, isMute));
 		});
 	}
 
