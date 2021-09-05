@@ -145,14 +145,12 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public void getPlayer(Consumer<IResponse<IPlayer>> callback) {
-		mumbleConnection.getPlayer(callback);
+	public IPlayer getPlayer() {
+		return player;
 	}
 
 	@Override
-	public IChannelList getChannels(Consumer<IResponse<IChannelList>> callback) {
-		channelList.clear();
-		mumbleConnection.getChannels(callback);
+	public IChannelList getChannelList() {
 		return channelList;
 	}
 
@@ -175,14 +173,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return false;
 		MumbleServer other = (MumbleServer) obj;
 		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
-	}
-
-	public IPlayer getPlayer() {
-		return player;
-	}
-
-	public IChannelList getChannelList() {
-		return channelList;
 	}
 
 	protected void setModifierNames(List<String> modifierNames) {

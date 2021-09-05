@@ -25,8 +25,6 @@ import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
 import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
 import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
-import fr.pederobien.mumble.client.interfaces.IChannelList;
-import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -167,47 +165,12 @@ public class MumbleConnection implements IObsTcpConnection {
 	}
 
 	public void join(Consumer<IResponse<Boolean>> callback) {
-		send(create(Idc.SERVER_JOIN, Oid.SET), joinArgs -> filter(joinArgs, callback, joinPayload -> {
-
-			// First getting the udp port.
-			send(create(Idc.UDP_PORT), udpArgs -> filter(udpArgs, callback, udpPayload -> {
-				IMessage<Header> answer = MumbleMessageFactory.parse(udpArgs.getResponse().getBytes());
-				udpConnection = new UdpClientConnection(mumbleServer.getAddress(), (int) answer.getPayload()[0], new MessageExtractor(), true, 20000);
-				audioConnection = new AudioConnection(udpConnection);
-
-				// Then getting the list of supported modifiers.
-				send(create(Idc.SOUND_MODIFIER, Oid.INFO), args -> filter(args, callback, payload -> {
-					int currentIndex = 0;
-					int numberOfModifiers = (int) payload[currentIndex++];
-
-					List<String> modifierNames = new ArrayList<String>();
-					for (int i = 0; i < numberOfModifiers; i++)
-						modifierNames.add((String) payload[currentIndex++]);
-
-					mumbleServer.setModifierNames(modifierNames);
-					// Finally calling initial callback
-					callback.accept(new Response<Boolean>(true));
-				}));
-			}));
-		}));
-	}
-
-	public void leave() {
-		send(create(Idc.SERVER_LEAVE, Oid.SET));
-		udpConnection.dispose();
-	}
-
-	public void getPlayer(Consumer<IResponse<IPlayer>> callback) {
-		Objects.requireNonNull(callback, "The callback cannot be null.");
-		getUniqueIdentifier(callback);
-	}
-
-	public void getChannels(Consumer<IResponse<IChannelList>> callback) {
-		Objects.requireNonNull(callback, "The callback cannot be null.");
-		send(create(Idc.CHANNELS), args -> filter(args, callback, payload -> {
+		send(create(Idc.SERVER_JOIN, Oid.SET), args -> filter(args, callback, payload -> {
 			int currentIndex = 0;
-			int numberOfChannels = (int) payload[currentIndex++];
+			udpConnection = new UdpClientConnection(mumbleServer.getAddress(), (int) payload[currentIndex++], new MessageExtractor(), true, 20000);
+			audioConnection = new AudioConnection(udpConnection);
 
+			int numberOfChannels = (int) payload[currentIndex++];
 			for (int i = 0; i < numberOfChannels; i++) {
 				String channelName = (String) payload[currentIndex++];
 				String soundModifierName = (String) payload[currentIndex++];
@@ -219,8 +182,28 @@ public class MumbleConnection implements IObsTcpConnection {
 
 				mumbleServer.internalAddChannel(channelName, players, soundModifierName);
 			}
-			callback.accept(new Response<IChannelList>(mumbleServer.getChannelList()));
+
+			int numberOfModifiers = (int) payload[currentIndex++];
+			List<String> modifierNames = new ArrayList<String>();
+			for (int i = 0; i < numberOfModifiers; i++)
+				modifierNames.add((String) payload[currentIndex++]);
+
+			mumbleServer.setModifierNames(modifierNames);
+
+			UUID uuid = (UUID) payload[currentIndex++];
+
+			boolean playerConnected = (boolean) payload[currentIndex++];
+			if (playerConnected)
+				mumbleServer.updatePlayerInfo(playerConnected, (String) payload[currentIndex++], uuid, (boolean) payload[currentIndex++]);
+			else
+				mumbleServer.updatePlayerInfo(playerConnected, null, uuid, false);
+			callback.accept(new Response<Boolean>(true));
 		}));
+	}
+
+	public void leave() {
+		send(create(Idc.SERVER_LEAVE, Oid.SET));
+		udpConnection.dispose();
 	}
 
 	public AudioConnection getAudioConnection() {
@@ -413,21 +396,6 @@ public class MumbleConnection implements IObsTcpConnection {
 		Objects.requireNonNull(soundModifierName, "The name of the sound modifier cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
 		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> filter(args, callback, payload -> new Response<String>((String) payload[1])));
-	}
-
-	private void getUniqueIdentifier(Consumer<IResponse<IPlayer>> callback) {
-		send(create(Idc.UNIQUE_IDENTIFIER), args -> filter(args, callback, payload -> getPlayerName(callback, (UUID) payload[0])));
-	}
-
-	private void getPlayerName(Consumer<IResponse<IPlayer>> callback, UUID uuid) {
-		send(create(Idc.PLAYER_INFO), args -> filter(args, callback, payload -> {
-			// Case online
-			if ((boolean) payload[0])
-				mumbleServer.updatePlayerInfo((boolean) payload[0], (String) payload[1], uuid, (boolean) payload[2]);
-			else
-				mumbleServer.updatePlayerInfo((boolean) payload[0], null, uuid, false);
-			callback.accept(new Response<IPlayer>(mumbleServer.getPlayer()));
-		}));
 	}
 
 	private IMessage<Header> create(Idc idc, Object... payload) {
