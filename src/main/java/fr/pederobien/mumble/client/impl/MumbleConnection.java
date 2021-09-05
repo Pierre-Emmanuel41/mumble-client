@@ -166,7 +166,7 @@ public class MumbleConnection implements IObsTcpConnection {
 		return isDisposed.get();
 	}
 
-	public void join(Consumer<IResponse<List<String>>> callback) {
+	public void join(Consumer<IResponse<Boolean>> callback) {
 		send(create(Idc.SERVER_JOIN, Oid.SET), joinArgs -> filter(joinArgs, callback, joinPayload -> {
 
 			// First getting the udp port.
@@ -184,8 +184,9 @@ public class MumbleConnection implements IObsTcpConnection {
 					for (int i = 0; i < numberOfModifiers; i++)
 						modifierNames.add((String) payload[currentIndex++]);
 
+					mumbleServer.setModifierNames(modifierNames);
 					// Finally calling initial callback
-					callback.accept(new Response<List<String>>(modifierNames));
+					callback.accept(new Response<Boolean>(true));
 				}));
 			}));
 		}));

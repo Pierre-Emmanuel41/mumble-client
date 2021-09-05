@@ -130,10 +130,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public void join(Consumer<IResponse<Boolean>> callback) {
-		mumbleConnection.join(response -> {
-			modifierNames = response.get();
-			callback.accept(new Response<Boolean>(response.hasFailed() ? false : true));
-		});
+		mumbleConnection.join(callback);
 	}
 
 	@Override
@@ -164,10 +161,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		return mumbleConnection.getAudioConnection();
 	}
 
-	public IPlayer getPlayer() {
-		return player;
-	}
-
 	@Override
 	public String toString() {
 		return "Server={" + name + "," + address + "," + port + "}";
@@ -184,12 +177,20 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
 	}
 
-	protected InternalPlayer getInternalPlayer() {
+	public IPlayer getPlayer() {
 		return player;
 	}
 
 	public IChannelList getChannelList() {
 		return channelList;
+	}
+
+	protected void setModifierNames(List<String> modifierNames) {
+		this.modifierNames = modifierNames;
+	}
+
+	protected InternalPlayer getInternalPlayer() {
+		return player;
 	}
 
 	protected void internalAddChannel(String name, String soundModifierName) {
