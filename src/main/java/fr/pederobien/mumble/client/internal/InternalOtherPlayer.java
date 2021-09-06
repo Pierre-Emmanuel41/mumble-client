@@ -27,7 +27,7 @@ public class InternalOtherPlayer extends InternalCommonPlayer implements IOtherP
 	}
 
 	@Override
-	public void setMute(boolean isMute, Consumer<IResponse<Boolean>> callback) {
+	public void setMute(boolean isMute, Consumer<IResponse> callback) {
 		if (this.isMuteBy == isMute)
 			return;
 
@@ -48,7 +48,7 @@ public class InternalOtherPlayer extends InternalCommonPlayer implements IOtherP
 	}
 
 	@Override
-	public void kick(Consumer<IResponse<Boolean>> callback) {
+	public void kick(Consumer<IResponse> callback) {
 		getConnection().kickPlayer(player.getName(), getName(), callback);
 	}
 

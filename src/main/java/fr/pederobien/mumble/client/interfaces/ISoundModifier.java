@@ -15,5 +15,5 @@ public interface ISoundModifier {
 	 * @param name     the new sound modifier name.
 	 * @param callback the callback that is executed after reception of the answer from the remote.
 	 */
-	void setName(String name, Consumer<IResponse<String>> callback);
+	void setName(String name, Consumer<IResponse> callback);
 }

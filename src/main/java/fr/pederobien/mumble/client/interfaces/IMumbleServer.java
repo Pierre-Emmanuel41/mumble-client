@@ -68,7 +68,7 @@ public interface IMumbleServer {
 	 * 
 	 * @param callback The callback to run when a response has been received from the remote.
 	 */
-	void join(Consumer<IResponse<Boolean>> callback);
+	void join(Consumer<IResponse> callback);
 
 	/**
 	 * Send a request in order to leave the server.

@@ -129,7 +129,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public void join(Consumer<IResponse<Boolean>> callback) {
+	public void join(Consumer<IResponse> callback) {
 		mumbleConnection.join(callback);
 	}
 

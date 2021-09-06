@@ -4,10 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
-import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
-import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
-
 public interface IChannel {
 
 	/**
@@ -21,21 +17,21 @@ public interface IChannel {
 	 * @param name     The new channel name.
 	 * @param callback the callback that is executed after reception of the answer from the remote.
 	 */
-	void setName(String name, Consumer<IResponse<ChannelRenamedEvent>> callback);
+	void setName(String name, Consumer<IResponse> callback);
 
 	/**
 	 * Add the player to this channel.
 	 * 
 	 * @param callback the callback that is executed after reception of the answer from the remote.
 	 */
-	void addPlayer(Consumer<IResponse<PlayerAddedToChannelEvent>> callback);
+	void addPlayer(Consumer<IResponse> callback);
 
 	/**
 	 * Remove the player from this channel.
 	 * 
 	 * @param callback the callback that is executed after reception of the answer from the remote.
 	 */
-	void removePlayer(Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback);
+	void removePlayer(Consumer<IResponse> callback);
 
 	/**
 	 * @return A map that contains players registered on this channel. This list is unmodifiable.

@@ -9,9 +9,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelAddPostEvent;
 import fr.pederobien.mumble.client.event.ChannelAddPreEvent;
-import fr.pederobien.mumble.client.event.ChannelAddedEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
-import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
@@ -30,13 +28,13 @@ public class InternalChannelList implements IChannelList {
 	}
 
 	@Override
-	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse<ChannelAddedEvent>> callback) {
+	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse> callback) {
 		String modifierName = soundModifierName == null ? "default" : soundModifierName;
 		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifierName), () -> connection.addChannel(channelName, modifierName, callback));
 	}
 
 	@Override
-	public void removeChannel(String channelName, Consumer<IResponse<ChannelRemovedEvent>> callback) {
+	public void removeChannel(String channelName, Consumer<IResponse> callback) {
 		EventManager.callEvent(new ChannelRemovePostEvent(this, getChannel(channelName)), () -> connection.removeChannel(channelName, callback));
 	}
 

@@ -2,12 +2,7 @@ package fr.pederobien.mumble.client.interfaces;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
 
-public interface IResponse<T> {
-
-	/**
-	 * @return The object associated to this response.
-	 */
-	T get();
+public interface IResponse {
 
 	/**
 	 * @return If an exception or an error occurs.

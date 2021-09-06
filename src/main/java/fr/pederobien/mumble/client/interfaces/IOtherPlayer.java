@@ -20,7 +20,7 @@ public interface IOtherPlayer {
 	 * @param isMute   The new player state.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	void setMute(boolean isMute, Consumer<IResponse<Boolean>> callback);
+	void setMute(boolean isMute, Consumer<IResponse> callback);
 
 	/**
 	 * @return True is this player is deafen, false otherwise.
@@ -32,5 +32,5 @@ public interface IOtherPlayer {
 	 * 
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	void kick(Consumer<IResponse<Boolean>> callback);
+	void kick(Consumer<IResponse> callback);
 }

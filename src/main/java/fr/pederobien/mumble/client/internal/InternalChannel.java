@@ -9,13 +9,10 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
-import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
-import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPreEvent;
-import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
@@ -52,7 +49,7 @@ public class InternalChannel implements IChannel {
 	}
 
 	@Override
-	public void setName(String name, Consumer<IResponse<ChannelRenamedEvent>> callback) {
+	public void setName(String name, Consumer<IResponse> callback) {
 		if (this.name == name)
 			return;
 
@@ -60,12 +57,12 @@ public class InternalChannel implements IChannel {
 	}
 
 	@Override
-	public void addPlayer(Consumer<IResponse<PlayerAddedToChannelEvent>> callback) {
+	public void addPlayer(Consumer<IResponse> callback) {
 		EventManager.callEvent(new PlayerAddToChannelPreEvent(this, player.getName()), () -> connection.addPlayerToChannel(getName(), player.getName(), callback));
 	}
 
 	@Override
-	public void removePlayer(Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
+	public void removePlayer(Consumer<IResponse> callback) {
 		IOtherPlayer removed = players.get(player.getName());
 		EventManager.callEvent(new PlayerRemoveFromChannelPreEvent(this, removed), () -> connection.removePlayerfromChannel(getName(), player.getName(), callback));
 	}

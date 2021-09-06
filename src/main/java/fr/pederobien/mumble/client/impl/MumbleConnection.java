@@ -15,11 +15,6 @@ import fr.pederobien.communication.impl.UdpClientConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.client.event.ChannelAddedEvent;
-import fr.pederobien.mumble.client.event.ChannelRemovedEvent;
-import fr.pederobien.mumble.client.event.ChannelRenamedEvent;
-import fr.pederobien.mumble.client.event.PlayerAddedToChannelEvent;
-import fr.pederobien.mumble.client.event.PlayerRemovedFromChannelEvent;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -86,8 +81,8 @@ public class MumbleConnection implements IEventListener {
 		return isDisposed.get();
 	}
 
-	public void join(Consumer<IResponse<Boolean>> callback) {
-		send(create(Idc.SERVER_JOIN, Oid.SET), args -> filter(args, callback, payload -> {
+	public void join(Consumer<IResponse> callback) {
+		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
 			udpConnection = new UdpClientConnection(mumbleServer.getAddress(), (int) payload[currentIndex++], new MessageExtractor(), true, 20000);
 			audioConnection = new AudioConnection(udpConnection);
@@ -119,7 +114,6 @@ public class MumbleConnection implements IEventListener {
 				mumbleServer.updatePlayerInfo(playerConnected, (String) payload[currentIndex++], uuid, (boolean) payload[currentIndex++]);
 			else
 				mumbleServer.updatePlayerInfo(playerConnected, null, uuid, false);
-			callback.accept(new Response<Boolean>(true));
 		}));
 	}
 
@@ -144,13 +138,13 @@ public class MumbleConnection implements IEventListener {
 	 * @throws UnsupportedOperationException If the player is not connected in game.
 	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
 	 */
-	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse<ChannelAddedEvent>> callback) {
+	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
 		Objects.requireNonNull(soundModifierName, "The sound modifier name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		checkPlayerProperties();
 
-		send(create(Idc.CHANNELS, Oid.ADD, channelName, soundModifierName), args -> answer(args, callback, new ChannelAddedEvent(channelName)));
+		send(create(Idc.CHANNELS, Oid.ADD, channelName, soundModifierName), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -164,12 +158,12 @@ public class MumbleConnection implements IEventListener {
 	 * @throws UnsupportedOperationException If the player is not connected in game.
 	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
 	 */
-	public void removeChannel(String channelName, Consumer<IResponse<ChannelRemovedEvent>> callback) {
+	public void removeChannel(String channelName, Consumer<IResponse> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		checkPlayerProperties();
 
-		send(create(Idc.CHANNELS, Oid.REMOVE, channelName), args -> answer(args, callback, new ChannelRemovedEvent(channelName)));
+		send(create(Idc.CHANNELS, Oid.REMOVE, channelName), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -185,13 +179,13 @@ public class MumbleConnection implements IEventListener {
 	 * @throws UnsupportedOperationException If the player is not connected in game.
 	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
 	 */
-	public void renameChannel(String oldName, String newName, Consumer<IResponse<ChannelRenamedEvent>> callback) {
+	public void renameChannel(String oldName, String newName, Consumer<IResponse> callback) {
 		Objects.requireNonNull(oldName, "The old channel name cannot be null");
 		Objects.requireNonNull(newName, "The new channel name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		checkPlayerProperties();
 
-		send(create(Idc.CHANNELS, Oid.SET, oldName, newName), args -> answer(args, callback, new ChannelRenamedEvent(oldName, newName)));
+		send(create(Idc.CHANNELS, Oid.SET, oldName, newName), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -205,11 +199,11 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException if the playerName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void addPlayerToChannel(String channelName, String playerName, Consumer<IResponse<PlayerAddedToChannelEvent>> callback) {
+	public void addPlayerToChannel(String channelName, String playerName, Consumer<IResponse> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
 		Objects.requireNonNull(playerName, "The player name cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
-		send(create(Idc.CHANNELS_PLAYER, Oid.ADD, channelName, playerName), args -> answer(args, callback, new PlayerAddedToChannelEvent(channelName, playerName)));
+		send(create(Idc.CHANNELS_PLAYER, Oid.ADD, channelName, playerName), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -223,9 +217,8 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException if the playerName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void removePlayerfromChannel(String channelName, String playerName, Consumer<IResponse<PlayerRemovedFromChannelEvent>> callback) {
-		send(create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channelName, playerName),
-				args -> answer(args, callback, new PlayerRemovedFromChannelEvent(channelName, playerName)));
+	public void removePlayerfromChannel(String channelName, String playerName, Consumer<IResponse> callback) {
+		send(create(Idc.CHANNELS_PLAYER, Oid.REMOVE, channelName, playerName), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -275,13 +268,10 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException If the playerMutedOrUnmutedName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void mutePlayerBy(InternalOtherPlayer player, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse<Boolean>> callback) {
+	public void mutePlayerBy(InternalOtherPlayer player, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse> callback) {
 		Objects.requireNonNull(playerMutedOrUnmutedName, "The playerMutedOrUnmutedName cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
-		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, player.getName(), playerMutedOrUnmutedName, isMute), args -> filter(args, callback, payload -> {
-			player.internalSetMute(isMute);
-			callback.accept(new Response<Boolean>(true));
-		}));
+		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, player.getName(), playerMutedOrUnmutedName, isMute), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -295,11 +285,11 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException if the playerKickName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void kickPlayer(String playerName, String playerKickName, Consumer<IResponse<Boolean>> callback) {
+	public void kickPlayer(String playerName, String playerKickName, Consumer<IResponse> callback) {
 		Objects.requireNonNull(playerName, "The playerName cannot be null");
 		Objects.requireNonNull(playerKickName, "The playerKickName cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
-		send(create(Idc.PLAYER_KICK, Oid.SET, playerName, playerKickName), args -> filter(args, callback, payload -> callback.accept(new Response<Boolean>(true))));
+		send(create(Idc.PLAYER_KICK, Oid.SET, playerName, playerKickName), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -313,11 +303,11 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException if the soundModifierName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void setChannelModifierName(String channelName, String soundModifierName, Consumer<IResponse<String>> callback) {
+	public void setChannelModifierName(String channelName, String soundModifierName, Consumer<IResponse> callback) {
 		Objects.requireNonNull(channelName, "The name of the channel cannot be null");
 		Objects.requireNonNull(soundModifierName, "The name of the sound modifier cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
-		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> filter(args, callback, payload -> new Response<String>((String) payload[1])));
+		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> parse(args, callback, null));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
@@ -394,27 +384,18 @@ public class MumbleConnection implements IEventListener {
 		}));
 	}
 
-	private <T> void filter(ResponseCallbackArgs args, Consumer<IResponse<T>> callback, Consumer<Object[]> consumer) {
+	private void parse(ResponseCallbackArgs args, Consumer<IResponse> callback, Consumer<Object[]> consumer) {
 		if (args.isTimeout())
-			callback.accept(new Response<T>(ErrorCode.TIMEOUT));
+			callback.accept(new Response(ErrorCode.TIMEOUT));
 		else {
 			IMessage<Header> response = MumbleMessageFactory.parse(args.getResponse().getBytes());
 			if (response.getHeader().isError())
-				callback.accept(new Response<T>(response.getHeader().getErrorCode()));
-			else
-				consumer.accept(response.getPayload());
-		}
-	}
-
-	private <T> void answer(ResponseCallbackArgs args, Consumer<IResponse<T>> callback, T response) {
-		if (args.isTimeout())
-			callback.accept(new Response<T>(ErrorCode.TIMEOUT));
-		else {
-			IMessage<Header> answer = MumbleMessageFactory.parse(args.getResponse().getBytes());
-			if (answer.getHeader().isError())
-				callback.accept(new Response<T>(answer.getHeader().getErrorCode(), response));
-			else
-				callback.accept(new Response<T>(response));
+				callback.accept(new Response(response.getHeader().getErrorCode()));
+			else {
+				if (consumer != null)
+					consumer.accept(response.getPayload());
+				callback.accept(new Response(ErrorCode.NONE));
+			}
 		}
 	}
 

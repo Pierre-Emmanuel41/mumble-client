@@ -27,7 +27,7 @@ public class InternalSoundModifier implements ISoundModifier {
 	}
 
 	@Override
-	public void setName(String name, Consumer<IResponse<String>> callback) {
+	public void setName(String name, Consumer<IResponse> callback) {
 		EventManager.callEvent(new SoundModifierNameChangePreEvent(this, name), () -> connection.setChannelModifierName(channel.getName(), name, callback));
 	}
 
