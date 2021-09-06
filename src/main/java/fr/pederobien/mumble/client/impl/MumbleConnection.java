@@ -8,15 +8,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
-import fr.pederobien.communication.event.ConnectionCompleteEvent;
-import fr.pederobien.communication.event.ConnectionDisposedEvent;
-import fr.pederobien.communication.event.ConnectionLostEvent;
-import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientConnection;
 import fr.pederobien.communication.impl.UdpClientConnection;
-import fr.pederobien.communication.interfaces.IObsTcpConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
@@ -35,9 +30,12 @@ import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.AsyncConsole;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class MumbleConnection implements IObsTcpConnection {
+public class MumbleConnection implements IEventListener {
 	private MumbleServer mumbleServer;
 	private ITcpConnection tcpConnection;
 	private IUdpConnection udpConnection;
@@ -46,87 +44,11 @@ public class MumbleConnection implements IObsTcpConnection {
 
 	protected MumbleConnection(MumbleServer mumbleServer) {
 		this.mumbleServer = mumbleServer;
-		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 
+		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 		isDisposed = new AtomicBoolean(false);
 
-		tcpConnection.addObserver(this);
-	}
-
-	@Override
-	public void onConnectionComplete() {
-		EventManager.callEvent(new ConnectionCompleteEvent(tcpConnection));
-	}
-
-	@Override
-	public void onConnectionDisposed() {
-		EventManager.callEvent(new ConnectionDisposedEvent(tcpConnection));
-	}
-
-	@Override
-	public void onDataReceived(DataReceivedEvent event) {
-	}
-
-	@Override
-	public void onLog(LogEvent event) {
-		AsyncConsole.print(event.getMessage());
-	}
-
-	@Override
-	public void onConnectionLost() {
-		EventManager.callEvent(new ConnectionLostEvent(tcpConnection));
-	}
-
-	@Override
-	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
-		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
-		switch (message.getHeader().getIdc()) {
-		case PLAYER_INFO:
-			if (message.getPayload().length > 1)
-				mumbleServer.getInternalPlayer().setName((String) message.getPayload()[1]);
-			mumbleServer.getInternalPlayer().setIsOnline((boolean) message.getPayload()[0]);
-			break;
-		case PLAYER_ADMIN:
-			mumbleServer.getInternalPlayer().setIsAdmin((boolean) message.getPayload()[0]);
-			break;
-		case CHANNELS:
-			switch (message.getHeader().getOid()) {
-			case ADD:
-				mumbleServer.internalAddChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
-				break;
-			case REMOVE:
-				mumbleServer.internalRemoveChannel((String) message.getPayload()[0]);
-				break;
-			case SET:
-				mumbleServer.internalSetChannelName((String) message.getPayload()[0], (String) message.getPayload()[1]);
-			default:
-				break;
-			}
-			break;
-		case CHANNELS_PLAYER:
-			switch (message.getHeader().getOid()) {
-			case ADD:
-				mumbleServer.internalAddPlayerToChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
-				break;
-			case REMOVE:
-				mumbleServer.internalRemovePlayerFromChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
-				break;
-			default:
-				break;
-			}
-			break;
-		case PLAYER_MUTE:
-			mumbleServer.onPlayerMuteChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
-			break;
-		case PLAYER_DEAFEN:
-			mumbleServer.onPlayerDeafenChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
-			break;
-		case SOUND_MODIFIER:
-			mumbleServer.internalSetSoundModifierOfChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
-			break;
-		default:
-			break;
-		}
+		EventManager.registerListener(this);
 	}
 
 	public ITcpConnection getTcpConnection() {
@@ -396,6 +318,63 @@ public class MumbleConnection implements IObsTcpConnection {
 		Objects.requireNonNull(soundModifierName, "The name of the sound modifier cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
 		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> filter(args, callback, payload -> new Response<String>((String) payload[1])));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onLog(LogEvent event) {
+		AsyncConsole.print(event.getMessage());
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
+		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
+		switch (message.getHeader().getIdc()) {
+		case PLAYER_INFO:
+			if (message.getPayload().length > 1)
+				mumbleServer.getInternalPlayer().setName((String) message.getPayload()[1]);
+			mumbleServer.getInternalPlayer().setIsOnline((boolean) message.getPayload()[0]);
+			break;
+		case PLAYER_ADMIN:
+			mumbleServer.getInternalPlayer().setIsAdmin((boolean) message.getPayload()[0]);
+			break;
+		case CHANNELS:
+			switch (message.getHeader().getOid()) {
+			case ADD:
+				mumbleServer.internalAddChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+				break;
+			case REMOVE:
+				mumbleServer.internalRemoveChannel((String) message.getPayload()[0]);
+				break;
+			case SET:
+				mumbleServer.internalSetChannelName((String) message.getPayload()[0], (String) message.getPayload()[1]);
+			default:
+				break;
+			}
+			break;
+		case CHANNELS_PLAYER:
+			switch (message.getHeader().getOid()) {
+			case ADD:
+				mumbleServer.internalAddPlayerToChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+				break;
+			case REMOVE:
+				mumbleServer.internalRemovePlayerFromChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+				break;
+			default:
+				break;
+			}
+			break;
+		case PLAYER_MUTE:
+			mumbleServer.onPlayerMuteChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
+			break;
+		case PLAYER_DEAFEN:
+			mumbleServer.onPlayerDeafenChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
+			break;
+		case SOUND_MODIFIER:
+			mumbleServer.internalSetSoundModifierOfChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+			break;
+		default:
+			break;
+		}
 	}
 
 	private IMessage<Header> create(Idc idc, Object... payload) {

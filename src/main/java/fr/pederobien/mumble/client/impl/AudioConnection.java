@@ -2,9 +2,9 @@ package fr.pederobien.mumble.client.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import fr.pederobien.communication.event.ConnectionCompleteEvent;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
-import fr.pederobien.communication.event.LogEvent;
-import fr.pederobien.communication.interfaces.IObsConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IAudioConnection;
@@ -21,7 +21,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class AudioConnection implements IAudioConnection, IEventListener, IObsConnection {
+public class AudioConnection implements IAudioConnection, IEventListener {
 	private static int N_SHORTS = 0xffff;
 	private static final short[] VOLUME_NORM_LUT = new short[N_SHORTS];
 	private static int MAX_NEGATIVE_AMPLITUDE = 0x8000;
@@ -33,38 +33,11 @@ public class AudioConnection implements IAudioConnection, IEventListener, IObsCo
 
 	public AudioConnection(IUdpConnection connection) {
 		this.connection = connection;
-		connection.addObserver(this);
 
 		isConnected = new AtomicBoolean(false);
 		preComputeVolumeNormLUT();
-	}
 
-	@Override
-	public void onConnectionComplete() {
-		start();
-	}
-
-	@Override
-	public void onConnectionDisposed() {
-		if (soundProvider != null) {
-			soundProvider.getMicrophone().interrupt();
-			soundProvider.getSpeakers().interrupt();
-		}
-		connection.removeObserver(this);
-	}
-
-	@Override
-	public void onDataReceived(DataReceivedEvent event) {
-		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
-		if (pauseSpeakers || message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
-			return;
-
-		soundProvider.getMixer().put((String) message.getPayload()[0], toStereo(message), (double) message.getPayload()[2], false);
-	}
-
-	@Override
-	public void onLog(LogEvent event) {
-
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -150,7 +123,6 @@ public class AudioConnection implements IAudioConnection, IEventListener, IObsCo
 
 	private void start() {
 		soundProvider = new SoundResourcesProvider();
-		EventManager.registerListener(this);
 		soundProvider.getMicrophone().start();
 		soundProvider.getSpeakers().start();
 
@@ -206,5 +178,36 @@ public class AudioConnection implements IAudioConnection, IEventListener, IObsCo
 
 		normalizeVolume(event.getData());
 		connection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, event.getData())));
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onConnectionComplete(ConnectionCompleteEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		start();
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onConnectionDisposed(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		if (soundProvider != null) {
+			soundProvider.getMicrophone().interrupt();
+			soundProvider.getSpeakers().interrupt();
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	private void onDataReceived(DataReceivedEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());
+		if (pauseSpeakers || message.getHeader().getIdc() != Idc.PLAYER_SPEAK || message.getHeader().getOid() != Oid.SET)
+			return;
+
+		soundProvider.getMixer().put((String) message.getPayload()[0], toStereo(message), (double) message.getPayload()[2], false);
 	}
 }
