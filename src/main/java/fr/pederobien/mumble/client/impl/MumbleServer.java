@@ -233,7 +233,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onConnectionComplete(ConnectionCompleteEvent event) {
+	private void onConnectionComplete(ConnectionCompleteEvent event) {
 		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
 			return;
 
@@ -241,7 +241,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onConnectionDisposed(ConnectionDisposedEvent event) {
+	private void onConnectionDisposed(ConnectionDisposedEvent event) {
 		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
 			return;
 
@@ -249,7 +249,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onConnectionLost(ConnectionLostEvent event) {
+	private void onConnectionLost(ConnectionLostEvent event) {
 		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
 			return;
 
