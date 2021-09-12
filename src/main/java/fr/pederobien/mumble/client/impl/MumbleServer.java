@@ -23,6 +23,7 @@ import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.internal.InternalChannel;
 import fr.pederobien.mumble.client.internal.InternalChannelList;
+import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.client.internal.InternalPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -187,7 +188,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		channelList.internalAdd(new InternalChannel(mumbleConnection, name, soundModifierName, modifierNames));
 	}
 
-	protected void internalAddChannel(String name, List<String> players, String soundModifierName) {
+	protected void internalAddChannel(String name, List<InternalOtherPlayer> players, String soundModifierName) {
 		channelList.internalAdd(new InternalChannel(mumbleConnection, name, players, soundModifierName, modifierNames));
 	}
 

@@ -28,19 +28,19 @@ public class InternalChannel implements IChannel {
 	private InternalPlayer player;
 	private InternalSoundModifier soundModifier;
 
-	public InternalChannel(MumbleConnection connection, String name, List<String> players, String soundModifierName, List<String> modifierNames) {
+	public InternalChannel(MumbleConnection connection, String name, List<InternalOtherPlayer> players, String soundModifierName, List<String> modifierNames) {
 		this.connection = connection;
 		this.name = name;
 		this.players = new HashMap<String, InternalOtherPlayer>();
 		this.soundModifier = new InternalSoundModifier(connection, this, soundModifierName);
-		for (String playerName : players)
-			this.players.put(playerName, new InternalOtherPlayer(connection, player, playerName));
+		for (InternalOtherPlayer player : players)
+			this.players.put(player.getName(), player);
 
 		this.modifierNames = modifierNames;
 	}
 
 	public InternalChannel(MumbleConnection connection, String name, String soundModifierName, List<String> modifierNames) {
-		this(connection, name, new ArrayList<String>(), soundModifierName, modifierNames);
+		this(connection, name, new ArrayList<InternalOtherPlayer>(), soundModifierName, modifierNames);
 	}
 
 	@Override

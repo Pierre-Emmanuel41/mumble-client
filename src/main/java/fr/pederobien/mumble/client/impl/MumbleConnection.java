@@ -92,10 +92,14 @@ public class MumbleConnection implements IEventListener {
 				String channelName = (String) payload[currentIndex++];
 				String soundModifierName = (String) payload[currentIndex++];
 				int numberOfPlayers = (int) payload[currentIndex++];
-				List<String> players = new ArrayList<String>();
+				List<InternalOtherPlayer> players = new ArrayList<InternalOtherPlayer>();
 
-				for (int j = 0; j < numberOfPlayers; j++)
-					players.add((String) payload[currentIndex++]);
+				for (int j = 0; j < numberOfPlayers; j++) {
+					InternalOtherPlayer player = new InternalOtherPlayer(this, mumbleServer.getPlayer(), (String) payload[currentIndex++]);
+					player.internalSetMute((boolean) payload[currentIndex++]);
+					player.internalSetDeafen((boolean) payload[currentIndex++]);
+					players.add(player);
+				}
 
 				mumbleServer.internalAddChannel(channelName, players, soundModifierName);
 			}
