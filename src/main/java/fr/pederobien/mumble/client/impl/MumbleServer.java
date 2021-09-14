@@ -32,7 +32,7 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleServer implements IMumbleServer, IEventListener {
 	private String name, address;
-	private int port;
+	private int tcpPort, udpPort;
 	private AtomicBoolean isDisposed, isReachable, isOpened;
 	private MumbleConnection mumbleConnection;
 	private InternalPlayer player;
@@ -42,7 +42,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	public MumbleServer(String name, String remoteAddress, int tcpPort) {
 		this.name = name;
 		this.address = remoteAddress;
-		this.port = tcpPort;
+		this.tcpPort = tcpPort;
 
 		modifierNames = new ArrayList<String>();
 
@@ -88,20 +88,25 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public int getPort() {
-		return port;
+		return tcpPort;
 	}
 
 	@Override
 	public void setPort(int port) {
-		if (this.port == port)
+		if (this.tcpPort == port)
 			return;
 
 		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), () -> {
-			int oldPort = this.port;
-			this.port = port;
+			int oldPort = this.tcpPort;
+			this.tcpPort = port;
 			reinitialize();
 			EventManager.callEvent(new ServerPortNumberChangePostEvent(this, oldPort));
 		});
+	}
+
+	@Override
+	public int getUdpPort() {
+		return udpPort;
 	}
 
 	@Override
@@ -162,7 +167,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public String toString() {
-		return "Server={" + name + "," + address + "," + port + "}";
+		return String.format("Server={Name=%s, address=%s, tcpPort=%s, udpPort=%}", name, address, tcpPort, udpPort);
 	}
 
 	@Override
@@ -173,7 +178,11 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (!(obj instanceof MumbleServer))
 			return false;
 		MumbleServer other = (MumbleServer) obj;
-		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
+		return name.equals(other.getName()) && address.equals(other.getAddress()) && tcpPort == other.getPort();
+	}
+
+	protected void setUdpPort(int udpPort) {
+		this.udpPort = udpPort;
 	}
 
 	protected void setModifierNames(List<String> modifierNames) {

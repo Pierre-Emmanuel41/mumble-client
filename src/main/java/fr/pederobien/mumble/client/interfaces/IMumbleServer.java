@@ -44,6 +44,11 @@ public interface IMumbleServer {
 	void setPort(int port);
 
 	/**
+	 * @return The UDP port for vocal communication.
+	 */
+	int getUdpPort();
+
+	/**
 	 * @return True if the server is reachable and requests can be sent to the remote, false otherwise.
 	 */
 	boolean isReachable();
