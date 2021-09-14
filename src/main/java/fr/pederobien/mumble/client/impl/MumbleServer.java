@@ -38,6 +38,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	private InternalPlayer player;
 	private InternalChannelList channelList;
 	private List<String> modifierNames;
+	private boolean isJoined;
 
 	public MumbleServer(String name, String remoteAddress, int tcpPort) {
 		this.name = name;
@@ -136,18 +137,31 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public void join(Consumer<IResponse> callback) {
-		mumbleConnection.join(callback);
+		if (isJoined)
+			return;
+
+		Consumer<IResponse> intermediate = response -> {
+			if (!response.hasFailed())
+				isJoined = true;
+			callback.accept(response);
+		};
+		mumbleConnection.join(intermediate);
 	}
 
 	@Override
 	public void leave() {
+		if (!isJoined)
+			return;
+
 		if (player.getChannel() != null)
 			player.getChannel().removePlayer(response -> {
 				if (response.hasFailed())
 					System.out.println(response.getErrorCode().getMessage());
-				else
-					mumbleConnection.leave();
 			});
+		mumbleConnection.leave(response -> {
+			if (!response.hasFailed())
+				isJoined = false;
+		});
 	}
 
 	@Override

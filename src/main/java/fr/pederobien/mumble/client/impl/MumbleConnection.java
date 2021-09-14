@@ -42,8 +42,6 @@ public class MumbleConnection implements IEventListener {
 
 		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 		isDisposed = new AtomicBoolean(false);
-
-		EventManager.registerListener(this);
 	}
 
 	public ITcpConnection getTcpConnection() {
@@ -82,10 +80,12 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	public void join(Consumer<IResponse> callback) {
+		EventManager.registerListener(this);
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
-			udpConnection = new UdpClientConnection(mumbleServer.getAddress(), (int) payload[currentIndex++], new MessageExtractor(), true, 20000);
-			audioConnection = new AudioConnection(udpConnection);
+			mumbleServer.setUdpPort((int) payload[currentIndex++]);
+			udpConnection = new UdpClientConnection(mumbleServer.getAddress(), mumbleServer.getUdpPort(), new MessageExtractor(), true, 20000);
+			audioConnection = new AudioConnection(this);
 
 			int numberOfChannels = (int) payload[currentIndex++];
 			for (int i = 0; i < numberOfChannels; i++) {
@@ -121,9 +121,11 @@ public class MumbleConnection implements IEventListener {
 		}));
 	}
 
-	public void leave() {
-		send(create(Idc.SERVER_LEAVE, Oid.SET));
-		udpConnection.dispose();
+	public void leave(Consumer<IResponse> callback) {
+		send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> {
+			udpConnection.dispose();
+			EventManager.unregisterListener(this);
+		}));
 	}
 
 	public AudioConnection getAudioConnection() {
