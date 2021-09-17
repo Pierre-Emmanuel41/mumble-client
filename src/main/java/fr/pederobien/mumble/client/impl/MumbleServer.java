@@ -16,7 +16,6 @@ import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPortNumberChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerPortNumberChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
-import fr.pederobien.mumble.client.interfaces.IAudioConnection;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -172,11 +171,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	@Override
 	public IChannelList getChannelList() {
 		return channelList;
-	}
-
-	@Override
-	public IAudioConnection getAudioConnection() {
-		return mumbleConnection.getAudioConnection();
 	}
 
 	@Override

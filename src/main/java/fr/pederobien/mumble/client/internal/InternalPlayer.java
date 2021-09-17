@@ -86,6 +86,15 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 		EventManager.callEvent(new PlayerChannelChangePreEvent(this, channel), () -> {
 			IChannel oldChannel = this.channel;
 			this.channel = channel;
+
+			// Starting/Stopping the voice communication
+			if (channel == null)
+				getConnection().getAudioConnection().disconnect();
+			else {
+				setMute(false);
+				setDeafen(false);
+				getConnection().getAudioConnection().connect();
+			}
 			EventManager.callEvent(new PlayerChannelChangePostEvent(this, oldChannel));
 		});
 	}

@@ -6,7 +6,6 @@ import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.messenger.interfaces.IMessage;
-import fr.pederobien.mumble.client.interfaces.IAudioConnection;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
@@ -21,7 +20,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class AudioConnection implements IAudioConnection, IEventListener {
+public class AudioConnection implements IEventListener {
 	private ISoundResourcesProvider soundProvider;
 	private MumbleConnection mumbleConnection;
 	private AtomicBoolean isConnected;
@@ -33,7 +32,9 @@ public class AudioConnection implements IAudioConnection, IEventListener {
 		EventManager.registerListener(this);
 	}
 
-	@Override
+	/**
+	 * Connects the udp connection to the remote in order to send the bytes array coming from the microphone through the network.
+	 */
 	public void connect() {
 		if (!isConnected.compareAndSet(false, true))
 			return;
@@ -41,7 +42,10 @@ public class AudioConnection implements IAudioConnection, IEventListener {
 		mumbleConnection.getUdpConnection().connect();
 	}
 
-	@Override
+	/**
+	 * Stops the udp connection with the remote. It also interrupt the underlying microphone and speakers in order to release systems
+	 * resources.
+	 */
 	public void disconnect() {
 		if (!isConnected.compareAndSet(true, false))
 			return;

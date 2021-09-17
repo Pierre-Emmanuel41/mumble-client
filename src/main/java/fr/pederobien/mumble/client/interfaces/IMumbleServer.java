@@ -89,10 +89,4 @@ public interface IMumbleServer {
 	 * @return Get the list of channel currently registered on the server.
 	 */
 	IChannelList getChannelList();
-
-	/**
-	 * @return The Audio connect that is responsible to collect data from the microphone and send it to the remote but also to receive
-	 *         data from the remote and play it with the speakers.
-	 */
-	IAudioConnection getAudioConnection();
 }

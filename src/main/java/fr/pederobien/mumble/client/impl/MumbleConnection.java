@@ -71,7 +71,7 @@ public class MumbleConnection implements IEventListener {
 		tcpConnection.dispose();
 
 		// Could be null if disposing the connection whereas the server was not reachable.
-		if (udpConnection != null && !udpConnection.isDisposed())
+		if (udpConnection != null)
 			udpConnection.dispose();
 	}
 
