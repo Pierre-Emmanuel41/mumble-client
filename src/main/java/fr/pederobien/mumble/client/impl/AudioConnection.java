@@ -1,13 +1,14 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
+import fr.pederobien.communication.impl.UdpClientConnection;
+import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
@@ -22,13 +23,11 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class AudioConnection implements IEventListener {
 	private ISoundResourcesProvider soundProvider;
-	private MumbleConnection mumbleConnection;
-	private AtomicBoolean isConnected;
+	private IUdpConnection udpConnection;
 	private boolean pauseMicrophone, pauseSpeakers;
 
-	public AudioConnection(MumbleConnection mumbleConnection) {
-		this.mumbleConnection = mumbleConnection;
-		isConnected = new AtomicBoolean(false);
+	public AudioConnection(String remoteAddress, int udpPort) {
+		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), true, 20000);
 		EventManager.registerListener(this);
 	}
 
@@ -36,10 +35,7 @@ public class AudioConnection implements IEventListener {
 	 * Connects the udp connection to the remote in order to send the bytes array coming from the microphone through the network.
 	 */
 	public void connect() {
-		if (!isConnected.compareAndSet(false, true))
-			return;
-
-		mumbleConnection.getUdpConnection().connect();
+		udpConnection.connect();
 	}
 
 	/**
@@ -47,12 +43,16 @@ public class AudioConnection implements IEventListener {
 	 * resources.
 	 */
 	public void disconnect() {
-		if (!isConnected.compareAndSet(true, false))
-			return;
-
 		soundProvider.getMicrophone().interrupt();
 		soundProvider.getSpeakers().interrupt();
-		mumbleConnection.getUdpConnection().disconnect();
+		udpConnection.disconnect();
+	}
+
+	/**
+	 * Dispose the underlying udp connection.
+	 */
+	public void dispose() {
+		udpConnection.dispose();
 	}
 
 	/**
@@ -128,15 +128,15 @@ public class AudioConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	private void onMicrophoneDataRead(MicrophoneDataEncodedEvent event) {
-		if (mumbleConnection.getUdpConnection().isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
+		if (udpConnection.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
 
-		mumbleConnection.getUdpConnection().send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, event.getEncoded())));
+		udpConnection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, event.getEncoded())));
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	private void onConnectionComplete(ConnectionCompleteEvent event) {
-		if (!event.getConnection().equals(mumbleConnection.getUdpConnection()))
+		if (!event.getConnection().equals(udpConnection))
 			return;
 
 		start();
@@ -144,7 +144,7 @@ public class AudioConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(mumbleConnection.getUdpConnection()))
+		if (!event.getConnection().equals(udpConnection))
 			return;
 
 		if (soundProvider != null) {
@@ -157,7 +157,7 @@ public class AudioConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	private void onDataReceived(DataReceivedEvent event) {
-		if (!event.getConnection().equals(mumbleConnection.getUdpConnection()))
+		if (!event.getConnection().equals(udpConnection))
 			return;
 
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getBuffer());

@@ -11,9 +11,7 @@ import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientConnection;
-import fr.pederobien.communication.impl.UdpClientConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
-import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
@@ -33,7 +31,6 @@ import fr.pederobien.utils.event.IEventListener;
 public class MumbleConnection implements IEventListener {
 	private MumbleServer mumbleServer;
 	private ITcpConnection tcpConnection;
-	private IUdpConnection udpConnection;
 	private AudioConnection audioConnection;
 	private AtomicBoolean isDisposed;
 
@@ -48,10 +45,6 @@ public class MumbleConnection implements IEventListener {
 		return tcpConnection;
 	}
 
-	public IUdpConnection getUdpConnection() {
-		return udpConnection;
-	}
-
 	public void connect() {
 		tcpConnection.connect();
 	}
@@ -60,8 +53,8 @@ public class MumbleConnection implements IEventListener {
 		tcpConnection.disconnect();
 
 		// Could be null if disposing the connection whereas the server was not reachable.
-		if (udpConnection != null)
-			udpConnection.disconnect();
+		if (audioConnection != null)
+			audioConnection.disconnect();
 	}
 
 	public void dispose() {
@@ -71,8 +64,8 @@ public class MumbleConnection implements IEventListener {
 		tcpConnection.dispose();
 
 		// Could be null if disposing the connection whereas the server was not reachable.
-		if (udpConnection != null)
-			udpConnection.dispose();
+		if (audioConnection != null)
+			audioConnection.dispose();
 	}
 
 	public boolean isDisposed() {
@@ -84,8 +77,7 @@ public class MumbleConnection implements IEventListener {
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
 			mumbleServer.setUdpPort((int) payload[currentIndex++]);
-			udpConnection = new UdpClientConnection(mumbleServer.getAddress(), mumbleServer.getUdpPort(), new MessageExtractor(), true, 20000);
-			audioConnection = new AudioConnection(this);
+			audioConnection = new AudioConnection(mumbleServer.getAddress(), mumbleServer.getUdpPort());
 
 			int numberOfChannels = (int) payload[currentIndex++];
 			for (int i = 0; i < numberOfChannels; i++) {
@@ -123,7 +115,7 @@ public class MumbleConnection implements IEventListener {
 
 	public void leave(Consumer<IResponse> callback) {
 		send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> {
-			udpConnection.dispose();
+			audioConnection.dispose();
 			EventManager.unregisterListener(this);
 		}));
 	}
