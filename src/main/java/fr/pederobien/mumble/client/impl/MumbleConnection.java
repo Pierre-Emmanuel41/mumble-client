@@ -225,7 +225,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void pauseMicrophone() {
 		audioConnection.pauseMicrophone();
-		send(create(Idc.PLAYER_MUTE, true));
+		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), true));
 	}
 
 	/**
@@ -243,7 +243,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void resumeMicrophone() {
 		audioConnection.resumeMicrophone();
-		send(create(Idc.PLAYER_MUTE, false));
+		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), false));
 	}
 
 	/**
@@ -363,10 +363,6 @@ public class MumbleConnection implements IEventListener {
 		default:
 			break;
 		}
-	}
-
-	private IMessage<Header> create(Idc idc, Object... payload) {
-		return MumbleMessageFactory.create(idc, payload);
 	}
 
 	private IMessage<Header> create(Idc idc, Oid oid, Object... payload) {
