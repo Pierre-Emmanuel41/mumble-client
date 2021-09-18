@@ -234,7 +234,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void pauseSpeakers() {
 		audioConnection.pauseSpeakers();
-		send(create(Idc.PLAYER_DEAFEN, true));
+		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), true));
 	}
 
 	/**
@@ -252,7 +252,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void resumeSpeakers() {
 		audioConnection.resumeSpeakers();
-		send(create(Idc.PLAYER_DEAFEN, false));
+		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), false));
 	}
 
 	/**
