@@ -11,6 +11,10 @@ import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.event.ServerIpAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerIpAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerJoinPostEvent;
+import fr.pederobien.mumble.client.event.ServerJoinPreEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePreEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPortNumberChangePostEvent;
@@ -139,13 +143,16 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (isJoined)
 			return;
 
-		isJoined = true;
-		Consumer<IResponse> intermediate = response -> {
-			if (response.hasFailed())
-				isJoined = false;
-			callback.accept(response);
-		};
-		mumbleConnection.join(intermediate);
+		EventManager.callEvent(new ServerJoinPreEvent(this), () -> {
+			isJoined = true;
+			mumbleConnection.join(response -> {
+				callback.accept(response);
+				if (!response.hasFailed())
+					EventManager.callEvent(new ServerJoinPostEvent(this));
+				else
+					isJoined = false;
+			});
+		});
 	}
 
 	@Override
@@ -153,16 +160,15 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (!isJoined)
 			return;
 
-		isJoined = false;
-		if (player.getChannel() != null)
-			player.getChannel().removePlayer(response -> {
-				if (response.hasFailed())
-					System.out.println(response.getErrorCode().getMessage());
+		EventManager.callEvent(new ServerLeavePreEvent(this), () -> {
+			isJoined = false;
+			mumbleConnection.leave(response -> {
+				callback.accept(response);
+				if (!response.hasFailed())
+					EventManager.callEvent(new ServerLeavePostEvent(this));
+				else
+					isJoined = true;
 			});
-		mumbleConnection.leave(response -> {
-			if (response.hasFailed())
-				isJoined = true;
-			callback.accept(response);
 		});
 	}
 
