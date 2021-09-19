@@ -139,27 +139,30 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (isJoined)
 			return;
 
+		isJoined = true;
 		Consumer<IResponse> intermediate = response -> {
-			if (!response.hasFailed())
-				isJoined = true;
+			if (response.hasFailed())
+				isJoined = false;
 			callback.accept(response);
 		};
 		mumbleConnection.join(intermediate);
 	}
 
 	@Override
-	public void leave() {
+	public void leave(Consumer<IResponse> callback) {
 		if (!isJoined)
 			return;
 
+		isJoined = false;
 		if (player.getChannel() != null)
 			player.getChannel().removePlayer(response -> {
 				if (response.hasFailed())
 					System.out.println(response.getErrorCode().getMessage());
 			});
 		mumbleConnection.leave(response -> {
-			if (!response.hasFailed())
-				isJoined = false;
+			if (response.hasFailed())
+				isJoined = true;
+			callback.accept(response);
 		});
 	}
 

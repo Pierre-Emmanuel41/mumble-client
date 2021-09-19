@@ -77,8 +77,10 @@ public interface IMumbleServer {
 
 	/**
 	 * Send a request in order to leave the server.
+	 * 
+	 * @param callback The callback to run when a response has been received from the remote.
 	 */
-	void leave();
+	void leave(Consumer<IResponse> callback);
 
 	/**
 	 * @return The main player associated to this client.
