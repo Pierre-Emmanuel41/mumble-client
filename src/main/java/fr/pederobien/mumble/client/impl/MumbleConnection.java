@@ -79,6 +79,13 @@ public class MumbleConnection implements IEventListener {
 			mumbleServer.setUdpPort((int) payload[currentIndex++]);
 			audioConnection = new AudioConnection(mumbleServer.getAddress(), mumbleServer.getUdpPort());
 
+			int numberOfModifiers = (int) payload[currentIndex++];
+			List<String> modifierNames = new ArrayList<String>();
+			for (int i = 0; i < numberOfModifiers; i++)
+				modifierNames.add((String) payload[currentIndex++]);
+
+			mumbleServer.setModifierNames(modifierNames);
+
 			int numberOfChannels = (int) payload[currentIndex++];
 			for (int i = 0; i < numberOfChannels; i++) {
 				String channelName = (String) payload[currentIndex++];
@@ -95,13 +102,6 @@ public class MumbleConnection implements IEventListener {
 
 				mumbleServer.internalAddChannel(channelName, players, soundModifierName);
 			}
-
-			int numberOfModifiers = (int) payload[currentIndex++];
-			List<String> modifierNames = new ArrayList<String>();
-			for (int i = 0; i < numberOfModifiers; i++)
-				modifierNames.add((String) payload[currentIndex++]);
-
-			mumbleServer.setModifierNames(modifierNames);
 
 			UUID uuid = (UUID) payload[currentIndex++];
 
