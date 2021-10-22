@@ -35,7 +35,7 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleServer implements IMumbleServer, IEventListener {
 	private String name, address;
-	private int tcpPort, udpPort;
+	private int port;
 	private AtomicBoolean isDisposed, isReachable, isOpened;
 	private MumbleConnection mumbleConnection;
 	private InternalPlayer player;
@@ -43,10 +43,10 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	private List<String> modifierNames;
 	private boolean isJoined;
 
-	public MumbleServer(String name, String remoteAddress, int tcpPort) {
+	public MumbleServer(String name, String remoteAddress, int port) {
 		this.name = name;
 		this.address = remoteAddress;
-		this.tcpPort = tcpPort;
+		this.port = port;
 
 		modifierNames = new ArrayList<String>();
 
@@ -92,25 +92,20 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public int getPort() {
-		return tcpPort;
+		return port;
 	}
 
 	@Override
 	public void setPort(int port) {
-		if (this.tcpPort == port)
+		if (this.port == port)
 			return;
 
 		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), () -> {
-			int oldPort = this.tcpPort;
-			this.tcpPort = port;
+			int oldPort = this.port;
+			this.port = port;
 			reinitialize();
 			EventManager.callEvent(new ServerPortNumberChangePostEvent(this, oldPort));
 		});
-	}
-
-	@Override
-	public int getUdpPort() {
-		return udpPort;
 	}
 
 	@Override
@@ -184,7 +179,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public String toString() {
-		return String.format("Server={Name=%s, address=%s, tcpPort=%s, udpPort=%}", name, address, tcpPort, udpPort);
+		return String.format("Server={Name=%s, address=%s, tcpPort=%s}", name, address, port);
 	}
 
 	@Override
@@ -195,11 +190,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (!(obj instanceof MumbleServer))
 			return false;
 		MumbleServer other = (MumbleServer) obj;
-		return name.equals(other.getName()) && address.equals(other.getAddress()) && tcpPort == other.getPort();
-	}
-
-	protected void setUdpPort(int udpPort) {
-		this.udpPort = udpPort;
+		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
 	}
 
 	protected void setModifierNames(List<String> modifierNames) {

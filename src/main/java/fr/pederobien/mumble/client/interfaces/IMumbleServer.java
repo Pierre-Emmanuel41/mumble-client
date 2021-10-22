@@ -32,21 +32,16 @@ public interface IMumbleServer {
 	void setAddress(String address);
 
 	/**
-	 * @return The TCP port number of this server.
+	 * @return The port number of this server for TCP and UDP communication.
 	 */
 	int getPort();
 
 	/**
-	 * Set the TCP port number of this server.
+	 * Set the port number of this server for TCP and UDP communication.
 	 * 
-	 * @param port The new server TCP port number.
+	 * @param port The new server port number.
 	 */
 	void setPort(int port);
-
-	/**
-	 * @return The UDP port for vocal communication.
-	 */
-	int getUdpPort();
 
 	/**
 	 * @return True if the server is reachable and requests can be sent to the remote, false otherwise.

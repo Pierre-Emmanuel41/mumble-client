@@ -76,8 +76,7 @@ public class MumbleConnection implements IEventListener {
 		EventManager.registerListener(this);
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
-			mumbleServer.setUdpPort((int) payload[currentIndex++]);
-			audioConnection = new AudioConnection(mumbleServer.getAddress(), mumbleServer.getUdpPort());
+			audioConnection = new AudioConnection(mumbleServer.getAddress(), mumbleServer.getPort());
 
 			int numberOfModifiers = (int) payload[currentIndex++];
 			List<String> modifierNames = new ArrayList<String>();
