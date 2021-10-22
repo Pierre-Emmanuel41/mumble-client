@@ -229,13 +229,19 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		channelList.getChannel(channelName).internalSetModifierName(soundModifierName);
 	}
 
-	protected void updatePlayerInfo(boolean isOnline, String name, UUID uuid, boolean isAdmin) {
+	protected void updatePlayerInfo(Object[] payload, int currentIndex, boolean uuidSet) {
+		if (!uuidSet) {
+			UUID uuid = (UUID) payload[currentIndex++];
+			player.setUUID(uuid);
+		}
+
+		boolean isOnline = (boolean) payload[currentIndex++];
 		player.setIsOnline(isOnline);
-		if (player.isOnline())
-			player.setName(name);
-		player.setUUID(uuid);
-		if (player.isOnline())
-			player.setIsAdmin(isAdmin);
+		if (player.isOnline()) {
+			player.setName((String) payload[currentIndex++]);
+			player.setIsAdmin((boolean) payload[currentIndex++]);
+		} else
+			player.setIsAdmin(false);
 	}
 
 	protected void onPlayerMuteChanged(String playerName, boolean isMute) {

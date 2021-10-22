@@ -3,7 +3,6 @@ package fr.pederobien.mumble.client.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -102,13 +101,7 @@ public class MumbleConnection implements IEventListener {
 				mumbleServer.internalAddChannel(channelName, players, soundModifierName);
 			}
 
-			UUID uuid = (UUID) payload[currentIndex++];
-
-			boolean playerConnected = (boolean) payload[currentIndex++];
-			if (playerConnected)
-				mumbleServer.updatePlayerInfo(playerConnected, (String) payload[currentIndex++], uuid, (boolean) payload[currentIndex++]);
-			else
-				mumbleServer.updatePlayerInfo(playerConnected, null, uuid, false);
+			mumbleServer.updatePlayerInfo(payload, currentIndex, false);
 		}));
 	}
 
@@ -317,9 +310,7 @@ public class MumbleConnection implements IEventListener {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
 		switch (message.getHeader().getIdc()) {
 		case PLAYER_INFO:
-			if (message.getPayload().length > 1)
-				mumbleServer.getInternalPlayer().setName((String) message.getPayload()[1]);
-			mumbleServer.getInternalPlayer().setIsOnline((boolean) message.getPayload()[0]);
+			mumbleServer.updatePlayerInfo(message.getPayload(), 0, true);
 			break;
 		case PLAYER_ADMIN:
 			mumbleServer.getInternalPlayer().setIsAdmin((boolean) message.getPayload()[0]);
