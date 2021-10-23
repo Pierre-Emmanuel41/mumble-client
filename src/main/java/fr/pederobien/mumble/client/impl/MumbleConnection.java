@@ -38,6 +38,8 @@ public class MumbleConnection implements IEventListener {
 
 		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 		isDisposed = new AtomicBoolean(false);
+
+		EventManager.registerListener(this);
 	}
 
 	public ITcpConnection getTcpConnection() {
@@ -72,7 +74,6 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	public void join(Consumer<IResponse> callback) {
-		EventManager.registerListener(this);
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
 			audioConnection = new AudioConnection(mumbleServer.getAddress(), mumbleServer.getPort());
@@ -302,7 +303,7 @@ public class MumbleConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onLog(LogEvent event) {
-		AsyncConsole.print(event.getMessage());
+		AsyncConsole.println(event.getMessage());
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)

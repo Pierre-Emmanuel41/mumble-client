@@ -43,8 +43,8 @@ public class AudioConnection implements IEventListener {
 	 * resources.
 	 */
 	public void disconnect() {
-		soundProvider.getMicrophone().interrupt();
-		soundProvider.getSpeakers().interrupt();
+		soundProvider.getMicrophone().stop();
+		soundProvider.getSpeakers().stop();
 		udpConnection.disconnect();
 	}
 
@@ -103,7 +103,7 @@ public class AudioConnection implements IEventListener {
 			return;
 
 		pauseMicrophone = false;
-		soundProvider.getMicrophone().relaunch();
+		soundProvider.getMicrophone().resume();
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class AudioConnection implements IEventListener {
 			return;
 
 		pauseSpeakers = false;
-		soundProvider.getSpeakers().relaunch();
+		soundProvider.getSpeakers().resume();
 	}
 
 	private void start() {
@@ -148,8 +148,8 @@ public class AudioConnection implements IEventListener {
 			return;
 
 		if (soundProvider != null) {
-			soundProvider.getMicrophone().interrupt();
-			soundProvider.getSpeakers().interrupt();
+			soundProvider.getMicrophone().stop();
+			soundProvider.getSpeakers().stop();
 		}
 
 		EventManager.unregisterListener(this);
