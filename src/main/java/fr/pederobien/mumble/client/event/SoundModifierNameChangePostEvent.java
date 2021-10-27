@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 
 public class SoundModifierNameChangePostEvent extends SoundModifierEvent {
@@ -21,5 +23,13 @@ public class SoundModifierNameChangePostEvent extends SoundModifierEvent {
 	 */
 	public String getOldName() {
 		return oldName;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("soundModifier=" + getSoundModifier().getName());
+		joiner.add("oldName=" + getOldName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

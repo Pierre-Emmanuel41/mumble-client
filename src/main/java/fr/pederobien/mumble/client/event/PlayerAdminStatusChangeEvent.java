@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
 public class PlayerAdminStatusChangeEvent extends MainPlayerEvent {
@@ -21,5 +23,13 @@ public class PlayerAdminStatusChangeEvent extends MainPlayerEvent {
 	 */
 	public boolean isAdmin() {
 		return isAdmin;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("player=" + getPlayer().getName());
+		joiner.add("admin=" + isAdmin);
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

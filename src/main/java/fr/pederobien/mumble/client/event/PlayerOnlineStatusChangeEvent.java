@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
 public class PlayerOnlineStatusChangeEvent extends MainPlayerEvent {
@@ -21,5 +23,13 @@ public class PlayerOnlineStatusChangeEvent extends MainPlayerEvent {
 	 */
 	public boolean isOnline() {
 		return isOnline;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("player=" + getPlayer().getName());
+		joiner.add("online=" + isOnline());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 
@@ -22,5 +24,13 @@ public class PlayerAddToChannelPostEvent extends ChannelEvent {
 	 */
 	public IOtherPlayer getPlayer() {
 		return player;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("channel=" + getChannel().getName());
+		joiner.add("player=" + getPlayer().getName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

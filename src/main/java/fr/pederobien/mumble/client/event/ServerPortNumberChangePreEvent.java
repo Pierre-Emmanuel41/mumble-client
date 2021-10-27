@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
@@ -33,5 +35,14 @@ public class ServerPortNumberChangePreEvent extends ServerEvent implements ICanc
 	 */
 	public int getNewPort() {
 		return newPort;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("server=" + getServer().getName());
+		joiner.add("currentPort=" + getServer().getPort());
+		joiner.add("newPort=" + getNewPort());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

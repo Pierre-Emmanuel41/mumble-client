@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
@@ -33,5 +35,14 @@ public class ServerIpAddressChangePreEvent extends ServerEvent implements ICance
 	 */
 	public String getNewAddress() {
 		return newAddress;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("server=" + getServer().getName());
+		joiner.add("currentAddress=" + getServer().getAddress());
+		joiner.add("newAddress=" + getNewAddress());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

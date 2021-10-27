@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
@@ -32,5 +34,13 @@ public class PlayerDeafenChangePreEvent extends MainPlayerEvent implements ICanc
 	 */
 	public boolean isDeafen() {
 		return isDeafen;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("player=" + getPlayer().getName());
+		joiner.add("deafen=" + isDeafen());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

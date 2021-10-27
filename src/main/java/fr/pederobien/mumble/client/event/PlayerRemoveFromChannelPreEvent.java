@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.utils.ICancellable;
@@ -34,5 +36,13 @@ public class PlayerRemoveFromChannelPreEvent extends ChannelEvent implements ICa
 	 */
 	public IOtherPlayer getPlayer() {
 		return player;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("channel=" + (getChannel() == null ? null : getChannel().getName()));
+		joiner.add("player=" + getPlayer().getName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

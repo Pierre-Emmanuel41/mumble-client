@@ -1,5 +1,9 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +11,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
-import fr.pederobien.communication.event.LogEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientConnection;
 import fr.pederobien.communication.interfaces.ITcpConnection;
@@ -21,7 +24,6 @@ import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.utils.AsyncConsole;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -67,6 +69,8 @@ public class MumbleConnection implements IEventListener {
 		// Could be null if disposing the connection whereas the server was not reachable.
 		if (audioConnection != null)
 			audioConnection.dispose();
+
+		EventManager.unregisterListener(this);
 	}
 
 	public boolean isDisposed() {
@@ -107,10 +111,7 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	public void leave(Consumer<IResponse> callback) {
-		send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> {
-			audioConnection.dispose();
-			EventManager.unregisterListener(this);
-		}));
+		send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> audioConnection.dispose()));
 	}
 
 	public AudioConnection getAudioConnection() {
@@ -302,11 +303,6 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onLog(LogEvent event) {
-		AsyncConsole.println(event.getMessage());
-	}
-
-	@EventHandler(priority = EventPriority.NORMAL)
 	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
 		switch (message.getHeader().getIdc()) {
@@ -351,6 +347,10 @@ public class MumbleConnection implements IEventListener {
 		case SOUND_MODIFIER:
 			mumbleServer.internalSetSoundModifierOfChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
 			break;
+		case GAME_PORT:
+			int port = (int) message.getPayload()[0];
+			send(MumbleMessageFactory.create(Idc.GAME_PORT, Oid.SET, port, checkGamePort(port)));
+			break;
 		default:
 			break;
 		}
@@ -381,6 +381,25 @@ public class MumbleConnection implements IEventListener {
 					consumer.accept(response.getPayload());
 				callback.accept(new Response(ErrorCode.NONE));
 			}
+		}
+	}
+
+	private boolean checkGamePort(int port) {
+		Socket socket = null;
+		try {
+			socket = new Socket();
+			socket.connect(new InetSocketAddress(InetAddress.getByName(mumbleServer.getAddress()), port), 1000);
+			socket.close();
+			return false;
+		} catch (IOException e) {
+			return true;
+		} finally {
+			if (socket != null)
+				try {
+					socket.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 		}
 	}
 

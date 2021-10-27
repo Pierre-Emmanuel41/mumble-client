@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
@@ -34,5 +36,14 @@ public class PlayerChannelChangePreEvent extends MainPlayerEvent implements ICan
 	 */
 	public IChannel getNewChannel() {
 		return newChannel;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentChannel=" + (getPlayer().getChannel() == null ? null : getPlayer().getChannel().getName()));
+		joiner.add("newChannel=" + (getNewChannel() == null ? null : getNewChannel().getName()));
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

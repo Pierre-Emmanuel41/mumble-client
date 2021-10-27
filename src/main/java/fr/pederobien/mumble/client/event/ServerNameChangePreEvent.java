@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
@@ -33,5 +35,13 @@ public class ServerNameChangePreEvent extends ServerEvent implements ICancellabl
 	 */
 	public String getNewName() {
 		return newName;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("server=" + getServer().getName());
+		joiner.add("newName=" + getNewName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

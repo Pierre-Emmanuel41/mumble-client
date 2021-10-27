@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.utils.ICancellable;
 
@@ -31,7 +33,15 @@ public class PlayerAddToChannelPreEvent extends ChannelEvent implements ICancell
 	/**
 	 * @return The name of the player about to be added to the channel.
 	 */
-	public String getPlayer() {
+	public String getPlayerName() {
 		return playerName;
+	}
+
+	@Override
+	public String toString() {
+		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		joiner.add("channel=" + getChannel().getName());
+		joiner.add("playerName=" + getPlayerName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }
