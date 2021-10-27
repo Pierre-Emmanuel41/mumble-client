@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.event.ChannelAddPostEvent;
 import fr.pederobien.mumble.client.event.ChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
+import fr.pederobien.mumble.client.event.ChannelRemovePreEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
@@ -35,7 +36,7 @@ public class InternalChannelList implements IChannelList {
 
 	@Override
 	public void removeChannel(String channelName, Consumer<IResponse> callback) {
-		EventManager.callEvent(new ChannelRemovePostEvent(this, getChannel(channelName)), () -> connection.removeChannel(channelName, callback));
+		EventManager.callEvent(new ChannelRemovePreEvent(this, getChannel(channelName)), () -> connection.removeChannel(channelName, callback));
 	}
 
 	@Override

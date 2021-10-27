@@ -30,7 +30,6 @@ import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.client.internal.InternalPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleServer implements IMumbleServer, IEventListener {
@@ -65,11 +64,8 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.name != null && this.name.equals(name))
 			return;
 
-		EventManager.callEvent(new ServerNameChangePreEvent(this, name), () -> {
-			String oldName = this.name;
-			this.name = name;
-			EventManager.callEvent(new ServerNameChangePostEvent(this, oldName));
-		});
+		final String oldName = this.name;
+		EventManager.callEvent(new ServerNameChangePreEvent(this, name), () -> this.name = name, new ServerNameChangePostEvent(this, oldName));
 	}
 
 	@Override
@@ -82,12 +78,12 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.address != null && this.address.equals(address))
 			return;
 
-		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address), () -> {
-			String oldAddress = this.address;
+		final String oldAddress = this.address;
+		Runnable setAddress = () -> {
 			this.address = address;
 			reinitialize();
-			EventManager.callEvent(new ServerIpAddressChangePostEvent(this, oldAddress));
-		});
+		};
+		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address), setAddress, new ServerIpAddressChangePostEvent(this, oldAddress));
 	}
 
 	@Override
@@ -100,12 +96,12 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.port == port)
 			return;
 
-		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), () -> {
-			int oldPort = this.port;
+		final int oldPort = this.port;
+		Runnable setPort = () -> {
 			this.port = port;
 			reinitialize();
-			EventManager.callEvent(new ServerPortNumberChangePostEvent(this, oldPort));
-		});
+		};
+		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), setPort, new ServerPortNumberChangePostEvent(this, oldPort));
 	}
 
 	@Override
@@ -256,7 +252,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		channelList.onPlayerDeafenChanged(playerName, isDeafen);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onConnectionComplete(ConnectionCompleteEvent event) {
 		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
 			return;
@@ -264,7 +260,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		setIsReachable(true);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
 		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
 			return;
@@ -272,7 +268,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		setIsReachable(false);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onConnectionLost(ConnectionLostEvent event) {
 		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
 			return;

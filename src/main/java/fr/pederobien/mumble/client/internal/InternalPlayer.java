@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.internal;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.event.PlayerAdminStatusChangeEvent;
+import fr.pederobien.mumble.client.event.PlayerAdminStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerChannelChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerChannelChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenChangePostEvent;
@@ -44,7 +44,7 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 			return;
 
 		this.isAdmin = isAdmin;
-		EventManager.callEvent(new PlayerAdminStatusChangeEvent(this, isAdmin));
+		EventManager.callEvent(new PlayerAdminStatusChangePostEvent(this, isAdmin));
 	}
 
 	@Override
