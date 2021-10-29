@@ -1,9 +1,7 @@
 package fr.pederobien.mumble.client.impl;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +26,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.utils.event.LogEvent;
 
 public class MumbleConnection implements IEventListener {
 	private MumbleServer mumbleServer;
@@ -385,21 +384,12 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	private boolean checkGamePort(int port) {
-		Socket socket = null;
-		try {
-			socket = new Socket();
-			socket.connect(new InetSocketAddress(InetAddress.getByName(mumbleServer.getAddress()), port), 1000);
-			socket.close();
+		try (ServerSocket server = new ServerSocket(port)) {
+			EventManager.callEvent(new LogEvent("Port %s not used to play game", port));
 			return false;
 		} catch (IOException e) {
+			EventManager.callEvent(new LogEvent("Port %s used to play game", port));
 			return true;
-		} finally {
-			if (socket != null)
-				try {
-					socket.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 		}
 	}
 
