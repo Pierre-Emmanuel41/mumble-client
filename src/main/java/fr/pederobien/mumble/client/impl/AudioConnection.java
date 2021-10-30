@@ -18,7 +18,6 @@ import fr.pederobien.sound.impl.SoundResourcesProvider;
 import fr.pederobien.sound.interfaces.ISoundResourcesProvider;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class AudioConnection implements IEventListener {
@@ -126,7 +125,7 @@ public class AudioConnection implements IEventListener {
 		pauseSpeakers = false;
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onMicrophoneDataRead(MicrophoneDataEncodedEvent event) {
 		if (udpConnection.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
@@ -134,7 +133,7 @@ public class AudioConnection implements IEventListener {
 		udpConnection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, event.getEncoded())));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onConnectionComplete(ConnectionCompleteEvent event) {
 		if (!event.getConnection().equals(udpConnection))
 			return;
@@ -142,7 +141,7 @@ public class AudioConnection implements IEventListener {
 		start();
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
 		if (!event.getConnection().equals(udpConnection))
 			return;
@@ -155,7 +154,7 @@ public class AudioConnection implements IEventListener {
 		EventManager.unregisterListener(this);
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler
 	private void onDataReceived(DataReceivedEvent event) {
 		if (!event.getConnection().equals(udpConnection))
 			return;

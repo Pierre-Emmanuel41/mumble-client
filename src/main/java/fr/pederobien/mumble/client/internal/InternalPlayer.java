@@ -83,8 +83,8 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 		if (this.channel != null && this.channel.equals(channel))
 			return;
 
-		EventManager.callEvent(new PlayerChannelChangePreEvent(this, channel), () -> {
-			IChannel oldChannel = this.channel;
+		IChannel oldChannel = this.channel;
+		Runnable set = () -> {
 			this.channel = channel;
 
 			// Starting/Stopping the voice communication
@@ -95,8 +95,8 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 				setDeafen(false);
 				getConnection().getAudioConnection().connect();
 			}
-			EventManager.callEvent(new PlayerChannelChangePostEvent(this, oldChannel));
-		});
+		};
+		EventManager.callEvent(new PlayerChannelChangePreEvent(this, channel), set, new PlayerChannelChangePostEvent(this, oldChannel));
 	}
 
 	@Override
@@ -109,10 +109,8 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 		if (this.isMute == isMute)
 			return;
 
-		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute), () -> {
-			updateMumbleConnection(isMute, connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
-			EventManager.callEvent(new PlayerMuteChangePostEvent(this, isMute));
-		});
+		Runnable set = () -> updateMumbleConnection(isMute, connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
+		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute), set, new PlayerMuteChangePostEvent(this, isMute));
 	}
 
 	@Override
@@ -125,10 +123,8 @@ public class InternalPlayer extends InternalCommonPlayer implements IPlayer {
 		if (this.isDeafen == isDeafen)
 			return;
 
-		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), () -> {
-			updateMumbleConnection(isDeafen, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
-			EventManager.callEvent(new PlayerDeafenChangePostEvent(this, isMute));
-		});
+		Runnable set = () -> updateMumbleConnection(isDeafen, connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen), set, new PlayerDeafenChangePostEvent(this, isMute));
 	}
 
 	@Override
