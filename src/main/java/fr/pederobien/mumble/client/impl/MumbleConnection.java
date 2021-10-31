@@ -79,7 +79,7 @@ public class MumbleConnection implements IEventListener {
 	public void join(Consumer<IResponse> callback) {
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
-			audioConnection = new AudioConnection(mumbleServer.getAddress(), mumbleServer.getPort());
+			audioConnection = new AudioConnection(mumbleServer);
 
 			int numberOfModifiers = (int) payload[currentIndex++];
 			List<String> modifierNames = new ArrayList<String>();

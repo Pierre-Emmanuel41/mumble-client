@@ -6,6 +6,7 @@ import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.impl.UdpClientConnection;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
@@ -21,12 +22,14 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class AudioConnection implements IEventListener {
+	private IMumbleServer server;
 	private ISoundResourcesProvider soundProvider;
 	private IUdpConnection udpConnection;
 	private boolean pauseMicrophone, pauseSpeakers;
 
-	public AudioConnection(String remoteAddress, int udpPort) {
-		udpConnection = new UdpClientConnection(remoteAddress, udpPort, new MessageExtractor(), true, 20000);
+	public AudioConnection(IMumbleServer server) {
+		this.server = server;
+		udpConnection = new UdpClientConnection(server.getAddress(), server.getPort(), new MessageExtractor(), true, 20000);
 		EventManager.registerListener(this);
 	}
 
@@ -130,7 +133,7 @@ public class AudioConnection implements IEventListener {
 		if (udpConnection.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
 
-		udpConnection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, event.getEncoded())));
+		udpConnection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, server.getPlayer().getName(), event.getEncoded())));
 	}
 
 	@EventHandler
