@@ -110,7 +110,11 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	public void leave(Consumer<IResponse> callback) {
-		send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> audioConnection.dispose()));
+		// Always possible to leave the server, whatever the server state
+		if (!mumbleServer.isReachable())
+			callback.accept(new Response(ErrorCode.NONE));
+		else
+			send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> audioConnection.dispose()));
 	}
 
 	public AudioConnection getAudioConnection() {
