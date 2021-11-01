@@ -30,6 +30,7 @@ import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.client.internal.InternalPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleServer implements IMumbleServer, IEventListener {
@@ -134,16 +135,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (isJoined)
 			return;
 
-		EventManager.callEvent(new ServerJoinPreEvent(this), () -> {
-			isJoined = true;
-			mumbleConnection.join(response -> {
-				callback.accept(response);
-				if (!response.hasFailed())
-					EventManager.callEvent(new ServerJoinPostEvent(this));
-				else
-					isJoined = false;
-			});
-		});
+		EventManager.callEvent(new ServerJoinPreEvent(this, callback));
 	}
 
 	@Override
@@ -151,16 +143,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (!isJoined)
 			return;
 
-		EventManager.callEvent(new ServerLeavePreEvent(this), () -> {
-			isJoined = false;
-			mumbleConnection.leave(response -> {
-				callback.accept(response);
-				if (!response.hasFailed())
-					EventManager.callEvent(new ServerLeavePostEvent(this));
-				else
-					isJoined = true;
-			});
-		});
+		EventManager.callEvent(new ServerLeavePreEvent(this, callback));
 	}
 
 	@Override
@@ -274,6 +257,30 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return;
 
 		setIsReachable(false);
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onServerJoin(ServerJoinPreEvent event) {
+		isJoined = true;
+		mumbleConnection.join(response -> {
+			event.getCallback().accept(response);
+			if (!response.hasFailed())
+				EventManager.callEvent(new ServerJoinPostEvent(this));
+			else
+				isJoined = false;
+		});
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onServerLeave(ServerLeavePreEvent event) {
+		isJoined = false;
+		mumbleConnection.leave(response -> {
+			event.getCallback().accept(response);
+			if (!response.hasFailed())
+				EventManager.callEvent(new ServerLeavePostEvent(this));
+			else
+				isJoined = true;
+		});
 	}
 
 	private void checkIsDisposed() {
