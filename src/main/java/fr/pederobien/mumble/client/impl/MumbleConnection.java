@@ -24,7 +24,6 @@ import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 
@@ -70,6 +69,13 @@ public class MumbleConnection implements IEventListener {
 			audioConnection.dispose();
 
 		EventManager.unregisterListener(this);
+	}
+
+	/**
+	 * @return The mumble server associated to this connection.
+	 */
+	public MumbleServer getMumbleServer() {
+		return mumbleServer;
 	}
 
 	public boolean isDisposed() {
@@ -305,8 +311,8 @@ public class MumbleConnection implements IEventListener {
 		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> parse(args, callback, null));
 	}
 
-	@EventHandler(priority = EventPriority.NORMAL)
-	public void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
+	@EventHandler
+	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
 		switch (message.getHeader().getIdc()) {
 		case PLAYER_INFO:

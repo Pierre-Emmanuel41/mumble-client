@@ -1,13 +1,16 @@
 package fr.pederobien.mumble.client.event;
 
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.interfaces.IChannelList;
+import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
 public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable {
 	private boolean isCancelled;
 	private String channelName, soundModifierName;
+	private Consumer<IResponse> callback;
 
 	/**
 	 * Creates an event thrown when a channel is about to be added.
@@ -15,11 +18,13 @@ public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable
 	 * @param channelList       The channel list to which a channel is about to be added.
 	 * @param channelName       The name of the channel that is about to be added.
 	 * @param soundModifierName The sound modifier name associated to the future channel.
+	 * @param callback          The action to execute when an answer has been received from the server.
 	 */
-	public ChannelAddPreEvent(IChannelList channelList, String channelName, String soundModifierName) {
+	public ChannelAddPreEvent(IChannelList channelList, String channelName, String soundModifierName, Consumer<IResponse> callback) {
 		super(channelList);
 		this.channelName = channelName;
 		this.soundModifierName = soundModifierName;
+		this.callback = callback;
 	}
 
 	@Override
@@ -44,6 +49,13 @@ public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable
 	 */
 	public String getSoundModifierName() {
 		return soundModifierName;
+	}
+
+	/**
+	 * @return The action to execute when an answer has been received from the server.
+	 */
+	public Consumer<IResponse> getCallback() {
+		return callback;
 	}
 
 	@Override

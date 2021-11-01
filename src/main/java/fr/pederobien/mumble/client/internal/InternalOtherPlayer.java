@@ -9,16 +9,27 @@ import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 
-public class InternalOtherPlayer extends InternalCommonPlayer implements IOtherPlayer {
+public class InternalOtherPlayer extends InternalObject implements IOtherPlayer {
 	private IPlayer player;
 	private boolean isMute, isMuteBy, isDeafen;
+	private String name;
 
 	public InternalOtherPlayer(MumbleConnection connection, IPlayer player, String name) {
-		super(connection, name);
+		super(connection);
 		this.player = player;
+		this.name = name;
 		isMute = false;
+
+		EventManager.registerListener(this);
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override
@@ -31,7 +42,7 @@ public class InternalOtherPlayer extends InternalCommonPlayer implements IOtherP
 		if (this.isMuteBy == isMute)
 			return;
 
-		EventManager.callEvent(new OtherPlayerMuteByPreEvent(this, player, isMute), () -> getConnection().mutePlayerBy(this, player.getName(), isMute, callback));
+		EventManager.callEvent(new OtherPlayerMuteByPreEvent(this, player, isMute, callback));
 	}
 
 	@Override
@@ -60,5 +71,13 @@ public class InternalOtherPlayer extends InternalCommonPlayer implements IOtherP
 	public void internalSetMute(boolean isMute) {
 		this.isMute = isMute;
 		EventManager.callEvent(new OtherPlayerMutePostEvent(this, isMute));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerMute(OtherPlayerMuteByPreEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		getConnection().mutePlayerBy(this, player.getName(), isMute, event.getCallback());
 	}
 }

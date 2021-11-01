@@ -1,24 +1,29 @@
 package fr.pederobien.mumble.client.event;
 
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
+import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerRemoveFromChannelPreEvent extends ChannelEvent implements ICancellable {
 	private boolean isCancelled;
 	private IOtherPlayer player;
+	private Consumer<IResponse> callback;
 
 	/**
 	 * Creates an event thrown when a player is about to be removed from a channel.
 	 * 
-	 * @param channel The channel from which a player is about to be removed.
-	 * @param player  The removed player.
+	 * @param channel  The channel from which a player is about to be removed.
+	 * @param player   The removed player.
+	 * @param callback The action to execute when an answer has been received from the server.
 	 */
-	public PlayerRemoveFromChannelPreEvent(IChannel channel, IOtherPlayer player) {
+	public PlayerRemoveFromChannelPreEvent(IChannel channel, IOtherPlayer player, Consumer<IResponse> callback) {
 		super(channel);
 		this.player = player;
+		this.callback = callback;
 	}
 
 	@Override
@@ -36,6 +41,13 @@ public class PlayerRemoveFromChannelPreEvent extends ChannelEvent implements ICa
 	 */
 	public IOtherPlayer getPlayer() {
 		return player;
+	}
+
+	/**
+	 * @return The action to execute when an answer has been received from the server.
+	 */
+	public Consumer<IResponse> getCallback() {
+		return callback;
 	}
 
 	@Override

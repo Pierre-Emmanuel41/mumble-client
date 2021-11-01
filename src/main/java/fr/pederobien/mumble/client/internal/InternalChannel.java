@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
+import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
@@ -18,18 +19,19 @@ import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 
-public class InternalChannel implements IChannel {
+public class InternalChannel extends InternalObject implements IChannel {
 	private String name;
 	private List<String> modifierNames;
 	private Map<String, InternalOtherPlayer> players;
-	private MumbleConnection connection;
 	private InternalPlayer player;
 	private InternalSoundModifier soundModifier;
 
 	public InternalChannel(MumbleConnection connection, String name, List<InternalOtherPlayer> players, String soundModifierName, List<String> modifierNames) {
-		this.connection = connection;
+		super(connection);
 		this.name = name;
 		this.players = new HashMap<String, InternalOtherPlayer>();
 		this.soundModifier = new InternalSoundModifier(connection, this, soundModifierName);
@@ -53,18 +55,18 @@ public class InternalChannel implements IChannel {
 		if (this.name == name)
 			return;
 
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name), () -> connection.renameChannel(this.name, name, callback));
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, callback));
 	}
 
 	@Override
 	public void addPlayer(Consumer<IResponse> callback) {
-		EventManager.callEvent(new PlayerAddToChannelPreEvent(this, player.getName()), () -> connection.addPlayerToChannel(getName(), player.getName(), callback));
+		EventManager.callEvent(new PlayerAddToChannelPreEvent(this, player.getName(), callback));
 	}
 
 	@Override
 	public void removePlayer(Consumer<IResponse> callback) {
 		IOtherPlayer removed = players.get(player.getName());
-		EventManager.callEvent(new PlayerRemoveFromChannelPreEvent(this, removed), () -> connection.removePlayerfromChannel(getName(), player.getName(), callback));
+		EventManager.callEvent(new PlayerRemoveFromChannelPreEvent(this, removed, callback));
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public class InternalChannel implements IChannel {
 		if (players.get(playerName) != null)
 			return;
 
-		InternalOtherPlayer added = new InternalOtherPlayer(connection, player, playerName);
+		InternalOtherPlayer added = new InternalOtherPlayer(getConnection(), player, playerName);
 		players.put(playerName, added);
 		if (player.getName().equals(added.getName()))
 			this.player.setChannel(this);
@@ -147,5 +149,37 @@ public class InternalChannel implements IChannel {
 		if (getSoundModifier().getName().equals(name))
 			return;
 		soundModifier.internalSetName(name);
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onNameChange(ChannelNameChangePreEvent event) {
+		if (!event.getChannel().equals(this))
+			return;
+
+		getConnection().renameChannel(this.name, name, event.getCallback());
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onAddPlayer(PlayerAddToChannelPreEvent event) {
+		if (!event.getChannel().equals(this))
+			return;
+
+		getConnection().addPlayerToChannel(getName(), player.getName(), event.getCallback());
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerRemove(PlayerRemoveFromChannelPreEvent event) {
+		if (!event.getChannel().equals(this))
+			return;
+
+		getConnection().removePlayerfromChannel(getName(), player.getName(), event.getCallback());
+	}
+
+	@EventHandler
+	private void onChannelRemove(ChannelRemovePostEvent event) {
+		if (!event.getChannel().equals(this))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }

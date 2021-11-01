@@ -15,28 +15,31 @@ import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 
-public class InternalChannelList implements IChannelList {
+public class InternalChannelList extends InternalObject implements IChannelList {
 	private Map<String, InternalChannel> channels;
-	private MumbleConnection connection;
 	private InternalPlayer player;
 
 	public InternalChannelList(MumbleConnection connection, InternalPlayer player) {
-		this.connection = connection;
+		super(connection);
 		this.player = player;
 		channels = new HashMap<String, InternalChannel>();
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
 	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse> callback) {
 		String modifierName = soundModifierName == null ? "default" : soundModifierName;
-		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifierName), () -> connection.addChannel(channelName, modifierName, callback));
+		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifierName, callback));
 	}
 
 	@Override
 	public void removeChannel(String channelName, Consumer<IResponse> callback) {
-		EventManager.callEvent(new ChannelRemovePreEvent(this, getChannel(channelName)), () -> connection.removeChannel(channelName, callback));
+		EventManager.callEvent(new ChannelRemovePreEvent(this, getChannel(channelName), callback));
 	}
 
 	@Override
@@ -94,5 +97,21 @@ public class InternalChannelList implements IChannelList {
 
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
 		channels.values().forEach(channel -> channel.onPlayerDeafenChanged(playerName, isDeafen));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelAdd(ChannelAddPreEvent event) {
+		if (!event.getChannelList().equals(this))
+			return;
+
+		getConnection().addChannel(event.getChannelName(), event.getSoundModifierName(), event.getCallback());
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelRemove(ChannelRemovePreEvent event) {
+		if (!event.getChannelList().equals(this) || event.getChannel() == null)
+			return;
+
+		getConnection().removeChannel(event.getChannel().getName(), event.getCallback());
 	}
 }

@@ -65,8 +65,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.name != null && this.name.equals(name))
 			return;
 
-		final String oldName = this.name;
-		EventManager.callEvent(new ServerNameChangePreEvent(this, name), () -> this.name = name, new ServerNameChangePostEvent(this, oldName));
+		EventManager.callEvent(new ServerNameChangePreEvent(this, name));
 	}
 
 	@Override
@@ -79,12 +78,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.address != null && this.address.equals(address))
 			return;
 
-		final String oldAddress = this.address;
-		Runnable setAddress = () -> {
-			this.address = address;
-			reinitialize();
-		};
-		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address), setAddress, new ServerIpAddressChangePostEvent(this, oldAddress));
+		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address));
 	}
 
 	@Override
@@ -97,12 +91,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.port == port)
 			return;
 
-		final int oldPort = this.port;
-		Runnable setPort = () -> {
-			this.port = port;
-			reinitialize();
-		};
-		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), setPort, new ServerPortNumberChangePostEvent(this, oldPort));
+		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port));
 	}
 
 	@Override
@@ -132,17 +121,11 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@Override
 	public void join(Consumer<IResponse> callback) {
-		if (isJoined)
-			return;
-
 		EventManager.callEvent(new ServerJoinPreEvent(this, callback));
 	}
 
 	@Override
 	public void leave(Consumer<IResponse> callback) {
-		if (!isJoined)
-			return;
-
 		EventManager.callEvent(new ServerLeavePreEvent(this, callback));
 	}
 
@@ -261,6 +244,9 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerJoin(ServerJoinPreEvent event) {
+		if (!event.getServer().equals(this) || isJoined)
+			return;
+
 		isJoined = true;
 		mumbleConnection.join(response -> {
 			event.getCallback().accept(response);
@@ -273,6 +259,9 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerLeave(ServerLeavePreEvent event) {
+		if (!event.getServer().equals(this) || !isJoined)
+			return;
+
 		isJoined = false;
 		mumbleConnection.leave(response -> {
 			event.getCallback().accept(response);
@@ -281,6 +270,38 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			else
 				isJoined = true;
 		});
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onNameChange(ServerNameChangePreEvent event) {
+		if (!event.getServer().equals(this))
+			return;
+
+		String oldName = this.name;
+		this.name = event.getNewName();
+		EventManager.callEvent(new ServerNameChangePostEvent(this, oldName));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onAddressChange(ServerIpAddressChangePreEvent event) {
+		if (!event.getServer().equals(this))
+			return;
+
+		String oldAddress = this.address;
+		this.address = event.getNewAddress();
+		reinitialize();
+		EventManager.callEvent(new ServerIpAddressChangePostEvent(this, oldAddress));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPortNumberChange(ServerPortNumberChangePreEvent event) {
+		if (!event.getServer().equals(this))
+			return;
+
+		int oldPort = this.port;
+		this.port = event.getNewPort();
+		reinitialize();
+		EventManager.callEvent(new ServerPortNumberChangePostEvent(this, oldPort));
 	}
 
 	private void checkIsDisposed() {

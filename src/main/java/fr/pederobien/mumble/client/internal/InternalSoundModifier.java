@@ -8,15 +8,16 @@ import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 
-public class InternalSoundModifier implements ISoundModifier {
-	private MumbleConnection connection;
+public class InternalSoundModifier extends InternalObject implements ISoundModifier {
 	private IChannel channel;
 	private String name;
 
 	public InternalSoundModifier(MumbleConnection connection, IChannel channel, String name) {
-		this.connection = connection;
+		super(connection);
 		this.channel = channel;
 		this.name = name;
 	}
@@ -28,7 +29,7 @@ public class InternalSoundModifier implements ISoundModifier {
 
 	@Override
 	public void setName(String name, Consumer<IResponse> callback) {
-		EventManager.callEvent(new SoundModifierNameChangePreEvent(this, name), () -> connection.setChannelModifierName(channel.getName(), name, callback));
+		EventManager.callEvent(new SoundModifierNameChangePreEvent(this, name, callback));
 	}
 
 	@Override
@@ -54,5 +55,13 @@ public class InternalSoundModifier implements ISoundModifier {
 		String oldName = new String(this.name);
 		this.name = name;
 		EventManager.callEvent(new SoundModifierNameChangePostEvent(this, oldName));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onNameChange(SoundModifierNameChangePreEvent event) {
+		if (!event.getSoundModifier().equals(this))
+			return;
+
+		getConnection().setChannelModifierName(channel.getName(), name, event.getCallback());
 	}
 }
