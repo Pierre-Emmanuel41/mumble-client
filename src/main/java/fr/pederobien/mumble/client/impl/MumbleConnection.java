@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
-import fr.pederobien.communication.impl.TcpClientConnection;
+import fr.pederobien.communication.impl.TcpClientImpl;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -36,7 +36,7 @@ public class MumbleConnection implements IEventListener {
 	protected MumbleConnection(MumbleServer mumbleServer) {
 		this.mumbleServer = mumbleServer;
 
-		tcpConnection = new TcpClientConnection(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
+		tcpConnection = new TcpClientImpl(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor());
 		isDisposed = new AtomicBoolean(false);
 
 		EventManager.registerListener(this);
@@ -374,8 +374,7 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	private void send(IMessage<Header> message) {
-		tcpConnection.send(new MumbleCallbackMessage(message, args -> {
-		}));
+		tcpConnection.send(new MumbleCallbackMessage(message, null));
 	}
 
 	private void parse(ResponseCallbackArgs args, Consumer<IResponse> callback, Consumer<Object[]> consumer) {
