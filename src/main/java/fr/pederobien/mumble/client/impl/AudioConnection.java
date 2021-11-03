@@ -3,15 +3,15 @@ package fr.pederobien.mumble.client.impl;
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
-import fr.pederobien.communication.impl.UdpClientConnection;
+import fr.pederobien.communication.impl.UdpClientImpl;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
+import fr.pederobien.mumble.common.impl.MumbleAddressMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.MumbleRequestMessage;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.sound.event.MicrophoneDataEncodedEvent;
 import fr.pederobien.sound.impl.AudioPacket;
@@ -29,7 +29,7 @@ public class AudioConnection implements IEventListener {
 
 	public AudioConnection(IMumbleServer server) {
 		this.server = server;
-		udpConnection = new UdpClientConnection(server.getAddress(), server.getPort(), new MessageExtractor(), true, 20000);
+		udpConnection = new UdpClientImpl(server.getAddress(), server.getPort(), new MessageExtractor());
 		EventManager.registerListener(this);
 	}
 
@@ -133,7 +133,7 @@ public class AudioConnection implements IEventListener {
 		if (udpConnection.isDisposed() || !event.getMicrophone().equals(soundProvider.getMicrophone()))
 			return;
 
-		udpConnection.send(new MumbleRequestMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, server.getPlayer().getName(), event.getEncoded())));
+		udpConnection.send(new MumbleAddressMessage(MumbleMessageFactory.create(Idc.PLAYER_SPEAK, server.getPlayer().getName(), event.getEncoded())));
 	}
 
 	@EventHandler

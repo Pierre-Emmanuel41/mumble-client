@@ -358,7 +358,7 @@ public class MumbleConnection implements IEventListener {
 			break;
 		case GAME_PORT:
 			int port = (int) message.getPayload()[0];
-			send(MumbleMessageFactory.create(Idc.GAME_PORT, Oid.SET, port, checkGamePort(port)));
+			send(MumbleMessageFactory.answer(message, Idc.GAME_PORT, Oid.SET, port, checkGamePort(port)));
 			break;
 		default:
 			break;
