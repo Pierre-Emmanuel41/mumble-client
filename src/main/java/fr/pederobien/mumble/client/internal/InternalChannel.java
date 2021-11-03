@@ -14,6 +14,7 @@ import fr.pederobien.mumble.client.event.PlayerAddToChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPreEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
@@ -178,6 +179,14 @@ public class InternalChannel extends InternalObject implements IChannel {
 	@EventHandler
 	private void onChannelRemove(ChannelRemovePostEvent event) {
 		if (!event.getChannel().equals(this))
+			return;
+
+		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onServerLeave(ServerLeavePostEvent event) {
+		if (!event.getServer().equals(getConnection().getMumbleServer()))
 			return;
 
 		EventManager.unregisterListener(this);

@@ -2,6 +2,7 @@ package fr.pederobien.mumble.client.internal;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.event.SoundModifierNameChangePostEvent;
 import fr.pederobien.mumble.client.event.SoundModifierNameChangePreEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
@@ -63,5 +64,13 @@ public class InternalSoundModifier extends InternalObject implements ISoundModif
 			return;
 
 		getConnection().setChannelModifierName(channel.getName(), name, event.getCallback());
+	}
+
+	@EventHandler
+	private void onServerLeave(ServerLeavePostEvent event) {
+		if (!event.getServer().equals(getConnection().getMumbleServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }

@@ -11,6 +11,7 @@ import fr.pederobien.mumble.client.event.PlayerDeafenChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangeEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.impl.AudioConnection;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
@@ -211,5 +212,13 @@ public class InternalPlayer extends InternalObject implements IPlayer {
 			return;
 
 		updateMumbleConnection(event.isDeafen(), connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+	}
+
+	@EventHandler
+	private void onServerLeave(ServerLeavePostEvent event) {
+		if (!event.getServer().equals(getConnection().getMumbleServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }

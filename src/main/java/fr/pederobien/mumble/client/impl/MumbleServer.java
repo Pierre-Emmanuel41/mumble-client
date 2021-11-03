@@ -248,6 +248,9 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return;
 
 		isJoined = true;
+
+		player = new InternalPlayer(mumbleConnection, false, "Unknown", null, false);
+		channelList = new InternalChannelList(mumbleConnection, player);
 		mumbleConnection.join(response -> {
 			event.getCallback().accept(response);
 			if (!response.hasFailed())
@@ -327,8 +330,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return;
 		EventManager.registerListener(this);
 		mumbleConnection = new MumbleConnection(this);
-		player = new InternalPlayer(mumbleConnection, false, "Unknown", null, false);
-		channelList = new InternalChannelList(mumbleConnection, player);
 		mumbleConnection.connect();
 	}
 

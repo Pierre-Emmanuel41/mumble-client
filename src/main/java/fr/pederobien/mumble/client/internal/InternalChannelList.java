@@ -11,6 +11,7 @@ import fr.pederobien.mumble.client.event.ChannelAddPostEvent;
 import fr.pederobien.mumble.client.event.ChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePreEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
@@ -113,5 +114,13 @@ public class InternalChannelList extends InternalObject implements IChannelList 
 			return;
 
 		getConnection().removeChannel(event.getChannel().getName(), event.getCallback());
+	}
+
+	@EventHandler
+	private void onServerLeave(ServerLeavePostEvent event) {
+		if (!event.getServer().equals(getConnection().getMumbleServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }
