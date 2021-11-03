@@ -14,7 +14,6 @@ import fr.pederobien.communication.impl.TcpClientImpl;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -99,10 +98,10 @@ public class MumbleConnection implements IEventListener {
 				String channelName = (String) payload[currentIndex++];
 				String soundModifierName = (String) payload[currentIndex++];
 				int numberOfPlayers = (int) payload[currentIndex++];
-				List<InternalOtherPlayer> players = new ArrayList<InternalOtherPlayer>();
+				List<OtherPlayer> players = new ArrayList<OtherPlayer>();
 
 				for (int j = 0; j < numberOfPlayers; j++) {
-					InternalOtherPlayer player = new InternalOtherPlayer(this, mumbleServer.getPlayer(), (String) payload[currentIndex++]);
+					OtherPlayer player = new OtherPlayer(this, mumbleServer.getPlayer(), (String) payload[currentIndex++]);
 					player.internalSetMute((boolean) payload[currentIndex++]);
 					player.internalSetDeafen((boolean) payload[currentIndex++]);
 					players.add(player);
@@ -269,7 +268,7 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException If the playerMutedOrUnmutedName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void mutePlayerBy(InternalOtherPlayer player, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse> callback) {
+	public void mutePlayerBy(OtherPlayer player, String playerMutedOrUnmutedName, boolean isMute, Consumer<IResponse> callback) {
 		Objects.requireNonNull(playerMutedOrUnmutedName, "The playerMutedOrUnmutedName cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
 		send(create(Idc.PLAYER_MUTE_BY, Oid.SET, player.getName(), playerMutedOrUnmutedName, isMute), args -> parse(args, callback, null));

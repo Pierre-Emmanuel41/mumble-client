@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.client.internal;
+package fr.pederobien.mumble.client.impl;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -12,21 +12,19 @@ import fr.pederobien.mumble.client.event.PlayerMuteChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangeEvent;
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.impl.AudioConnection;
-import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
-public class InternalPlayer extends InternalObject implements IPlayer {
+public class Player extends InternalObject implements IPlayer {
 	private UUID uuid;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private IChannel channel;
 	private String name;
 
-	public InternalPlayer(MumbleConnection connection, boolean isOnline, String name, UUID uuid, boolean isAdmin) {
+	public Player(MumbleConnection connection, boolean isOnline, String name, UUID uuid, boolean isAdmin) {
 		super(connection);
 		this.isOnline = isOnline;
 		this.name = name;

@@ -24,10 +24,6 @@ import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.internal.InternalChannel;
-import fr.pederobien.mumble.client.internal.InternalChannelList;
-import fr.pederobien.mumble.client.internal.InternalOtherPlayer;
-import fr.pederobien.mumble.client.internal.InternalPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -38,8 +34,8 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	private int port;
 	private AtomicBoolean isDisposed, isReachable, isOpened;
 	private MumbleConnection mumbleConnection;
-	private InternalPlayer player;
-	private InternalChannelList channelList;
+	private Player player;
+	private ChannelList channelList;
 	private List<String> modifierNames;
 	private boolean isJoined;
 
@@ -159,16 +155,16 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		this.modifierNames = modifierNames;
 	}
 
-	protected InternalPlayer getInternalPlayer() {
+	protected Player getInternalPlayer() {
 		return player;
 	}
 
 	protected void internalAddChannel(String name, String soundModifierName) {
-		channelList.internalAdd(new InternalChannel(mumbleConnection, name, soundModifierName, modifierNames));
+		channelList.internalAdd(new Channel(mumbleConnection, name, soundModifierName, modifierNames));
 	}
 
-	protected void internalAddChannel(String name, List<InternalOtherPlayer> players, String soundModifierName) {
-		channelList.internalAdd(new InternalChannel(mumbleConnection, name, players, soundModifierName, modifierNames));
+	protected void internalAddChannel(String name, List<OtherPlayer> players, String soundModifierName) {
+		channelList.internalAdd(new Channel(mumbleConnection, name, players, soundModifierName, modifierNames));
 	}
 
 	protected void internalRemoveChannel(String channelName) {
@@ -249,8 +245,8 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 
 		isJoined = true;
 
-		player = new InternalPlayer(mumbleConnection, false, "Unknown", null, false);
-		channelList = new InternalChannelList(mumbleConnection, player);
+		player = new Player(mumbleConnection, false, "Unknown", null, false);
+		channelList = new ChannelList(mumbleConnection, player);
 		mumbleConnection.join(response -> {
 			event.getCallback().accept(response);
 			if (!response.hasFailed())

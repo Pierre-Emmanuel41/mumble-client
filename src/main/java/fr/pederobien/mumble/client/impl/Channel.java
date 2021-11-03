@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.client.internal;
+package fr.pederobien.mumble.client.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +15,6 @@ import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPreEvent;
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -24,26 +23,26 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
-public class InternalChannel extends InternalObject implements IChannel {
+public class Channel extends InternalObject implements IChannel {
 	private String name;
 	private List<String> modifierNames;
-	private Map<String, InternalOtherPlayer> players;
-	private InternalPlayer player;
-	private InternalSoundModifier soundModifier;
+	private Map<String, OtherPlayer> players;
+	private Player player;
+	private SoundModifier soundModifier;
 
-	public InternalChannel(MumbleConnection connection, String name, List<InternalOtherPlayer> players, String soundModifierName, List<String> modifierNames) {
+	public Channel(MumbleConnection connection, String name, List<OtherPlayer> players, String soundModifierName, List<String> modifierNames) {
 		super(connection);
 		this.name = name;
-		this.players = new HashMap<String, InternalOtherPlayer>();
-		this.soundModifier = new InternalSoundModifier(connection, this, soundModifierName);
-		for (InternalOtherPlayer player : players)
+		this.players = new HashMap<String, OtherPlayer>();
+		this.soundModifier = new SoundModifier(connection, this, soundModifierName);
+		for (OtherPlayer player : players)
 			this.players.put(player.getName(), player);
 
 		this.modifierNames = modifierNames;
 	}
 
-	public InternalChannel(MumbleConnection connection, String name, String soundModifierName, List<String> modifierNames) {
-		this(connection, name, new ArrayList<InternalOtherPlayer>(), soundModifierName, modifierNames);
+	public Channel(MumbleConnection connection, String name, String soundModifierName, List<String> modifierNames) {
+		this(connection, name, new ArrayList<OtherPlayer>(), soundModifierName, modifierNames);
 	}
 
 	@Override
@@ -100,7 +99,7 @@ public class InternalChannel extends InternalObject implements IChannel {
 		return name.equals(other.getName());
 	}
 
-	public void internalSetPlayer(InternalPlayer player) {
+	public void internalSetPlayer(Player player) {
 		this.player = player;
 	}
 
@@ -114,7 +113,7 @@ public class InternalChannel extends InternalObject implements IChannel {
 		if (players.get(playerName) != null)
 			return;
 
-		InternalOtherPlayer added = new InternalOtherPlayer(getConnection(), player, playerName);
+		OtherPlayer added = new OtherPlayer(getConnection(), player, playerName);
 		players.put(playerName, added);
 		if (player.getName().equals(added.getName()))
 			this.player.setChannel(this);
@@ -133,14 +132,14 @@ public class InternalChannel extends InternalObject implements IChannel {
 	}
 
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		InternalOtherPlayer otherPlayer = players.get(playerName);
+		OtherPlayer otherPlayer = players.get(playerName);
 		if (otherPlayer == null)
 			return;
 		otherPlayer.internalSetMute(isMute);
 	}
 
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		InternalOtherPlayer otherPlayer = players.get(playerName);
+		OtherPlayer otherPlayer = players.get(playerName);
 		if (otherPlayer == null)
 			return;
 		otherPlayer.internalSetDeafen(isDeafen);

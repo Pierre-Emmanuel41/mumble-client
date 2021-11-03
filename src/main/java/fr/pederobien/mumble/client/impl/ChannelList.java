@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.client.internal;
+package fr.pederobien.mumble.client.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +12,6 @@ import fr.pederobien.mumble.client.event.ChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePreEvent;
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -20,14 +19,14 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
-public class InternalChannelList extends InternalObject implements IChannelList {
-	private Map<String, InternalChannel> channels;
-	private InternalPlayer player;
+public class ChannelList extends InternalObject implements IChannelList {
+	private Map<String, Channel> channels;
+	private Player player;
 
-	public InternalChannelList(MumbleConnection connection, InternalPlayer player) {
+	public ChannelList(MumbleConnection connection, Player player) {
 		super(connection);
 		this.player = player;
-		channels = new HashMap<String, InternalChannel>();
+		channels = new HashMap<String, Channel>();
 
 		EventManager.registerListener(this);
 	}
@@ -53,7 +52,7 @@ public class InternalChannelList extends InternalObject implements IChannelList 
 	 * 
 	 * @param channel The channel to add.
 	 */
-	public void internalAdd(InternalChannel channel) {
+	public void internalAdd(Channel channel) {
 		channel.internalSetPlayer(player);
 		channels.put(channel.getName(), channel);
 		EventManager.callEvent(new ChannelAddPostEvent(this, channel));
@@ -65,7 +64,7 @@ public class InternalChannelList extends InternalObject implements IChannelList 
 	 * @param channel The channel to remove.
 	 */
 	public void internalRemove(String channelName) {
-		InternalChannel channel = channels.remove(channelName);
+		Channel channel = channels.remove(channelName);
 		if (channel == null)
 			return;
 
@@ -79,7 +78,7 @@ public class InternalChannelList extends InternalObject implements IChannelList 
 	 * 
 	 * @return The channel registered under the specified name if it exist, or null.
 	 */
-	public InternalChannel getChannel(String name) {
+	public Channel getChannel(String name) {
 		return channels.get(name);
 	}
 

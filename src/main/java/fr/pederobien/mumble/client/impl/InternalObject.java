@@ -1,6 +1,5 @@
-package fr.pederobien.mumble.client.internal;
+package fr.pederobien.mumble.client.impl;
 
-import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 

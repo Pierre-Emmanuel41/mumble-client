@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.client.internal;
+package fr.pederobien.mumble.client.impl;
 
 import java.util.function.Consumer;
 
@@ -6,7 +6,6 @@ import fr.pederobien.mumble.client.event.OtherPlayerDeafenPostEvent;
 import fr.pederobien.mumble.client.event.OtherPlayerMuteByPreEvent;
 import fr.pederobien.mumble.client.event.OtherPlayerMutePostEvent;
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -14,12 +13,12 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
-public class InternalOtherPlayer extends InternalObject implements IOtherPlayer {
+public class OtherPlayer extends InternalObject implements IOtherPlayer {
 	private IPlayer player;
 	private boolean isMute, isMuteBy, isDeafen;
 	private String name;
 
-	public InternalOtherPlayer(MumbleConnection connection, IPlayer player, String name) {
+	public OtherPlayer(MumbleConnection connection, IPlayer player, String name) {
 		super(connection);
 		this.player = player;
 		this.name = name;

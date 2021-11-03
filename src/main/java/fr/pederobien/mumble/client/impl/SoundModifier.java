@@ -1,11 +1,10 @@
-package fr.pederobien.mumble.client.internal;
+package fr.pederobien.mumble.client.impl;
 
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.event.SoundModifierNameChangePostEvent;
 import fr.pederobien.mumble.client.event.SoundModifierNameChangePreEvent;
-import fr.pederobien.mumble.client.impl.MumbleConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
@@ -13,11 +12,11 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
-public class InternalSoundModifier extends InternalObject implements ISoundModifier {
+public class SoundModifier extends InternalObject implements ISoundModifier {
 	private IChannel channel;
 	private String name;
 
-	public InternalSoundModifier(MumbleConnection connection, IChannel channel, String name) {
+	public SoundModifier(MumbleConnection connection, IChannel channel, String name) {
 		super(connection);
 		this.channel = channel;
 		this.name = name;
