@@ -24,7 +24,6 @@ import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
-import fr.pederobien.utils.event.LogEvent;
 
 public class MumbleConnection implements IEventListener {
 	private MumbleServer mumbleServer;
@@ -393,10 +392,8 @@ public class MumbleConnection implements IEventListener {
 
 	private boolean checkGamePort(int port) {
 		try (ServerSocket server = new ServerSocket(port)) {
-			EventManager.callEvent(new LogEvent("Port %s not used to play game", port));
 			return false;
 		} catch (IOException e) {
-			EventManager.callEvent(new LogEvent("Port %s used to play game", port));
 			return true;
 		}
 	}
