@@ -9,7 +9,6 @@ import fr.pederobien.mumble.client.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -58,6 +57,21 @@ public class Parameter<T> implements IParameter<T> {
 	 */
 	public static <T> IParameter<T> of(String name, T defaultValue) {
 		return of(name, defaultValue, defaultValue);
+	}
+
+	/**
+	 * Creates a new parameter based on the given parameters. The parameter type is used to parse correctly the string representation
+	 * of the defaultValue and value.
+	 * 
+	 * @param <T>          The type of this parameter.
+	 * @param type         the type of this parameter.
+	 * @param name         The parameter name.
+	 * @param defaultValue the parameter default value.
+	 * @param value        The parameter value.
+	 * @return The created parameter initialized with the given parameters.
+	 */
+	public static <T> IParameter<T> fromType(ParameterType<T> type, String name, Object defaultValue, Object value) {
+		return of(name, type.cast(defaultValue), type.cast(value));
 	}
 
 	private String name;
@@ -116,7 +130,7 @@ public class Parameter<T> implements IParameter<T> {
 	}
 
 	@Override
-	public ISoundModifier getSoundModifier() {
+	public SoundModifier getSoundModifier() {
 		return soundModifier;
 	}
 
@@ -158,5 +172,7 @@ public class Parameter<T> implements IParameter<T> {
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
 		if (!event.getParameter().equals(this))
 			return;
+
+		// TODO: Sending request to the server
 	}
 }

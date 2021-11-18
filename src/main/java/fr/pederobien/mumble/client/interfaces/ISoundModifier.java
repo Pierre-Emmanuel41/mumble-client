@@ -1,8 +1,6 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.function.Consumer;
-
-public interface ISoundModifier {
+public interface ISoundModifier extends Cloneable {
 
 	/**
 	 * @return The name of the sound modifier.
@@ -10,10 +8,19 @@ public interface ISoundModifier {
 	String getName();
 
 	/**
-	 * Set the sound modifier name.
-	 * 
-	 * @param name     the new sound modifier name.
-	 * @param callback the callback that is executed after reception of the answer from the remote.
+	 * @return the list of parameters associated to this sound modifier.
 	 */
-	void setName(String name, Consumer<IResponse> callback);
+	IParameterList getParameters();
+
+	/**
+	 * @return The channel associated to this sound modifier.
+	 */
+	IChannel getChannel();
+
+	/**
+	 * Clone this sound modifier. It creates a new parameter based on the properties of this sound modifier.
+	 * 
+	 * @return A new sound modifier.
+	 */
+	ISoundModifier clone();
 }

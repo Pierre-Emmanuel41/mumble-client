@@ -36,13 +36,6 @@ public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
 	public int size();
 
 	/**
-	 * Update the value of each parameter contains in this parameter list and the specified list.
-	 * 
-	 * @param parameterList The list that contains parameter to update.
-	 */
-	void update(IParameterList parameterList);
-
-	/**
 	 * Clone this parameter list. It creates a new parameter list based on the properties of this parameter list.
 	 * 
 	 * @return A new parameter list.

@@ -1,25 +1,26 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.function.Consumer;
-
-import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.event.SoundModifierNameChangePostEvent;
-import fr.pederobien.mumble.client.event.SoundModifierNameChangePreEvent;
-import fr.pederobien.mumble.client.interfaces.IChannel;
-import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.client.interfaces.IParameter;
+import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
-import fr.pederobien.utils.event.EventHandler;
-import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 
-public class SoundModifier extends InternalObject implements ISoundModifier {
-	private IChannel channel;
+public class SoundModifier implements ISoundModifier {
 	private String name;
+	private ParameterList parameterList;
+	private Channel channel;
 
-	public SoundModifier(MumbleConnection connection, IChannel channel, String name) {
-		super(connection);
-		this.channel = channel;
+	/**
+	 * Creates a sound modifier.
+	 * 
+	 * @param name       The sound modifier name.
+	 * @param parameters The default sound modifier parameters.
+	 */
+	public SoundModifier(String name, ParameterList parameterList) {
 		this.name = name;
+		this.parameterList = parameterList;
+
+		for (IParameter<?> parameter : parameterList)
+			((Parameter<?>) parameter).setSoundModifier(this);
 	}
 
 	@Override
@@ -28,13 +29,27 @@ public class SoundModifier extends InternalObject implements ISoundModifier {
 	}
 
 	@Override
-	public void setName(String name, Consumer<IResponse> callback) {
-		EventManager.callEvent(new SoundModifierNameChangePreEvent(this, name, callback));
+	public IParameterList getParameters() {
+		return parameterList;
 	}
 
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public Channel getChannel() {
+		return channel;
+	}
+
+	public void setChannel(Channel channel) {
+		this.channel = channel;
+	}
+
+	@Override
+	public ISoundModifier clone() {
+		return new SoundModifier(getName(), parameterList.clone());
 	}
 
 	@Override
@@ -49,27 +64,7 @@ public class SoundModifier extends InternalObject implements ISoundModifier {
 		return name.equals(other.getName());
 	}
 
-	public void internalSetName(String name) {
-		if (this.name.equals(name))
-			return;
-		String oldName = new String(this.name);
-		this.name = name;
-		EventManager.callEvent(new SoundModifierNameChangePostEvent(this, oldName));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onNameChange(SoundModifierNameChangePreEvent event) {
-		if (!event.getSoundModifier().equals(this))
-			return;
-
-		getConnection().setChannelModifierName(channel.getName(), name, event.getCallback());
-	}
-
-	@EventHandler
-	private void onServerLeave(ServerLeavePostEvent event) {
-		if (!event.getServer().equals(getConnection().getMumbleServer()))
-			return;
-
-		EventManager.unregisterListener(this);
+	public ParameterList getParameterList() {
+		return parameterList;
 	}
 }

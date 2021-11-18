@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -44,7 +43,15 @@ public interface IChannel {
 	ISoundModifier getSoundModifier();
 
 	/**
-	 * @return An unmodifiable list that contains the supported sound modifiers on the server.
+	 * Set the sound modifier associated to this channel.
+	 * 
+	 * @param soundModifier The new sound modifier of the channel.
+	 * @param callback      the callback that is executed after reception of the answer from the remote.
 	 */
-	List<String> getSupportedSoundModifiers();
+	void setSoundModifier(String soundModifierName, Consumer<IResponse> callback);
+
+	/**
+	 * @return The sound modifier list associated to this channel.
+	 */
+	ISoundModifierList getSoundModifiersList();
 }

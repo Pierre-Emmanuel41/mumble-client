@@ -49,17 +49,7 @@ public class ParameterList implements IParameterList {
 	}
 
 	@Override
-	public void update(IParameterList parameterList) {
-		for (IParameter<?> parameter : parameterList) {
-			Parameter<?> param = (Parameter<?>) parameters.get(parameter.getName());
-			if (param == null)
-				continue;
-			param.internalSetValue(parameter.getValue());
-		}
-	}
-
-	@Override
-	public IParameterList clone() {
+	public ParameterList clone() {
 		ParameterList list = new ParameterList();
 		for (IParameter<?> parameter : this)
 			list.add(parameter.clone());
@@ -82,5 +72,14 @@ public class ParameterList implements IParameterList {
 	 */
 	public void remove(String parameterName) {
 		parameters.remove(parameterName);
+	}
+
+	public void update(IParameterList parameterList) {
+		for (IParameter<?> parameter : parameterList) {
+			Parameter<?> param = (Parameter<?>) parameters.get(parameter.getName());
+			if (param == null)
+				continue;
+			param.internalSetValue(parameter.getValue());
+		}
 	}
 }

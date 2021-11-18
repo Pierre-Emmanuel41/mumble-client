@@ -89,13 +89,13 @@ public class MumbleConnection implements IEventListener {
 
 			// Number of modifiers
 			int numberOfModifiers = (int) payload[currentIndex++];
-			List<String> modifierNames = new ArrayList<String>();
 			for (int i = 0; i < numberOfModifiers; i++) {
 				// Modifier's name
-				modifierNames.add((String) payload[currentIndex++]);
+				String modifierName = (String) payload[currentIndex++];
 
 				// Number of parameters
 				int numberOfParameters = (int) payload[currentIndex++];
+				ParameterList parameterList = new ParameterList();
 
 				for (int j = 0; j < numberOfParameters; j++) {
 					// Parameter's name
@@ -120,14 +120,14 @@ public class MumbleConnection implements IEventListener {
 						// Maximum range value
 						Object maxRange = payload[currentIndex++];
 
-						// Defining a new range parameter
+						parameterList.add(RangeParameter.fromType(type, parameterName, defaultValue, value, minRange, maxRange));
 					} else {
-						// Defining a new parameter
+						parameterList.add(Parameter.fromType(type, parameterName, defaultValue, value));
 					}
 				}
-			}
 
-			mumbleServer.setModifierNames(modifierNames);
+				mumbleServer.getSoundModifierList().register(new SoundModifier(modifierName, parameterList));
+			}
 
 			// Number of channels
 			int numberOfChannels = (int) payload[currentIndex++];
@@ -140,17 +140,21 @@ public class MumbleConnection implements IEventListener {
 
 				// Number of parameters
 				int numberOfParameters = (int) payload[currentIndex++];
+				ParameterList parameterList = new ParameterList();
 
 				for (int j = 0; j < numberOfParameters; j++) {
-					// PArameter's name
+					// Parameter's name
 					String parameterName = (String) payload[currentIndex++];
 
 					// Parameter's type : ignored
-					currentIndex++;
+					ParameterType<?> type = (ParameterType<?>) payload[currentIndex++];
 
 					// Parameter's value
 					Object value = payload[currentIndex++];
+					parameterList.add(Parameter.fromType(type, parameterName, value, value));
 				}
+
+				mumbleServer.internalAddChannel(channelName, soundModifierName, parameterList);
 
 				// Number of players
 				int numberOfPlayers = (int) payload[currentIndex++];
@@ -168,8 +172,6 @@ public class MumbleConnection implements IEventListener {
 
 					players.add(player);
 				}
-
-				mumbleServer.internalAddChannel(channelName, players, soundModifierName);
 			}
 
 			mumbleServer.updatePlayerInfo(payload, currentIndex, false);
@@ -385,7 +387,7 @@ public class MumbleConnection implements IEventListener {
 		case CHANNELS:
 			switch (message.getHeader().getOid()) {
 			case ADD:
-				mumbleServer.internalAddChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+				// mumbleServer.internalAddChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
 				break;
 			case REMOVE:
 				mumbleServer.internalRemoveChannel((String) message.getPayload()[0]);

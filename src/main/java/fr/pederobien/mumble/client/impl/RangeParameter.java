@@ -103,6 +103,8 @@ public class RangeParameter<T> extends Parameter<T> {
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
 		if (!event.getParameter().equals(this))
 			return;
+
+		// TODO: Sending request to the server.
 	}
 
 	@SuppressWarnings("unchecked")

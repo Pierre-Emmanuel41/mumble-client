@@ -1,15 +1,17 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
+import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPostEvent;
 import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
 import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
@@ -17,32 +19,39 @@ import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPreEvent;
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
+import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
+import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
 public class Channel extends InternalObject implements IChannel {
 	private String name;
-	private List<String> modifierNames;
 	private Map<String, OtherPlayer> players;
 	private Player player;
+	private ISoundModifierList soundModifiersList;
 	private SoundModifier soundModifier;
 
-	public Channel(MumbleConnection connection, String name, List<OtherPlayer> players, String soundModifierName, List<String> modifierNames) {
+	public Channel(MumbleConnection connection, String name, List<OtherPlayer> players, String soundModifierName, IParameterList parameterList) {
 		super(connection);
 		this.name = name;
 		this.players = new HashMap<String, OtherPlayer>();
-		this.soundModifier = new SoundModifier(connection, this, soundModifierName);
+		soundModifiersList = new SoundModifierList();
+
+		for (ISoundModifier modifier : connection.getMumbleServer().getSoundModifierList()) {
+			ISoundModifier clone = modifier.clone();
+			((SoundModifier) clone).setChannel(this);
+			soundModifiersList.register(clone);
+		}
+
+		this.soundModifier = (SoundModifier) soundModifiersList.getByName(soundModifierName).get();
+		soundModifier.setChannel(this);
+		soundModifier.getParameterList().update(parameterList);
+
 		for (OtherPlayer player : players)
 			this.players.put(player.getName(), player);
-
-		this.modifierNames = modifierNames;
-	}
-
-	public Channel(MumbleConnection connection, String name, String soundModifierName, List<String> modifierNames) {
-		this(connection, name, new ArrayList<OtherPlayer>(), soundModifierName, modifierNames);
 	}
 
 	@Override
@@ -80,8 +89,17 @@ public class Channel extends InternalObject implements IChannel {
 	}
 
 	@Override
-	public List<String> getSupportedSoundModifiers() {
-		return modifierNames;
+	public void setSoundModifier(String soundModifierName, Consumer<IResponse> callback) {
+		if (this.soundModifier.getName().equals(soundModifierName))
+			return;
+
+		ISoundModifier modifier = soundModifiersList.getByName(soundModifierName == null ? "default" : soundModifierName).get();
+		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), modifier, callback));
+	}
+
+	@Override
+	public ISoundModifierList getSoundModifiersList() {
+		return soundModifiersList;
 	}
 
 	@Override
@@ -145,10 +163,20 @@ public class Channel extends InternalObject implements IChannel {
 		otherPlayer.internalSetDeafen(isDeafen);
 	}
 
-	public void internalSetModifierName(String name) {
-		if (getSoundModifier().getName().equals(name))
+	public void internalSetSoundModifier(String soundModifierName) {
+		if (getSoundModifier().getName().equals(soundModifierName))
 			return;
-		soundModifier.internalSetName(name);
+
+		Optional<ISoundModifier> optModifier = soundModifiersList.getByName(soundModifierName);
+		if (!optModifier.isPresent())
+			return;
+
+		ISoundModifier oldSoundModifier = this.soundModifier;
+		((SoundModifier) oldSoundModifier).setChannel(null);
+		this.soundModifier = (SoundModifier) optModifier.get();
+		if (soundModifier != null && !soundModifier.getChannel().equals(this))
+			((SoundModifier) soundModifier).setChannel(this);
+		EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

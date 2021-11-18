@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -22,6 +21,7 @@ import fr.pederobien.mumble.client.event.ServerPortNumberChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.event.EventHandler;
@@ -36,7 +36,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	private MumbleConnection mumbleConnection;
 	private Player player;
 	private ChannelList channelList;
-	private List<String> modifierNames;
+	private SoundModifierList soundModifierList;
 	private boolean isJoined;
 
 	public MumbleServer(String name, String remoteAddress, int port) {
@@ -44,8 +44,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		this.address = remoteAddress;
 		this.port = port;
 
-		modifierNames = new ArrayList<String>();
-
+		soundModifierList = new SoundModifierList();
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
 		isOpened = new AtomicBoolean(false);
@@ -154,20 +153,19 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
 	}
 
-	protected void setModifierNames(List<String> modifierNames) {
-		this.modifierNames = modifierNames;
+	/**
+	 * @return The list of sound modifiers registered for this mumble server.
+	 */
+	public SoundModifierList getSoundModifierList() {
+		return soundModifierList;
 	}
 
 	protected Player getInternalPlayer() {
 		return player;
 	}
 
-	protected void internalAddChannel(String name, String soundModifierName) {
-		channelList.internalAdd(new Channel(mumbleConnection, name, soundModifierName, modifierNames));
-	}
-
-	protected void internalAddChannel(String name, List<OtherPlayer> players, String soundModifierName) {
-		channelList.internalAdd(new Channel(mumbleConnection, name, players, soundModifierName, modifierNames));
+	protected void internalAddChannel(String name, String soundModifierName, IParameterList parameterList) {
+		channelList.internalAdd(new Channel(mumbleConnection, name, new ArrayList<OtherPlayer>(), soundModifierName, parameterList));
 	}
 
 	protected void internalRemoveChannel(String channelName) {
@@ -187,7 +185,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	protected void internalSetSoundModifierOfChannel(String channelName, String soundModifierName) {
-		channelList.getChannel(channelName).internalSetModifierName(soundModifierName);
+		channelList.getChannel(channelName).internalSetSoundModifier(soundModifierName);
 	}
 
 	protected void updatePlayerInfo(Object[] payload, int currentIndex, boolean uuidSet) {
