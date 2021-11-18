@@ -21,6 +21,7 @@ import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -80,29 +81,91 @@ public class MumbleConnection implements IEventListener {
 		return isDisposed.get();
 	}
 
+	@SuppressWarnings("unused")
 	public void join(Consumer<IResponse> callback) {
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
 			audioConnection = new AudioConnection(mumbleServer);
 
+			// Number of modifiers
 			int numberOfModifiers = (int) payload[currentIndex++];
 			List<String> modifierNames = new ArrayList<String>();
-			for (int i = 0; i < numberOfModifiers; i++)
+			for (int i = 0; i < numberOfModifiers; i++) {
+				// Modifier's name
 				modifierNames.add((String) payload[currentIndex++]);
+
+				// Number of parameters
+				int numberOfParameters = (int) payload[currentIndex++];
+
+				for (int j = 0; j < numberOfParameters; j++) {
+					// Parameter's name
+					String parameterName = (String) payload[currentIndex++];
+
+					// Parameter's type
+					ParameterType<?> type = (ParameterType<?>) payload[currentIndex++];
+
+					// isRangeParameter
+					boolean isRangeParameter = (boolean) payload[currentIndex++];
+
+					// Parameter's default value
+					Object defaultValue = payload[currentIndex++];
+
+					// Parameter's value
+					Object value = payload[currentIndex++];
+
+					if (isRangeParameter) {
+						// Minimum range value
+						Object minRange = payload[currentIndex++];
+
+						// Maximum range value
+						Object maxRange = payload[currentIndex++];
+
+						// Defining a new range parameter
+					} else {
+						// Defining a new parameter
+					}
+				}
+			}
 
 			mumbleServer.setModifierNames(modifierNames);
 
+			// Number of channels
 			int numberOfChannels = (int) payload[currentIndex++];
 			for (int i = 0; i < numberOfChannels; i++) {
+				// Channel's name
 				String channelName = (String) payload[currentIndex++];
+
+				// Sound modifier's name
 				String soundModifierName = (String) payload[currentIndex++];
+
+				// Number of parameters
+				int numberOfParameters = (int) payload[currentIndex++];
+
+				for (int j = 0; j < numberOfParameters; j++) {
+					// PArameter's name
+					String parameterName = (String) payload[currentIndex++];
+
+					// Parameter's type : ignored
+					currentIndex++;
+
+					// Parameter's value
+					Object value = payload[currentIndex++];
+				}
+
+				// Number of players
 				int numberOfPlayers = (int) payload[currentIndex++];
 				List<OtherPlayer> players = new ArrayList<OtherPlayer>();
 
 				for (int j = 0; j < numberOfPlayers; j++) {
+					// PLayer's name
 					OtherPlayer player = new OtherPlayer(this, mumbleServer.getPlayer(), (String) payload[currentIndex++]);
+
+					// Payer's mute
 					player.internalSetMute((boolean) payload[currentIndex++]);
+
+					// Player's deafen
 					player.internalSetDeafen((boolean) payload[currentIndex++]);
+
 					players.add(player);
 				}
 
