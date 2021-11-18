@@ -49,6 +49,8 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
 		isOpened = new AtomicBoolean(false);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -113,6 +115,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return;
 
 		closeConnection();
+		EventManager.unregisterListener(this);
 	}
 
 	@Override
@@ -324,7 +327,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	private void openConnection() {
 		if (!isOpened.compareAndSet(false, true))
 			return;
-		EventManager.registerListener(this);
 		mumbleConnection = new MumbleConnection(this);
 		mumbleConnection.connect();
 	}
@@ -333,7 +335,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (!isOpened.compareAndSet(true, false))
 			return;
 		mumbleConnection.dispose();
-		EventManager.unregisterListener(this);
 		setIsReachable(false);
 	}
 }
