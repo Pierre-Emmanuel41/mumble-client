@@ -13,7 +13,9 @@ import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientImpl;
 import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -81,7 +83,6 @@ public class MumbleConnection implements IEventListener {
 		return isDisposed.get();
 	}
 
-	@SuppressWarnings("unused")
 	public void join(Consumer<IResponse> callback) {
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
@@ -193,22 +194,43 @@ public class MumbleConnection implements IEventListener {
 	/**
 	 * Send a request to the server in order to add a mumble channel on the server.
 	 * 
-	 * @param channelName       The channel name to add.
-	 * @param soundModifierName the sound modifier name attached to this channel.
-	 * @param callback          The callback to run when an answer is received from the server.
+	 * @param channelName   The channel name to add.
+	 * @param soundModifier the sound modifier attached to the channel to add.
+	 * @param callback      The callback to run when an answer is received from the server.
 	 * 
 	 * @throws NullPointerException          if the channelName is null.
 	 * @throws NullPointerException          if the callback is null.
 	 * @throws UnsupportedOperationException If the player is not connected in game.
 	 * @throws UnsupportedOperationException If the player is not an administrator on the game server.
 	 */
-	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse> callback) {
+	public void addChannel(String channelName, ISoundModifier soundModifier, Consumer<IResponse> callback) {
 		Objects.requireNonNull(channelName, "The channel name cannot be null");
-		Objects.requireNonNull(soundModifierName, "The sound modifier name cannot be null");
+		Objects.requireNonNull(soundModifier, "The sound modifier cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null.");
 		checkPlayerProperties();
 
-		send(create(Idc.CHANNELS, Oid.ADD, channelName, soundModifierName), args -> parse(args, callback, null));
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(channelName);
+
+		// Modifier's name
+		informations.add(soundModifier.getName());
+
+		// Number of parameters
+		informations.add(soundModifier.getParameters().size());
+
+		for (IParameter<?> parameter : soundModifier.getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+		}
+		send(create(Idc.CHANNELS, Oid.ADD, informations.toArray()), args -> parse(args, callback, null));
 	}
 
 	/**
@@ -387,7 +409,30 @@ public class MumbleConnection implements IEventListener {
 		case CHANNELS:
 			switch (message.getHeader().getOid()) {
 			case ADD:
-				// mumbleServer.internalAddChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+				int currentIndex = 0;
+				// Channel's name
+				String channelName = (String) message.getPayload()[currentIndex++];
+
+				// Modifier's name
+				String modifierName = (String) message.getPayload()[currentIndex++];
+
+				// Number of parameters
+				int numberOfParameters = (int) message.getPayload()[currentIndex++];
+				ParameterList parameterList = new ParameterList();
+
+				for (int j = 0; j < numberOfParameters; j++) {
+					// Parameter's name
+					String parameterName = (String) message.getPayload()[currentIndex++];
+
+					// Parameter's type
+					ParameterType<?> type = (ParameterType<?>) message.getPayload()[currentIndex++];
+
+					// Parameter's value
+					Object value = message.getPayload()[currentIndex++];
+
+					parameterList.add(Parameter.fromType(type, parameterName, value, value));
+				}
+				mumbleServer.internalAddChannel(channelName, modifierName, parameterList);
 				break;
 			case REMOVE:
 				mumbleServer.internalRemoveChannel((String) message.getPayload()[0]);

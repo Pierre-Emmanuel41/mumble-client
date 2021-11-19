@@ -86,4 +86,9 @@ public interface IMumbleServer {
 	 * @return Get the list of channel currently registered on the server.
 	 */
 	IChannelList getChannelList();
+
+	/**
+	 * @return The list of sound modifier registered for this server.
+	 */
+	ISoundModifierList getSoundModifierList();
 }

@@ -5,25 +5,27 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.utils.ICancellable;
 
 public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable {
 	private boolean isCancelled;
-	private String channelName, soundModifierName;
+	private String channelName;
+	private ISoundModifier soundModifier;
 	private Consumer<IResponse> callback;
 
 	/**
 	 * Creates an event thrown when a channel is about to be added.
 	 * 
-	 * @param channelList       The channel list to which a channel is about to be added.
-	 * @param channelName       The name of the channel that is about to be added.
-	 * @param soundModifierName The sound modifier name associated to the future channel.
-	 * @param callback          The action to execute when an answer has been received from the server.
+	 * @param channelList   The channel list to which a channel is about to be added.
+	 * @param channelName   The name of the channel that is about to be added.
+	 * @param soundModifier The sound modifier associated to the future channel.
+	 * @param callback      The action to execute when an answer has been received from the server.
 	 */
-	public ChannelAddPreEvent(IChannelList channelList, String channelName, String soundModifierName, Consumer<IResponse> callback) {
+	public ChannelAddPreEvent(IChannelList channelList, String channelName, ISoundModifier soundModifier, Consumer<IResponse> callback) {
 		super(channelList);
 		this.channelName = channelName;
-		this.soundModifierName = soundModifierName;
+		this.soundModifier = soundModifier;
 		this.callback = callback;
 	}
 
@@ -47,8 +49,8 @@ public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable
 	/**
 	 * @return The sound modifier associated to the channel.
 	 */
-	public String getSoundModifierName() {
-		return soundModifierName;
+	public ISoundModifier getSoundModifier() {
+		return soundModifier;
 	}
 
 	/**
@@ -63,7 +65,7 @@ public class ChannelAddPreEvent extends ChannelListEvent implements ICancellable
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("channelList=" + getChannelList().hashCode());
 		joiner.add("channel=" + getChannelName());
-		joiner.add("soundModifier=" + getSoundModifierName());
+		joiner.add("soundModifier=" + getSoundModifier().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

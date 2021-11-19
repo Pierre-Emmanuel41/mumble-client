@@ -15,6 +15,7 @@ import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -27,14 +28,12 @@ public class ChannelList extends InternalObject implements IChannelList {
 		super(connection);
 		this.player = player;
 		channels = new HashMap<String, Channel>();
-
-		EventManager.registerListener(this);
 	}
 
 	@Override
-	public void addChannel(String channelName, String soundModifierName, Consumer<IResponse> callback) {
-		String modifierName = soundModifierName == null ? "default" : soundModifierName;
-		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifierName, callback));
+	public void addChannel(String channelName, ISoundModifier soundModifier, Consumer<IResponse> callback) {
+		ISoundModifier modifier = soundModifier == null ? getConnection().getMumbleServer().getSoundModifierList().getByName("default").get() : soundModifier;
+		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifier, callback));
 	}
 
 	@Override
@@ -45,6 +44,11 @@ public class ChannelList extends InternalObject implements IChannelList {
 	@Override
 	public Map<String, IChannel> getChannels() {
 		return Collections.unmodifiableMap(channels);
+	}
+
+	@Override
+	public MumbleServer getMumbleServer() {
+		return getConnection().getMumbleServer();
 	}
 
 	/**
@@ -104,7 +108,7 @@ public class ChannelList extends InternalObject implements IChannelList {
 		if (!event.getChannelList().equals(this))
 			return;
 
-		getConnection().addChannel(event.getChannelName(), event.getSoundModifierName(), event.getCallback());
+		getConnection().addChannel(event.getChannelName(), event.getSoundModifier(), event.getCallback());
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

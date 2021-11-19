@@ -22,7 +22,6 @@ import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
-import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -31,22 +30,14 @@ public class Channel extends InternalObject implements IChannel {
 	private String name;
 	private Map<String, OtherPlayer> players;
 	private Player player;
-	private ISoundModifierList soundModifiersList;
 	private SoundModifier soundModifier;
 
 	public Channel(MumbleConnection connection, String name, List<OtherPlayer> players, String soundModifierName, IParameterList parameterList) {
 		super(connection);
 		this.name = name;
 		this.players = new HashMap<String, OtherPlayer>();
-		soundModifiersList = new SoundModifierList();
 
-		for (ISoundModifier modifier : connection.getMumbleServer().getSoundModifierList()) {
-			ISoundModifier clone = modifier.clone();
-			((SoundModifier) clone).setChannel(this);
-			soundModifiersList.register(clone);
-		}
-
-		this.soundModifier = (SoundModifier) soundModifiersList.getByName(soundModifierName).get();
+		this.soundModifier = (SoundModifier) getMumbleServer().getSoundModifierList().getByName(soundModifierName).get();
 		soundModifier.setChannel(this);
 		soundModifier.getParameterList().update(parameterList);
 
@@ -93,13 +84,13 @@ public class Channel extends InternalObject implements IChannel {
 		if (this.soundModifier.getName().equals(soundModifierName))
 			return;
 
-		ISoundModifier modifier = soundModifiersList.getByName(soundModifierName == null ? "default" : soundModifierName).get();
+		ISoundModifier modifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName == null ? "default" : soundModifierName).get();
 		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), modifier, callback));
 	}
 
 	@Override
-	public ISoundModifierList getSoundModifiersList() {
-		return soundModifiersList;
+	public MumbleServer getMumbleServer() {
+		return getConnection().getMumbleServer();
 	}
 
 	@Override
@@ -167,7 +158,7 @@ public class Channel extends InternalObject implements IChannel {
 		if (getSoundModifier().getName().equals(soundModifierName))
 			return;
 
-		Optional<ISoundModifier> optModifier = soundModifiersList.getByName(soundModifierName);
+		Optional<ISoundModifier> optModifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName);
 		if (!optModifier.isPresent())
 			return;
 

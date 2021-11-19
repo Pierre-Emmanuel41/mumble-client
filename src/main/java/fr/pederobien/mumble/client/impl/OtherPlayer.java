@@ -23,8 +23,6 @@ public class OtherPlayer extends InternalObject implements IOtherPlayer {
 		this.player = player;
 		this.name = name;
 		isMute = false;
-
-		EventManager.registerListener(this);
 	}
 
 	@Override

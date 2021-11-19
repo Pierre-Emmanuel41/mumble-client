@@ -138,6 +138,11 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
+	public SoundModifierList getSoundModifierList() {
+		return soundModifierList;
+	}
+
+	@Override
 	public String toString() {
 		return String.format("Server={Name=%s, address=%s, tcpPort=%s}", name, address, port);
 	}
@@ -151,13 +156,6 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return false;
 		MumbleServer other = (MumbleServer) obj;
 		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
-	}
-
-	/**
-	 * @return The list of sound modifiers registered for this mumble server.
-	 */
-	public SoundModifierList getSoundModifierList() {
-		return soundModifierList;
 	}
 
 	protected Player getInternalPlayer() {

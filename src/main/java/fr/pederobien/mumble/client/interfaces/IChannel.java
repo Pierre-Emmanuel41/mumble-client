@@ -51,7 +51,7 @@ public interface IChannel {
 	void setSoundModifier(String soundModifierName, Consumer<IResponse> callback);
 
 	/**
-	 * @return The sound modifier list associated to this channel.
+	 * @return The server to which this channel is associated.
 	 */
-	ISoundModifierList getSoundModifiersList();
+	IMumbleServer getMumbleServer();
 }
