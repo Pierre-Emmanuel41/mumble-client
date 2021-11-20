@@ -404,7 +404,8 @@ public class MumbleConnection implements IEventListener {
 			mumbleServer.updatePlayerInfo(message.getPayload(), 0, true);
 			break;
 		case PLAYER_ADMIN:
-			mumbleServer.getInternalPlayer().setIsAdmin((boolean) message.getPayload()[0]);
+			if (mumbleServer.getPlayer().getName().equals((String) message.getPayload()[0]))
+				mumbleServer.getInternalPlayer().setIsAdmin((boolean) message.getPayload()[1]);
 			break;
 		case CHANNELS:
 			switch (message.getHeader().getOid()) {
