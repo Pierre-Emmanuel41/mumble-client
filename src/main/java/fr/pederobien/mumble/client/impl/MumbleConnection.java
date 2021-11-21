@@ -379,7 +379,7 @@ public class MumbleConnection implements IEventListener {
 	}
 
 	/**
-	 * Set the modifier name associated to a channel.
+	 * Set the modifier associated to a channel.
 	 * 
 	 * @param channelName       The name of the channel whose the modifier name should be changed.
 	 * @param soundModifierName The new sound modifier name.
@@ -389,16 +389,38 @@ public class MumbleConnection implements IEventListener {
 	 * @throws NullPointerException if the soundModifierName is null.
 	 * @throws NullPointerException if the callback is null.
 	 */
-	public void setChannelModifierName(String channelName, String soundModifierName, Consumer<IResponse> callback) {
+	public void setChannelSoundModifier(String channelName, ISoundModifier soundModifier, Consumer<IResponse> callback) {
 		Objects.requireNonNull(channelName, "The name of the channel cannot be null");
-		Objects.requireNonNull(soundModifierName, "The name of the sound modifier cannot be null");
+		Objects.requireNonNull(soundModifier, "The sound modifier cannot be null");
 		Objects.requireNonNull(callback, "The callback cannot be null");
-		send(create(Idc.SOUND_MODIFIER, Oid.SET, channelName, soundModifierName), args -> parse(args, callback, null));
+
+		List<Object> informations = new ArrayList<Object>();
+		// Channel's name
+		informations.add(channelName);
+
+		// Modifier's name
+		informations.add(soundModifier.getName());
+
+		// Number of parameter
+		informations.add(soundModifier.getParameters().size());
+		for (IParameter<?> parameter : soundModifier.getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+		}
+		send(create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()), args -> parse(args, callback, null));
 	}
 
 	@EventHandler
 	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());
+		int currentIndex = 0;
+
 		switch (message.getHeader().getIdc()) {
 		case PLAYER_INFO:
 			mumbleServer.updatePlayerInfo(message.getPayload(), 0, true);
@@ -410,7 +432,6 @@ public class MumbleConnection implements IEventListener {
 		case CHANNELS:
 			switch (message.getHeader().getOid()) {
 			case ADD:
-				int currentIndex = 0;
 				// Channel's name
 				String channelName = (String) message.getPayload()[currentIndex++];
 
@@ -440,6 +461,7 @@ public class MumbleConnection implements IEventListener {
 				break;
 			case SET:
 				mumbleServer.internalSetChannelName((String) message.getPayload()[0], (String) message.getPayload()[1]);
+				break;
 			default:
 				break;
 			}
@@ -463,7 +485,35 @@ public class MumbleConnection implements IEventListener {
 			mumbleServer.onPlayerDeafenChanged((String) message.getPayload()[0], (boolean) message.getPayload()[1]);
 			break;
 		case SOUND_MODIFIER:
-			mumbleServer.internalSetSoundModifierOfChannel((String) message.getPayload()[0], (String) message.getPayload()[1]);
+			switch (message.getHeader().getOid()) {
+			case SET:
+				// Channel's name
+				String channelName = (String) message.getPayload()[currentIndex++];
+
+				// Modifier's name
+				String modifierName = (String) message.getPayload()[currentIndex++];
+
+				// Number of parameter
+				int numberOfParameter = (int) message.getPayload()[currentIndex++];
+				ParameterList parameterList = new ParameterList();
+
+				for (int i = 0; i < numberOfParameter; i++) {
+					// Parameter's name
+					String parameterName = (String) message.getPayload()[currentIndex++];
+
+					// Parameter's type
+					ParameterType<?> type = (ParameterType<?>) message.getPayload()[currentIndex++];
+
+					// Parameter's value
+					Object value = message.getPayload()[currentIndex++];
+
+					parameterList.add(Parameter.fromType(type, parameterName, value, value));
+				}
+				mumbleServer.internalSetSoundModifierOfChannel(channelName, modifierName, parameterList);
+				break;
+			default:
+				break;
+			}
 			break;
 		case GAME_PORT:
 			int port = (int) message.getPayload()[0];

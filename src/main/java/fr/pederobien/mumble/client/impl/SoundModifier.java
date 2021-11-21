@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
 import fr.pederobien.mumble.client.interfaces.IParameter;
-import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 
 public class SoundModifier implements ISoundModifier {
@@ -29,7 +28,7 @@ public class SoundModifier implements ISoundModifier {
 	}
 
 	@Override
-	public IParameterList getParameters() {
+	public ParameterList getParameters() {
 		return parameterList;
 	}
 

@@ -182,8 +182,8 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		channelList.getChannel(channelName).internalRemovePlayer(playerName);
 	}
 
-	protected void internalSetSoundModifierOfChannel(String channelName, String soundModifierName) {
-		channelList.getChannel(channelName).internalSetSoundModifier(soundModifierName);
+	protected void internalSetSoundModifierOfChannel(String channelName, String soundModifierName, ParameterList parameterList) {
+		channelList.getChannel(channelName).internalSetSoundModifier(soundModifierName, parameterList);
 	}
 
 	protected void updatePlayerInfo(Object[] payload, int currentIndex, boolean uuidSet) {

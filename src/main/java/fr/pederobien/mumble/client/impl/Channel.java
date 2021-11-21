@@ -80,12 +80,22 @@ public class Channel extends InternalObject implements IChannel {
 	}
 
 	@Override
-	public void setSoundModifier(String soundModifierName, Consumer<IResponse> callback) {
-		if (this.soundModifier.getName().equals(soundModifierName))
+	public void setSoundModifier(String soundModifierName, IParameterList parameterList, Consumer<IResponse> callback) {
+		if (this.soundModifier.getName().equals(soundModifierName)) {
+			soundModifier.getParameters().update(parameterList);
 			return;
+		}
 
-		ISoundModifier modifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName == null ? "default" : soundModifierName).get();
-		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), modifier, callback));
+		ISoundModifier soundModifier = null;
+		if (soundModifierName == null)
+			soundModifier = getMumbleServer().getSoundModifierList().getByName("default").get();
+		else {
+			Optional<ISoundModifier> optModifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName);
+			if (optModifier.isPresent())
+				((SoundModifier) optModifier.get()).getParameters().update(parameterList);
+			soundModifier = optModifier.get();
+		}
+		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), soundModifier, callback));
 	}
 
 	@Override
@@ -154,7 +164,7 @@ public class Channel extends InternalObject implements IChannel {
 		otherPlayer.internalSetDeafen(isDeafen);
 	}
 
-	public void internalSetSoundModifier(String soundModifierName) {
+	public void internalSetSoundModifier(String soundModifierName, ParameterList parameterList) {
 		if (getSoundModifier().getName().equals(soundModifierName))
 			return;
 
@@ -162,11 +172,12 @@ public class Channel extends InternalObject implements IChannel {
 		if (!optModifier.isPresent())
 			return;
 
-		ISoundModifier oldSoundModifier = this.soundModifier;
+		ISoundModifier oldSoundModifier = soundModifier;
 		((SoundModifier) oldSoundModifier).setChannel(null);
-		this.soundModifier = (SoundModifier) optModifier.get();
-		if (soundModifier != null && !soundModifier.getChannel().equals(this))
-			((SoundModifier) soundModifier).setChannel(this);
+
+		soundModifier = (SoundModifier) optModifier.get();
+		soundModifier.setChannel(this);
+		soundModifier.getParameterList().update(parameterList);
 		EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 	}
 
@@ -200,6 +211,14 @@ public class Channel extends InternalObject implements IChannel {
 			return;
 
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
+		if (!event.getChannel().equals(this))
+			return;
+
+		getConnection().setChannelSoundModifier(getName(), event.getNewSoundModifier(), event.getCallback());
 	}
 
 	@EventHandler

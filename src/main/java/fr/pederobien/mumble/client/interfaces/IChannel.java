@@ -46,9 +46,10 @@ public interface IChannel {
 	 * Set the sound modifier associated to this channel.
 	 * 
 	 * @param soundModifier The new sound modifier of the channel.
+	 * @param parameterList The list that contains the value of each parameter associated to the new sound modifier.
 	 * @param callback      the callback that is executed after reception of the answer from the remote.
 	 */
-	void setSoundModifier(String soundModifierName, Consumer<IResponse> callback);
+	void setSoundModifier(String soundModifierName, IParameterList parameterList, Consumer<IResponse> callback);
 
 	/**
 	 * @return The server to which this channel is associated.
