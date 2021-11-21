@@ -3,11 +3,8 @@ package fr.pederobien.mumble.client.impl;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.ParameterType;
-import fr.pederobien.utils.event.EventHandler;
-import fr.pederobien.utils.event.EventPriority;
 
 public class RangeParameter<T> extends Parameter<T> {
 	private T min, max;
@@ -97,14 +94,6 @@ public class RangeParameter<T> extends Parameter<T> {
 	@Override
 	public Parameter<T> clone() {
 		return new RangeParameter<T>(getName(), getDefaultValue(), getValue(), min, max);
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterValueChange(ParameterValueChangePreEvent event) {
-		if (!event.getParameter().equals(this))
-			return;
-
-		// TODO: Sending request to the server.
 	}
 
 	@SuppressWarnings("unchecked")

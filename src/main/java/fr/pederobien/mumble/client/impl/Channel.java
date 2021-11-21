@@ -39,7 +39,7 @@ public class Channel extends InternalObject implements IChannel {
 
 		this.soundModifier = (SoundModifier) getMumbleServer().getSoundModifierList().getByName(soundModifierName).get();
 		soundModifier.setChannel(this);
-		soundModifier.getParameterList().update(parameterList);
+		soundModifier.getParameterList().updateAndRegister(parameterList);
 
 		for (OtherPlayer player : players)
 			this.players.put(player.getName(), player);

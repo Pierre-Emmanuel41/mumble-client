@@ -416,6 +416,32 @@ public class MumbleConnection implements IEventListener {
 		send(create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()), args -> parse(args, callback, null));
 	}
 
+	/**
+	 * Update the value of the given parameter.
+	 * 
+	 * @param parameter The parameter whose the value should be updated.
+	 * @param value     The new parameter value
+	 * @param callback  The callback to run when an answer is received from the server.
+	 * 
+	 * @throws NullPointerException if the parameter is null.
+	 * @throws NullPointerException if the value is null.
+	 * @throws NullPointerException if the callback is null.
+	 */
+	public <T> void updateParameterValue(IParameter<T> parameter, Object value, Consumer<IResponse> callback) {
+		Objects.requireNonNull(parameter, "The parameter cannot be null");
+		Objects.requireNonNull(value, "The value cannot be null");
+		Objects.requireNonNull(callback, "The callback cannot be null");
+
+		List<Object> informations = new ArrayList<Object>();
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+		informations.add(parameter.getSoundModifier().getName());
+		informations.add(1);
+		informations.add(parameter.getName());
+		informations.add(parameter.getType());
+		informations.add(value);
+		send(create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()), args -> parse(args, callback, null));
+	}
+
 	@EventHandler
 	private void onUnexpectedDataReceived(UnexpectedDataReceivedEvent event) {
 		IMessage<Header> message = MumbleMessageFactory.parse(event.getAnswer());

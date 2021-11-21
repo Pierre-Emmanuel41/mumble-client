@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.utils.event.EventManager;
 
 public class ParameterList implements IParameterList {
 	private Map<String, IParameter<?>> parameters;
@@ -74,12 +75,33 @@ public class ParameterList implements IParameterList {
 		parameters.remove(parameterName);
 	}
 
+	/**
+	 * Update the value of each parameter in common between this parameter list and the specified parameter list.
+	 * 
+	 * @param parameterList The list that contains the new parameter values.
+	 */
 	public void update(IParameterList parameterList) {
-		for (IParameter<?> parameter : parameterList) {
-			Parameter<?> param = (Parameter<?>) parameters.get(parameter.getName());
-			if (param == null)
+		update(parameterList, null);
+	}
+
+	/**
+	 * Update the value of each parameter in common between this parameter list and the specified parameter list. Register each
+	 * parameter contains in this list for the {@link EventManager}.
+	 * 
+	 * @param parameterList The list that contains the new parameter values.
+	 */
+	public void updateAndRegister(IParameterList parameterList) {
+		update(parameterList, parameter -> parameter.register());
+	}
+
+	private void update(IParameterList parameterList, Consumer<Parameter<?>> consumer) {
+		for (IParameter<?> param : this) {
+			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(param.getName());
+			if (parameter == null)
 				continue;
-			param.internalSetValue(parameter.getValue());
+			((Parameter<?>) param).internalSetValue(param.getValue());
+			if (consumer != null)
+				consumer.accept((Parameter<?>) param);
 		}
 	}
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
@@ -13,8 +14,9 @@ import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class Parameter<T> implements IParameter<T> {
+public class Parameter<T> implements IParameter<T>, IEventListener {
 	protected static final Map<Class<?>, ParameterType<?>> PRIMITIVE_TYPES;
 	protected static final Map<Class<?>, ParameterType<?>> RANGE_TYPES;
 
@@ -111,12 +113,16 @@ public class Parameter<T> implements IParameter<T> {
 		if (this.value.equals(value))
 			return;
 
-		Consumer<IResponse> set = response -> {
-			callback.accept(response);
-			if (!response.hasFailed())
-				internalSetValue(value);
-		};
-		EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value, set));
+		if (!isAttached())
+			this.value = type.cast(value);
+		else {
+			Consumer<IResponse> set = response -> {
+				callback.accept(response);
+				if (!response.hasFailed())
+					internalSetValue(value);
+			};
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value, set));
+		}
 	}
 
 	@Override
@@ -154,25 +160,46 @@ public class Parameter<T> implements IParameter<T> {
 	 * 
 	 * @param soundModifier The sound modifier associated to this parameter.
 	 */
-	protected void setSoundModifier(SoundModifier soundModifier) {
+	public void setSoundModifier(SoundModifier soundModifier) {
 		this.soundModifier = soundModifier;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void internalSetValue(Object value) {
 		if (this.value.equals(value))
 			return;
 
 		T oldValue = this.value;
-		this.value = (T) value;
+		this.value = type.cast(value);
 		EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+	}
+
+	/**
+	 * Register this parameter for the event manager.
+	 */
+	public void register() {
+		EventManager.registerListener(this);
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
-		if (!event.getParameter().equals(this))
+		if (!event.getParameter().equals(this) || !isAttached())
 			return;
 
-		// TODO: Sending request to the server
+		soundModifier.getChannel().getConnection().updateParameterValue(this, event.getNewValue(), event.getCallback());
+	}
+
+	@EventHandler
+	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
+		if (!event.getOldSoundModifier().equals(soundModifier))
+			return;
+
+		EventManager.unregisterListener(this);
+	}
+
+	/**
+	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
+	 */
+	private boolean isAttached() {
+		return soundModifier != null && soundModifier.getChannel() != null;
 	}
 }
