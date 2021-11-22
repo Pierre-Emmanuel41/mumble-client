@@ -9,6 +9,7 @@ import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 
 public class SoundModifierList implements ISoundModifierList {
+	private static final String DEFAULT_SOUND_MODIFIER_NAME = "default";
 	private Map<String, ISoundModifier> soundModifiers;
 
 	public SoundModifierList() {
@@ -34,6 +35,11 @@ public class SoundModifierList implements ISoundModifierList {
 	public Optional<ISoundModifier> getByName(String name) {
 		ISoundModifier modifier = soundModifiers.get(name);
 		return Optional.ofNullable(modifier == null ? null : modifier.clone());
+	}
+
+	@Override
+	public ISoundModifier getDefaultSoundModifier() {
+		return getByName(DEFAULT_SOUND_MODIFIER_NAME).get();
 	}
 
 	@Override

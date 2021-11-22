@@ -29,6 +29,11 @@ public interface ISoundModifierList extends Iterable<ISoundModifier> {
 	public Optional<ISoundModifier> getByName(String name);
 
 	/**
+	 * @return The sound modifier associated to the name "default".
+	 */
+	public ISoundModifier getDefaultSoundModifier();
+
+	/**
 	 * @return A map that contains all registered sound modifiers.
 	 */
 	public Map<String, ISoundModifier> getSoundModifiers();

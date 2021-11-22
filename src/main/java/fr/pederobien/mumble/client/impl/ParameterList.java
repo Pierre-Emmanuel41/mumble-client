@@ -49,6 +49,16 @@ public class ParameterList implements IParameterList {
 		return parameters.size();
 	}
 
+	/**
+	 * Update the value of each parameter in common between this parameter list and the specified parameter list.
+	 * 
+	 * @param parameterList The list that contains the new parameter values.
+	 */
+	@Override
+	public void update(IParameterList parameterList) {
+		update(parameterList, null);
+	}
+
 	@Override
 	public ParameterList clone() {
 		ParameterList list = new ParameterList();
@@ -76,15 +86,6 @@ public class ParameterList implements IParameterList {
 	}
 
 	/**
-	 * Update the value of each parameter in common between this parameter list and the specified parameter list.
-	 * 
-	 * @param parameterList The list that contains the new parameter values.
-	 */
-	public void update(IParameterList parameterList) {
-		update(parameterList, null);
-	}
-
-	/**
 	 * Update the value of each parameter in common between this parameter list and the specified parameter list. Register each
 	 * parameter contains in this list for the {@link EventManager}.
 	 * 
@@ -99,7 +100,7 @@ public class ParameterList implements IParameterList {
 			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(param.getName());
 			if (parameter == null)
 				continue;
-			((Parameter<?>) param).internalSetValue(param.getValue());
+			((Parameter<?>) param).update(param.getValue());
 			if (consumer != null)
 				consumer.accept((Parameter<?>) param);
 		}

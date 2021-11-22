@@ -32,7 +32,7 @@ public class ChannelList extends InternalObject implements IChannelList {
 
 	@Override
 	public void addChannel(String channelName, ISoundModifier soundModifier, Consumer<IResponse> callback) {
-		ISoundModifier modifier = soundModifier == null ? getConnection().getMumbleServer().getSoundModifierList().getByName("default").get() : soundModifier;
+		ISoundModifier modifier = soundModifier == null ? getConnection().getMumbleServer().getSoundModifierList().getDefaultSoundModifier() : soundModifier;
 		EventManager.callEvent(new ChannelAddPreEvent(this, channelName, modifier, callback));
 	}
 

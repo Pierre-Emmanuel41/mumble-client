@@ -88,7 +88,7 @@ public class Channel extends InternalObject implements IChannel {
 
 		ISoundModifier soundModifier = null;
 		if (soundModifierName == null)
-			soundModifier = getMumbleServer().getSoundModifierList().getByName("default").get();
+			soundModifier = getMumbleServer().getSoundModifierList().getDefaultSoundModifier();
 		else {
 			Optional<ISoundModifier> optModifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName);
 			if (optModifier.isPresent())

@@ -76,7 +76,7 @@ public class RangeParameter<T> extends Parameter<T> {
 
 	@Override
 	public void setValue(Object value, Consumer<IResponse> callback) {
-		checkRange(getType().cast(value));
+		checkRange(value);
 		super.setValue(value, callback);
 	}
 
@@ -97,7 +97,7 @@ public class RangeParameter<T> extends Parameter<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void checkRange(T value) {
+	public void checkRange(Object value) {
 		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
 		Comparable<? super Number> comparableValue = (Comparable<? super Number>) value;
 		if (!(comparableMin.compareTo((Number) comparableValue) <= 0 && comparableValue.compareTo((Number) max) <= 0))
