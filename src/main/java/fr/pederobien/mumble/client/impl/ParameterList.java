@@ -1,9 +1,8 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -16,12 +15,12 @@ public class ParameterList implements IParameterList {
 	private Map<String, IParameter<?>> parameters;
 
 	public ParameterList() {
-		parameters = new HashMap<String, IParameter<?>>();
+		parameters = new LinkedHashMap<String, IParameter<?>>();
 	}
 
 	@Override
-	public Iterator<IParameter<?>> iterator() {
-		return parameters.values().iterator();
+	public Iterator<Map.Entry<String, IParameter<?>>> iterator() {
+		return parameters.entrySet().iterator();
 	}
 
 	@Override
@@ -40,8 +39,8 @@ public class ParameterList implements IParameterList {
 	}
 
 	@Override
-	public List<IParameter<?>> getParameters() {
-		return new ArrayList<IParameter<?>>(parameters.values());
+	public Map<String, IParameter<?>> getParameters() {
+		return Collections.unmodifiableMap(parameters);
 	}
 
 	@Override
@@ -62,8 +61,8 @@ public class ParameterList implements IParameterList {
 	@Override
 	public ParameterList clone() {
 		ParameterList list = new ParameterList();
-		for (IParameter<?> parameter : this)
-			list.add(parameter.clone());
+		for (Map.Entry<String, IParameter<?>> entry : this)
+			list.add(entry.getValue().clone());
 		return list;
 	}
 
@@ -96,13 +95,13 @@ public class ParameterList implements IParameterList {
 	}
 
 	private void update(IParameterList parameterList, Consumer<Parameter<?>> consumer) {
-		for (IParameter<?> param : this) {
-			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(param.getName());
+		for (Map.Entry<String, IParameter<?>> entry : this) {
+			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(entry.getValue().getName());
 			if (parameter == null)
 				continue;
-			((Parameter<?>) param).update(param.getValue());
+			((Parameter<?>) entry.getValue()).update(parameter.getValue());
 			if (consumer != null)
-				consumer.accept((Parameter<?>) param);
+				consumer.accept((Parameter<?>) entry.getValue());
 		}
 	}
 }

@@ -1,7 +1,7 @@
 package fr.pederobien.mumble.client.impl;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,11 +35,11 @@ public class Channel extends InternalObject implements IChannel {
 	public Channel(MumbleConnection connection, String name, List<OtherPlayer> players, String soundModifierName, IParameterList parameterList) {
 		super(connection);
 		this.name = name;
-		this.players = new HashMap<String, OtherPlayer>();
+		this.players = new LinkedHashMap<String, OtherPlayer>();
 
 		this.soundModifier = (SoundModifier) getMumbleServer().getSoundModifierList().getByName(soundModifierName).get();
+		soundModifier.getParameters().updateAndRegister(parameterList);
 		soundModifier.setChannel(this);
-		soundModifier.getParameterList().updateAndRegister(parameterList);
 
 		for (OtherPlayer player : players)
 			this.players.put(player.getName(), player);
@@ -80,21 +80,12 @@ public class Channel extends InternalObject implements IChannel {
 	}
 
 	@Override
-	public void setSoundModifier(String soundModifierName, IParameterList parameterList, Consumer<IResponse> callback) {
-		if (this.soundModifier.getName().equals(soundModifierName)) {
-			soundModifier.getParameters().update(parameterList);
+	public void setSoundModifier(ISoundModifier soundModifier, Consumer<IResponse> callback) {
+		if (this.soundModifier.equals(soundModifier)) {
+			soundModifier.getParameters().update(soundModifier.getParameters());
 			return;
 		}
 
-		ISoundModifier soundModifier = null;
-		if (soundModifierName == null)
-			soundModifier = getMumbleServer().getSoundModifierList().getDefaultSoundModifier();
-		else {
-			Optional<ISoundModifier> optModifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName);
-			if (optModifier.isPresent())
-				((SoundModifier) optModifier.get()).getParameters().update(parameterList);
-			soundModifier = optModifier.get();
-		}
 		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), soundModifier, callback));
 	}
 
@@ -176,8 +167,8 @@ public class Channel extends InternalObject implements IChannel {
 		((SoundModifier) oldSoundModifier).setChannel(null);
 
 		soundModifier = (SoundModifier) optModifier.get();
+		soundModifier.getParameters().update(parameterList);
 		soundModifier.setChannel(this);
-		soundModifier.getParameterList().update(parameterList);
 		EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 	}
 

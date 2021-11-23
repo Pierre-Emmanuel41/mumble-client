@@ -1,9 +1,9 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
-public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
+public interface IParameterList extends Iterable<Map.Entry<String, IParameter<?>>>, Cloneable {
 
 	/**
 	 * Get the parameter associated to the given name.
@@ -28,7 +28,7 @@ public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
 	/**
 	 * @return The underlying list of the registered parameters.
 	 */
-	public List<IParameter<?>> getParameters();
+	public Map<String, IParameter<?>> getParameters();
 
 	/**
 	 * @return The number of registered parameters.

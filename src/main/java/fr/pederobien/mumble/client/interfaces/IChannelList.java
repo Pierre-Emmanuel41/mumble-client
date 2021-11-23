@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.interfaces;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public interface IChannelList {
+public interface IChannelList extends Iterable<Map.Entry<String, IChannel>> {
 
 	/**
 	 * Create a channel with the given name and add it to this server configuration. The sound modifier passed in parameter is only

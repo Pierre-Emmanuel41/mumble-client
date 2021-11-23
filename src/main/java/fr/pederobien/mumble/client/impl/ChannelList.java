@@ -2,9 +2,11 @@ package fr.pederobien.mumble.client.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelAddPostEvent;
@@ -21,13 +23,18 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 
 public class ChannelList extends InternalObject implements IChannelList {
-	private Map<String, Channel> channels;
+	private Map<String, IChannel> channels;
 	private Player player;
 
 	public ChannelList(MumbleConnection connection, Player player) {
 		super(connection);
 		this.player = player;
-		channels = new HashMap<String, Channel>();
+		channels = new LinkedHashMap<String, IChannel>();
+	}
+
+	@Override
+	public Iterator<Entry<String, IChannel>> iterator() {
+		return channels.entrySet().iterator();
 	}
 
 	@Override
@@ -68,7 +75,7 @@ public class ChannelList extends InternalObject implements IChannelList {
 	 * @param channel The channel to remove.
 	 */
 	public void internalRemove(String channelName) {
-		Channel channel = channels.remove(channelName);
+		IChannel channel = channels.remove(channelName);
 		if (channel == null)
 			return;
 
@@ -83,7 +90,7 @@ public class ChannelList extends InternalObject implements IChannelList {
 	 * @return The channel registered under the specified name if it exist, or null.
 	 */
 	public Channel getChannel(String name) {
-		return channels.get(name);
+		return (Channel) channels.get(name);
 	}
 
 	/**
@@ -96,11 +103,11 @@ public class ChannelList extends InternalObject implements IChannelList {
 	}
 
 	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		channels.values().forEach(channel -> channel.onPlayerMuteChanged(playerName, isMute));
+		channels.values().forEach(channel -> ((Channel) channel).onPlayerMuteChanged(playerName, isMute));
 	}
 
 	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		channels.values().forEach(channel -> channel.onPlayerDeafenChanged(playerName, isDeafen));
+		channels.values().forEach(channel -> ((Channel) channel).onPlayerDeafenChanged(playerName, isDeafen));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

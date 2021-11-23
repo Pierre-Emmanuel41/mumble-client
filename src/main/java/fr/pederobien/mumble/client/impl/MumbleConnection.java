@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -220,15 +221,15 @@ public class MumbleConnection implements IEventListener {
 		// Number of parameters
 		informations.add(soundModifier.getParameters().size());
 
-		for (IParameter<?> parameter : soundModifier.getParameters()) {
+		for (Map.Entry<String, IParameter<?>> entry : soundModifier.getParameters()) {
 			// Parameter's name
-			informations.add(parameter.getName());
+			informations.add(entry.getValue().getName());
 
 			// Parameter's type
-			informations.add(parameter.getType());
+			informations.add(entry.getValue().getType());
 
 			// Parameter's value
-			informations.add(parameter.getValue());
+			informations.add(entry.getValue().getValue());
 		}
 		send(create(Idc.CHANNELS, Oid.ADD, informations.toArray()), args -> parse(args, callback, null));
 	}
@@ -403,15 +404,15 @@ public class MumbleConnection implements IEventListener {
 
 		// Number of parameter
 		informations.add(soundModifier.getParameters().size());
-		for (IParameter<?> parameter : soundModifier.getParameters()) {
+		for (Map.Entry<String, IParameter<?>> entry : soundModifier.getParameters()) {
 			// Parameter's name
-			informations.add(parameter.getName());
+			informations.add(entry.getValue().getName());
 
 			// Parameter's type
-			informations.add(parameter.getType());
+			informations.add(entry.getValue().getType());
 
 			// Parameter's value
-			informations.add(parameter.getValue());
+			informations.add(entry.getValue().getValue());
 		}
 		send(create(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()), args -> parse(args, callback, null));
 	}
