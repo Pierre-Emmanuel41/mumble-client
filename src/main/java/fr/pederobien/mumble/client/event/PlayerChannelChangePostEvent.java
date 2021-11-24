@@ -30,8 +30,8 @@ public class PlayerChannelChangePostEvent extends MainPlayerEvent {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("currentChannel=" + (getPlayer().getChannel() == null ? null : getPlayer().getChannel().getName()));
 		joiner.add("oldChannel=" + (getOldChannel() == null ? null : getOldChannel().getName()));
+		joiner.add("currentChannel=" + (getPlayer().getChannel() == null ? null : getPlayer().getChannel().getName()));
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

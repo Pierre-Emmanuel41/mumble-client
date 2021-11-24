@@ -95,7 +95,7 @@ public class Player extends InternalObject implements IPlayer {
 		if (this.channel != null && this.channel.equals(channel))
 			return;
 
-		EventManager.callEvent(new PlayerChannelChangePreEvent(this, channel));
+		EventManager.callEvent(new PlayerChannelChangePreEvent(this, getChannel(), channel));
 	}
 
 	@Override
