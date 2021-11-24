@@ -81,10 +81,8 @@ public class Channel extends InternalObject implements IChannel {
 
 	@Override
 	public void setSoundModifier(ISoundModifier soundModifier, Consumer<IResponse> callback) {
-		if (this.soundModifier.equals(soundModifier)) {
-			soundModifier.getParameters().update(soundModifier.getParameters());
+		if (this.soundModifier.equals(soundModifier))
 			return;
-		}
 
 		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), soundModifier, callback));
 	}
