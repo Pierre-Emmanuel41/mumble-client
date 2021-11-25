@@ -24,6 +24,20 @@ public class SoundModifier implements ISoundModifier {
 			((Parameter<?>) entry.getValue()).setSoundModifier(this);
 	}
 
+	/**
+	 * Protected constructor for method clone.
+	 * 
+	 * @param original The original sound modifier to clone.
+	 */
+	private SoundModifier(SoundModifier original) {
+		this.name = original.getName();
+		this.parameterList = original.getParameters().clone();
+		this.channel = original.getChannel();
+
+		for (Map.Entry<String, IParameter<?>> entry : parameterList)
+			((Parameter<?>) entry.getValue()).setSoundModifier(this);
+	}
+
 	@Override
 	public String getName() {
 		return name;
@@ -50,7 +64,7 @@ public class SoundModifier implements ISoundModifier {
 
 	@Override
 	public ISoundModifier clone() {
-		return new SoundModifier(getName(), parameterList.clone());
+		return new SoundModifier(this);
 	}
 
 	@Override

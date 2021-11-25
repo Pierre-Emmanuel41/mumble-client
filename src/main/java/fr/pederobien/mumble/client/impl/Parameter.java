@@ -96,7 +96,19 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 		this.name = name;
 		this.defaultValue = defaultValue;
 		this.value = value;
-		EventManager.registerListener(this);
+	}
+
+	/**
+	 * Protected constructor for clone method.
+	 * 
+	 * @param original The original parameter to clone.
+	 */
+	protected Parameter(Parameter<T> original) {
+		this.soundModifier = original.getSoundModifier();
+		this.name = original.getName();
+		this.type = original.getType();
+		this.value = original.getValue();
+		this.defaultValue = original.getDefaultValue();
 	}
 
 	@Override
@@ -143,7 +155,7 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 
 	@Override
 	public Parameter<T> clone() {
-		return new Parameter<T>(getName(), getDefaultValue(), getValue());
+		return new Parameter<T>(this);
 	}
 
 	@Override

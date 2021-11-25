@@ -79,6 +79,17 @@ public class RangeParameter<T> extends Parameter<T> {
 		checkRange(value);
 	}
 
+	/**
+	 * Private constructor for clone method.
+	 * 
+	 * @param original The original parameter to clone.
+	 */
+	private RangeParameter(RangeParameter<T> original) {
+		super(original);
+		min = original.getMin();
+		max = original.getMax();
+	}
+
 	@Override
 	public void setValue(Object value, Consumer<IResponse> callback) {
 		checkRange(value);
@@ -97,8 +108,22 @@ public class RangeParameter<T> extends Parameter<T> {
 	}
 
 	@Override
-	public Parameter<T> clone() {
-		return new RangeParameter<T>(getName(), getDefaultValue(), getValue(), min, max);
+	public RangeParameter<T> clone() {
+		return new RangeParameter<T>(this);
+	}
+
+	/**
+	 * @return The minimum parameter value.
+	 */
+	public T getMin() {
+		return min;
+	}
+
+	/**
+	 * @return The maximum parameter value.
+	 */
+	public T getMax() {
+		return max;
 	}
 
 	@SuppressWarnings("unchecked")

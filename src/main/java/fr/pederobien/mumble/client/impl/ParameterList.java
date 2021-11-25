@@ -18,6 +18,17 @@ public class ParameterList implements IParameterList {
 		parameters = new LinkedHashMap<String, IParameter<?>>();
 	}
 
+	/**
+	 * Private constructor for method clone.
+	 * 
+	 * @param original The original parameter list to clone.
+	 */
+	private ParameterList(ParameterList original) {
+		parameters = new LinkedHashMap<String, IParameter<?>>();
+		for (Map.Entry<String, IParameter<?>> entry : original)
+			parameters.put(entry.getValue().getName(), entry.getValue().clone());
+	}
+
 	@Override
 	public Iterator<Map.Entry<String, IParameter<?>>> iterator() {
 		return parameters.entrySet().iterator();
@@ -60,10 +71,7 @@ public class ParameterList implements IParameterList {
 
 	@Override
 	public ParameterList clone() {
-		ParameterList list = new ParameterList();
-		for (Map.Entry<String, IParameter<?>> entry : this)
-			list.add(entry.getValue().clone());
-		return list;
+		return new ParameterList(this);
 	}
 
 	/**
