@@ -96,6 +96,7 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 		this.name = name;
 		this.defaultValue = defaultValue;
 		this.value = value;
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -218,7 +219,7 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	/**
 	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
 	 */
-	private boolean isAttached() {
+	protected boolean isAttached() {
 		return soundModifier != null && soundModifier.getChannel() != null;
 	}
 }

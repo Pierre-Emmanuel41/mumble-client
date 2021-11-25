@@ -3,8 +3,13 @@ package fr.pederobien.mumble.client.impl;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
 
 public class RangeParameter<T> extends Parameter<T> {
 	private T min, max;
@@ -102,5 +107,21 @@ public class RangeParameter<T> extends Parameter<T> {
 		Comparable<? super Number> comparableValue = (Comparable<? super Number>) value;
 		if (!(comparableMin.compareTo((Number) comparableValue) <= 0 && comparableValue.compareTo((Number) max) <= 0))
 			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onParameterValueChange(ParameterValueChangePreEvent event) {
+		if (!event.getParameter().equals(this) || !isAttached())
+			return;
+
+		getSoundModifier().getChannel().getConnection().updateParameterValue(this, event.getNewValue(), event.getCallback());
+	}
+
+	@EventHandler
+	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
+		if (!event.getOldSoundModifier().equals(getSoundModifier()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }
