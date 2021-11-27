@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.event.OtherPlayerDeafenPostEvent;
 import fr.pederobien.mumble.client.event.OtherPlayerMuteByPreEvent;
 import fr.pederobien.mumble.client.event.OtherPlayerMutePostEvent;
+import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
 import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -77,6 +78,14 @@ public class OtherPlayer extends InternalObject implements IOtherPlayer {
 			return;
 
 		getConnection().mutePlayerBy(this, player.getName(), isMute, event.getCallback());
+	}
+
+	@EventHandler
+	private void onPlayerRemove(PlayerRemoveFromChannelPostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 
 	@EventHandler
