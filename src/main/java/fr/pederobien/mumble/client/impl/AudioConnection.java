@@ -1,12 +1,17 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.util.Map.Entry;
+
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.DataReceivedEvent;
 import fr.pederobien.communication.impl.UdpClientImpl;
 import fr.pederobien.communication.interfaces.IUdpConnection;
 import fr.pederobien.messenger.interfaces.IMessage;
+import fr.pederobien.mumble.client.event.PlayerSpeakEvent;
+import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
 import fr.pederobien.mumble.common.impl.Header;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.MessageExtractor;
@@ -173,5 +178,10 @@ public class AudioConnection implements IEventListener {
 		double rightVolume = (double) message.getPayload()[4];
 		AudioPacket packet = new AudioPacket(playerName, encodedData, globalVolume, rightVolume, leftVolume, true, true);
 		soundProvider.getMixer().put(packet);
+
+		for (Entry<String, IChannel> entryChannel : server.getChannelList())
+			for (Entry<String, IOtherPlayer> entryPlayer : entryChannel.getValue().getPlayers().entrySet())
+				if (entryPlayer.getValue().getName().equals(playerName))
+					EventManager.callEvent(new PlayerSpeakEvent(entryPlayer.getValue()));
 	}
 }
