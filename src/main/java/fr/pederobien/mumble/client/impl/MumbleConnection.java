@@ -30,6 +30,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleConnection implements IEventListener {
+	/**
+	 * Consumer that does nothing when a response has been received from the server.
+	 */
+	private static final Consumer<ResponseCallbackArgs> NOTHING = args -> {
+	};
 	private MumbleServer mumbleServer;
 	private ITcpConnection tcpConnection;
 	private AudioConnection audioConnection;
@@ -314,7 +319,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void pauseMicrophone() {
 		audioConnection.pauseMicrophone();
-		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), true));
+		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), true), NOTHING);
 	}
 
 	/**
@@ -323,7 +328,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void pauseSpeakers() {
 		audioConnection.pauseSpeakers();
-		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), true));
+		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), true), NOTHING);
 	}
 
 	/**
@@ -332,7 +337,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void resumeMicrophone() {
 		audioConnection.resumeMicrophone();
-		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), false));
+		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), false), NOTHING);
 	}
 
 	/**
@@ -341,7 +346,7 @@ public class MumbleConnection implements IEventListener {
 	 */
 	public void resumeSpeakers() {
 		audioConnection.resumeSpeakers();
-		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), false));
+		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), false), NOTHING);
 	}
 
 	/**
@@ -544,7 +549,7 @@ public class MumbleConnection implements IEventListener {
 			break;
 		case GAME_PORT:
 			int port = (int) message.getPayload()[0];
-			send(MumbleMessageFactory.answer(message, Idc.GAME_PORT, Oid.SET, port, checkGamePort(port)));
+			send(MumbleMessageFactory.answer(message, Idc.GAME_PORT, Oid.SET, port, checkGamePort(port)), NOTHING);
 			break;
 		default:
 			break;
@@ -557,10 +562,6 @@ public class MumbleConnection implements IEventListener {
 
 	private void send(IMessage<Header> message, Consumer<ResponseCallbackArgs> callback) {
 		tcpConnection.send(new MumbleCallbackMessage(message, callback));
-	}
-
-	private void send(IMessage<Header> message) {
-		tcpConnection.send(new MumbleCallbackMessage(message, null));
 	}
 
 	private void parse(ResponseCallbackArgs args, Consumer<IResponse> callback, Consumer<Object[]> consumer) {
