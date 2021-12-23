@@ -2,9 +2,9 @@
 	path = mumble-common
 	url = https://github.com/Pierre-Emmanuel41/mumble-common.git
 	update = rebase
-	branch = master
+	branch = 1.0-SNAPSHOT
 [submodule "sound"]
 	path = sound
 	url = https://github.com/Pierre-Emmanuel41/sound.git
 	update = rebase
-	branch = master
+	branch = 1.0-SNAPSHOT
