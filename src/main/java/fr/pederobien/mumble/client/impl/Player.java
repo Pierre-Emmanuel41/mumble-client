@@ -17,6 +17,7 @@ import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.vocal.client.interfaces.IVocalClient;
 
 public class Player extends InternalObject implements IPlayer {
 	private UUID uuid;
@@ -148,7 +149,7 @@ public class Player extends InternalObject implements IPlayer {
 	 */
 	public void internalSetMute(boolean isMute) {
 		this.isMute = isMute;
-		updateAudioConnection(isMute, audio -> audio.pauseMicrophone(), audio -> audio.resumeMicrophone());
+		updateAudioConnection(isMute, client -> client.pauseMicrophone(), client -> client.resumeMicrophone());
 		EventManager.callEvent(new PlayerMuteChangePostEvent(this, isMute));
 	}
 
@@ -159,15 +160,15 @@ public class Player extends InternalObject implements IPlayer {
 	 */
 	public void internalSetDeafen(boolean isDeafen) {
 		this.isDeafen = isDeafen;
-		updateAudioConnection(isDeafen, audio -> audio.pauseSpeakers(), audio -> audio.resumeSpeakers());
+		updateAudioConnection(isDeafen, client -> client.pauseSpeakers(), client -> client.resumeSpeakers());
 		EventManager.callEvent(new PlayerDeafenChangePostEvent(this, isDeafen));
 	}
 
-	private void updateAudioConnection(boolean condition, Consumer<AudioConnection> onTrue, Consumer<AudioConnection> onFalse) {
+	private void updateAudioConnection(boolean condition, Consumer<IVocalClient> onTrue, Consumer<IVocalClient> onFalse) {
 		if (condition)
-			onTrue.accept(getConnection().getAudioConnection());
+			onTrue.accept(getConnection().getVocalClient());
 		else
-			onFalse.accept(getConnection().getAudioConnection());
+			onFalse.accept(getConnection().getVocalClient());
 	}
 
 	private void updateMumbleConnection(boolean condition, Consumer<MumbleConnection> onTrue, Consumer<MumbleConnection> onFalse) {
@@ -187,11 +188,11 @@ public class Player extends InternalObject implements IPlayer {
 
 		// Starting/Stopping the voice communication
 		if (channel == null)
-			getConnection().getAudioConnection().disconnect();
+			getConnection().getVocalClient().disconnect();
 		else {
 			setMute(false);
 			setDeafen(false);
-			getConnection().getAudioConnection().connect();
+			getConnection().getVocalClient().connect();
 		}
 		EventManager.callEvent(new PlayerChannelChangePostEvent(this, oldChannel));
 	}

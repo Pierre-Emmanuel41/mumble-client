@@ -28,6 +28,7 @@ import fr.pederobien.mumble.common.impl.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.vocal.client.interfaces.IVocalClient;
 
 public class MumbleConnection implements IEventListener {
 	/**
@@ -37,7 +38,7 @@ public class MumbleConnection implements IEventListener {
 	};
 	private MumbleServer mumbleServer;
 	private ITcpConnection tcpConnection;
-	private AudioConnection audioConnection;
+	private IVocalClient vocalClient;
 	private AtomicBoolean isDisposed;
 
 	protected MumbleConnection(MumbleServer mumbleServer) {
@@ -61,8 +62,8 @@ public class MumbleConnection implements IEventListener {
 		tcpConnection.disconnect();
 
 		// Could be null if disposing the connection whereas the server was not reachable.
-		if (audioConnection != null)
-			audioConnection.disconnect();
+		if (vocalClient != null)
+			vocalClient.disconnect();
 	}
 
 	public void dispose() {
@@ -72,8 +73,8 @@ public class MumbleConnection implements IEventListener {
 		tcpConnection.dispose();
 
 		// Could be null if disposing the connection whereas the server was not reachable.
-		if (audioConnection != null)
-			audioConnection.dispose();
+		if (vocalClient != null)
+			vocalClient.dispose();
 
 		EventManager.unregisterListener(this);
 	}
@@ -92,7 +93,6 @@ public class MumbleConnection implements IEventListener {
 	public void join(Consumer<IResponse> callback) {
 		send(create(Idc.SERVER_JOIN, Oid.SET), args -> parse(args, callback, payload -> {
 			int currentIndex = 0;
-			audioConnection = new AudioConnection(mumbleServer);
 
 			// Number of modifiers
 			int numberOfModifiers = (int) payload[currentIndex++];
@@ -190,11 +190,11 @@ public class MumbleConnection implements IEventListener {
 		if (!mumbleServer.isReachable())
 			callback.accept(new Response(ErrorCode.NONE));
 		else
-			send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> audioConnection.dispose()));
+			send(create(Idc.SERVER_LEAVE, Oid.SET), args -> parse(args, callback, payload -> vocalClient.dispose()));
 	}
 
-	public AudioConnection getAudioConnection() {
-		return audioConnection;
+	public IVocalClient getVocalClient() {
+		return vocalClient;
 	}
 
 	/**
@@ -318,7 +318,7 @@ public class MumbleConnection implements IEventListener {
 	 * of other players when the player mute itself.
 	 */
 	public void pauseMicrophone() {
-		audioConnection.pauseMicrophone();
+		vocalClient.pauseMicrophone();
 		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), true), NOTHING);
 	}
 
@@ -327,7 +327,7 @@ public class MumbleConnection implements IEventListener {
 	 * other player when the player deafen itself.
 	 */
 	public void pauseSpeakers() {
-		audioConnection.pauseSpeakers();
+		vocalClient.pauseSpeakers();
 		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), true), NOTHING);
 	}
 
@@ -336,7 +336,7 @@ public class MumbleConnection implements IEventListener {
 	 * of other player when the player unmute itself.
 	 */
 	public void resumeMicrophone() {
-		audioConnection.resumeMicrophone();
+		vocalClient.resumeMicrophone();
 		send(create(Idc.PLAYER_MUTE, Oid.SET, mumbleServer.getPlayer().getName(), false), NOTHING);
 	}
 
@@ -345,7 +345,7 @@ public class MumbleConnection implements IEventListener {
 	 * other player when the player undeafen itself.
 	 */
 	public void resumeSpeakers() {
-		audioConnection.resumeSpeakers();
+		vocalClient.resumeSpeakers();
 		send(create(Idc.PLAYER_DEAFEN, Oid.SET, mumbleServer.getPlayer().getName(), false), NOTHING);
 	}
 

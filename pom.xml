@@ -24,7 +24,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.pederobien</groupId>
-			<artifactId>sound</artifactId>
+			<artifactId>vocal-client</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
