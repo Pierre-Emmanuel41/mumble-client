@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.Map;
-
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 
@@ -20,8 +18,8 @@ public class SoundModifier implements ISoundModifier {
 		this.name = name;
 		this.parameterList = parameterList;
 
-		for (Map.Entry<String, IParameter<?>> entry : parameterList)
-			((Parameter<?>) entry.getValue()).setSoundModifier(this);
+		for (IParameter<?> parameter : parameterList)
+			((Parameter<?>) parameter).setSoundModifier(this);
 	}
 
 	/**
@@ -34,8 +32,8 @@ public class SoundModifier implements ISoundModifier {
 		this.parameterList = original.getParameters().clone();
 		this.channel = original.getChannel();
 
-		for (Map.Entry<String, IParameter<?>> entry : parameterList)
-			((Parameter<?>) entry.getValue()).setSoundModifier(this);
+		for (IParameter<?> entry : parameterList)
+			((Parameter<?>) entry).setSoundModifier(this);
 	}
 
 	@Override
@@ -76,6 +74,9 @@ public class SoundModifier implements ISoundModifier {
 			return false;
 
 		ISoundModifier other = (ISoundModifier) obj;
-		return name.equals(other.getName());
+		if (!name.equals(other.getName()))
+			return false;
+
+		return parameterList.equals(other.getParameters());
 	}
 }

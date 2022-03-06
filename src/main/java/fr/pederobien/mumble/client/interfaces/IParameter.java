@@ -2,19 +2,19 @@ package fr.pederobien.mumble.client.interfaces;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.mumble.common.impl.model.ParameterType;
 
 public interface IParameter<T> extends Cloneable {
 
 	/**
 	 * @return The name of this parameter.
 	 */
-	public String getName();
+	String getName();
 
 	/**
 	 * @return The value associated to this parameter.
 	 */
-	public T getValue();
+	T getValue();
 
 	/**
 	 * Set the value associated to this parameter.
@@ -22,17 +22,17 @@ public interface IParameter<T> extends Cloneable {
 	 * @param value    The new parameter value.
 	 * @param callback the callback that is executed after reception of the answer from the remote.
 	 */
-	public void setValue(Object value, Consumer<IResponse> callback);
+	void setValue(Object value, Consumer<IResponse> callback);
 
 	/**
 	 * @return The default parameter value.
 	 */
-	public T getDefaultValue();
+	T getDefaultValue();
 
 	/**
 	 * @return The type of this parameter.
 	 */
-	public ParameterType<T> getType();
+	ParameterType<T> getType();
 
 	/**
 	 * @return The sound modifier associated to this parameter.

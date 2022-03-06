@@ -1,7 +1,5 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.function.Consumer;
-
 public interface IMumbleServer {
 	public static final String DEFAULT_NAME = "";
 	public static final String DEFAULT_ADDRESS = "0.0.0.0";
@@ -64,31 +62,17 @@ public interface IMumbleServer {
 	void dispose();
 
 	/**
-	 * Send a request in order to join the server.
-	 * 
-	 * @param callback The callback to run when a response has been received from the remote.
+	 * @return The list of players.
 	 */
-	void join(Consumer<IResponse> callback);
+	IServerPlayerList getPlayers();
 
 	/**
-	 * Send a request in order to leave the server.
-	 * 
-	 * @param callback The callback to run when a response has been received from the remote.
-	 */
-	void leave(Consumer<IResponse> callback);
-
-	/**
-	 * @return The main player associated to this client.
-	 */
-	IPlayer getPlayer();
-
-	/**
-	 * @return Get the list of channel currently registered on the server.
+	 * @return The list of channels.
 	 */
 	IChannelList getChannelList();
 
 	/**
-	 * @return The list of sound modifier registered for this server.
+	 * @return The list of sound modifiers.
 	 */
 	ISoundModifierList getSoundModifierList();
 }

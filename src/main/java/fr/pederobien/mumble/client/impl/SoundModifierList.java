@@ -1,9 +1,12 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
@@ -22,28 +25,31 @@ public class SoundModifierList implements ISoundModifierList {
 	}
 
 	@Override
-	public void register(ISoundModifier soundModifier) {
-		soundModifiers.put(soundModifier.getName(), soundModifier);
-	}
-
-	@Override
-	public void unregister(String name) {
-		soundModifiers.remove(name);
-	}
-
-	@Override
-	public Optional<ISoundModifier> getByName(String name) {
+	public Optional<ISoundModifier> get(String name) {
 		ISoundModifier modifier = soundModifiers.get(name);
 		return Optional.ofNullable(modifier == null ? null : modifier.clone());
 	}
 
 	@Override
 	public ISoundModifier getDefaultSoundModifier() {
-		return getByName(DEFAULT_SOUND_MODIFIER_NAME).get();
+		return get(DEFAULT_SOUND_MODIFIER_NAME).get();
 	}
 
 	@Override
-	public Map<String, ISoundModifier> getSoundModifiers() {
-		return soundModifiers;
+	public Stream<ISoundModifier> stream() {
+		return toList().stream();
+	}
+
+	@Override
+	public List<ISoundModifier> toList() {
+		return new ArrayList<ISoundModifier>(soundModifiers.values());
+	}
+
+	protected void register(ISoundModifier soundModifier) {
+		soundModifiers.put(soundModifier.getName(), soundModifier);
+	}
+
+	protected void unregister(String name) {
+		soundModifiers.remove(name);
 	}
 }

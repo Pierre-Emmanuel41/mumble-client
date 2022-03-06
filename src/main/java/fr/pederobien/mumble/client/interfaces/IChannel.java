@@ -1,9 +1,13 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.Map;
 import java.util.function.Consumer;
 
 public interface IChannel {
+
+	/**
+	 * @return The server to which this channel is associated.
+	 */
+	IMumbleServer getMumbleServer();
 
 	/**
 	 * @return The channel's name.
@@ -14,28 +18,14 @@ public interface IChannel {
 	 * Set the name of this channel.
 	 * 
 	 * @param name     The new channel name.
-	 * @param callback the callback that is executed after reception of the answer from the remote.
+	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	void setName(String name, Consumer<IResponse> callback);
 
 	/**
-	 * Add the player to this channel.
-	 * 
-	 * @param callback the callback that is executed after reception of the answer from the remote.
+	 * @return The list of players.
 	 */
-	void addPlayer(Consumer<IResponse> callback);
-
-	/**
-	 * Remove the player from this channel.
-	 * 
-	 * @param callback the callback that is executed after reception of the answer from the remote.
-	 */
-	void removePlayer(Consumer<IResponse> callback);
-
-	/**
-	 * @return A map that contains players registered on this channel. This list is unmodifiable.
-	 */
-	Map<String, IOtherPlayer> getPlayers();
+	IPlayerList getPlayers();
 
 	/**
 	 * @return The sound modifier attached to this channel.
@@ -47,11 +37,8 @@ public interface IChannel {
 	 * 
 	 * @param soundModifier The new sound modifier of the channel.
 	 * @param callback      the callback that is executed after reception of the answer from the remote.
+	 * 
+	 * @throws IllegalArgumentException If the sound modifier does not comes from sound modifier list of the mumble server.
 	 */
 	void setSoundModifier(ISoundModifier soundModifier, Consumer<IResponse> callback);
-
-	/**
-	 * @return The server to which this channel is associated.
-	 */
-	IMumbleServer getMumbleServer();
 }

@@ -1,23 +1,10 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ISoundModifierList extends Iterable<ISoundModifier> {
-
-	/**
-	 * Registers a new sound modifier for this list.
-	 * 
-	 * @param soundModifier The sound modifier to register.
-	 */
-	void register(ISoundModifier soundModifier);
-
-	/**
-	 * Unregister the sound modifier associated to the given name.
-	 * 
-	 * @param name The name used to unregister the associated sound modifier.
-	 */
-	void unregister(String name);
 
 	/**
 	 * Get the sound modifier associated to the given name.
@@ -26,7 +13,7 @@ public interface ISoundModifierList extends Iterable<ISoundModifier> {
 	 * 
 	 * @return An optional that contains the sound modifier if it exist, an empty optional otherwise.
 	 */
-	public Optional<ISoundModifier> getByName(String name);
+	public Optional<ISoundModifier> get(String name);
 
 	/**
 	 * @return The sound modifier associated to the name "default".
@@ -34,7 +21,12 @@ public interface ISoundModifierList extends Iterable<ISoundModifier> {
 	public ISoundModifier getDefaultSoundModifier();
 
 	/**
-	 * @return A map that contains all registered sound modifiers.
+	 * @return a sequential {@code Stream} over the elements in this collection.
 	 */
-	public Map<String, ISoundModifier> getSoundModifiers();
+	Stream<ISoundModifier> stream();
+
+	/**
+	 * @return A copy of the underlying list.
+	 */
+	List<ISoundModifier> toList();
 }

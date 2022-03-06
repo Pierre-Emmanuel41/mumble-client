@@ -4,14 +4,14 @@ import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerAdminStatusChangePostEvent extends MainPlayerEvent {
+public class PlayerAdminStatusChangePostEvent extends PlayerEvent {
 	private boolean isAdmin;
 
 	/**
-	 * Creates an event thrown when the admin status of a player has changed.
+	 * Creates an event thrown when the administrator status of a player has changed.
 	 * 
-	 * @param player  The player whose the admin status has changed.
-	 * @param isAdmin The new admin status of the player.
+	 * @param player  The player whose the administrator status has changed.
+	 * @param isAdmin The new administrator status of the player.
 	 */
 	public PlayerAdminStatusChangePostEvent(IPlayer player, boolean isAdmin) {
 		super(player);
@@ -19,7 +19,7 @@ public class PlayerAdminStatusChangePostEvent extends MainPlayerEvent {
 	}
 
 	/**
-	 * @return The new admin status of the player.
+	 * @return The new administrator status of the player.
 	 */
 	public boolean isAdmin() {
 		return isAdmin;

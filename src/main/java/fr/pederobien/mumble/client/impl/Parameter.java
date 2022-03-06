@@ -10,10 +10,9 @@ import fr.pederobien.mumble.client.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.common.impl.ParameterType;
+import fr.pederobien.mumble.common.impl.model.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class Parameter<T> implements IParameter<T>, IEventListener {
@@ -129,12 +128,12 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 		if (!isAttached())
 			this.value = type.cast(value);
 		else {
-			Consumer<IResponse> set = response -> {
-				callback.accept(response);
+			Consumer<IResponse> update = response -> {
 				if (!response.hasFailed())
-					internalSetValue(value);
+					setValue0(value);
+				callback.accept(response);
 			};
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, getValue(), value, set));
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, value, update));
 		}
 	}
 
@@ -159,6 +158,18 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof IParameter<?>))
+			return false;
+
+		IParameter<?> other = (IParameter<?>) obj;
+		return name.equals(other.getName()) && value.equals(other.getValue());
+	}
+
+	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("name=" + getName());
@@ -178,17 +189,29 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	}
 
 	/**
+	 * Register this parameter for the event manager.
+	 */
+	public void register() {
+		EventManager.registerListener(this);
+	}
+
+	/**
+	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
+	 */
+	protected boolean isAttached() {
+		return soundModifier != null && soundModifier.getChannel() != null;
+	}
+
+	/**
 	 * Set internally the value of this parameter. A {@link ParameterValueChangePostEvent} is thrown.
 	 * 
 	 * @param value The new parameter value.
 	 */
-	public void internalSetValue(Object value) {
+	protected void setValue(Object value) {
 		if (this.value.equals(value))
 			return;
 
-		T oldValue = this.value;
-		this.value = type.cast(value);
-		EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+		setValue0(value);
 	}
 
 	/**
@@ -199,25 +222,10 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	 * @throws IllegalArgumentException If the sound modifier associated to this parameter is attached to a channel. In that case,
 	 *                                  please use {@link #setValue(Object, Consumer)}.
 	 */
-	public void update(Object value) {
+	protected void update(Object value) {
 		if (isAttached())
 			throw new IllegalArgumentException(String.format("%s an attached parameter cannot be updated", getName()));
 		this.value = type.cast(value);
-	}
-
-	/**
-	 * Register this parameter for the event manager.
-	 */
-	public void register() {
-		EventManager.registerListener(this);
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterValueChange(ParameterValueChangePreEvent event) {
-		if (!event.getParameter().equals(this) || !isAttached())
-			return;
-
-		soundModifier.getChannel().getConnection().updateParameterValue(this, event.getNewValue(), event.getCallback());
 	}
 
 	@EventHandler
@@ -229,9 +237,13 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	}
 
 	/**
-	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
+	 * Set internally the value of this parameter. A {@link ParameterValueChangePostEvent} is thrown.
+	 * 
+	 * @param value The new parameter value.
 	 */
-	protected boolean isAttached() {
-		return soundModifier != null && soundModifier.getChannel() != null;
+	private void setValue0(Object value) {
+		T oldValue = this.value;
+		this.value = type.cast(value);
+		EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
 	}
 }

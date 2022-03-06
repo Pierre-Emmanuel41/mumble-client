@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
+import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.utils.event.EventManager;
 
 public class ParameterList implements IParameterList {
@@ -25,13 +27,13 @@ public class ParameterList implements IParameterList {
 	 */
 	private ParameterList(ParameterList original) {
 		parameters = new LinkedHashMap<String, IParameter<?>>();
-		for (Map.Entry<String, IParameter<?>> entry : original)
-			parameters.put(entry.getValue().getName(), entry.getValue().clone());
+		for (IParameter<?> entry : original)
+			parameters.put(entry.getName(), entry.clone());
 	}
 
 	@Override
-	public Iterator<Map.Entry<String, IParameter<?>>> iterator() {
-		return parameters.entrySet().iterator();
+	public Iterator<IParameter<?>> iterator() {
+		return parameters.values().iterator();
 	}
 
 	@Override
@@ -74,13 +76,38 @@ public class ParameterList implements IParameterList {
 		return new ParameterList(this);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof IParameterList))
+			return false;
+
+		Map<String, IParameter<?>> other = ((IParameterList) obj).getParameters();
+		boolean parameterEquals = true;
+		for (Map.Entry<String, IParameter<?>> entry : parameters.entrySet())
+			parameterEquals &= entry.getValue().equals(other.get(entry.getKey()));
+
+		return parameterEquals;
+	}
+
 	/**
-	 * Registers the given parameter in the list of parameters.
+	 * Creates a parameter based on the given parameter description.
 	 * 
-	 * @param parameter The parameter to register.
+	 * @param info The description of the parameter to add.
 	 */
-	public void add(IParameter<?> parameter) {
-		parameters.put(parameter.getName(), parameter);
+	protected void add(FullParameterInfo info) {
+		parameters.put(info.getName(), Parameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue()));
+	}
+
+	/**
+	 * Creates a parameter based on the given parameter description.
+	 * 
+	 * @param info The description of the parameter to add.
+	 */
+	protected void add(LazyParameterInfo info) {
+		parameters.put(info.getName(), Parameter.fromType(info.getType(), info.getName(), info.getValue(), info.getValue()));
 	}
 
 	/**
@@ -88,7 +115,7 @@ public class ParameterList implements IParameterList {
 	 * 
 	 * @param parameterName The name of the parameter to remove.
 	 */
-	public void remove(String parameterName) {
+	protected void remove(String parameterName) {
 		parameters.remove(parameterName);
 	}
 
@@ -98,18 +125,18 @@ public class ParameterList implements IParameterList {
 	 * 
 	 * @param parameterList The list that contains the new parameter values.
 	 */
-	public void updateAndRegister(IParameterList parameterList) {
+	protected void updateAndRegister(IParameterList parameterList) {
 		update(parameterList, parameter -> parameter.register());
 	}
 
 	private void update(IParameterList parameterList, Consumer<Parameter<?>> consumer) {
-		for (Map.Entry<String, IParameter<?>> entry : this) {
-			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(entry.getValue().getName());
+		for (IParameter<?> param : this) {
+			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(param.getName());
 			if (parameter == null)
 				continue;
-			((Parameter<?>) entry.getValue()).update(parameter.getValue());
+			((Parameter<?>) param).update(parameter.getValue());
 			if (consumer != null)
-				consumer.accept((Parameter<?>) entry.getValue());
+				consumer.accept((Parameter<?>) param);
 		}
 	}
 }

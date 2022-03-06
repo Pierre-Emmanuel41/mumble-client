@@ -1,19 +1,9 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
-import fr.pederobien.communication.event.ConnectionCompleteEvent;
-import fr.pederobien.communication.event.ConnectionDisposedEvent;
-import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.event.ServerIpAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerIpAddressChangePreEvent;
-import fr.pederobien.mumble.client.event.ServerJoinPostEvent;
-import fr.pederobien.mumble.client.event.ServerJoinPreEvent;
-import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.event.ServerLeavePreEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPortNumberChangePostEvent;
@@ -21,35 +11,33 @@ import fr.pederobien.mumble.client.event.ServerPortNumberChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
-import fr.pederobien.mumble.client.interfaces.IParameterList;
-import fr.pederobien.mumble.client.interfaces.IPlayer;
-import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.mumble.client.interfaces.IServerPlayerList;
+import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
-import fr.pederobien.utils.event.IEventListener;
 
-public class MumbleServer implements IMumbleServer, IEventListener {
+public abstract class MumbleServer implements IMumbleServer {
 	private String name, address;
 	private int port;
-	private AtomicBoolean isDisposed, isReachable, isOpened;
-	private MumbleConnection mumbleConnection;
-	private Player player;
-	private ChannelList channelList;
-	private SoundModifierList soundModifierList;
-	private boolean isJoined;
+	private AtomicBoolean isDisposed, isReachable;
+	private MumbleTcpConnection connection;
+	private IServerPlayerList players;
+	private IChannelList channelList;
+	private ISoundModifierList soundModifierList;
+
+	protected AtomicBoolean isOpened;
 
 	public MumbleServer(String name, String remoteAddress, int port) {
 		this.name = name;
 		this.address = remoteAddress;
 		this.port = port;
 
+		connection = new MumbleTcpConnection(this);
+		players = new ServerPlayerList(this);
+		channelList = new ChannelList(this);
 		soundModifierList = new SoundModifierList();
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
 		isOpened = new AtomicBoolean(false);
-
-		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -62,7 +50,8 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.name != null && this.name.equals(name))
 			return;
 
-		EventManager.callEvent(new ServerNameChangePreEvent(this, name));
+		String oldName = this.name;
+		EventManager.callEvent(new ServerNameChangePreEvent(this, name), () -> this.name = name, new ServerNameChangePostEvent(this, oldName));
 	}
 
 	@Override
@@ -75,7 +64,12 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.address != null && this.address.equals(address))
 			return;
 
-		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address));
+		String oldAddress = this.address;
+		Runnable update = () -> {
+			this.address = address;
+			reinitialize();
+		};
+		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address), update, new ServerIpAddressChangePostEvent(this, oldAddress));
 	}
 
 	@Override
@@ -88,7 +82,12 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		if (this.port == port)
 			return;
 
-		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port));
+		int oldPort = this.port;
+		Runnable update = () -> {
+			this.port = port;
+			reinitialize();
+		};
+		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), update, new ServerPortNumberChangePostEvent(this, oldPort));
 	}
 
 	@Override
@@ -114,22 +113,11 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 			return;
 
 		closeConnection();
-		EventManager.unregisterListener(this);
 	}
 
 	@Override
-	public void join(Consumer<IResponse> callback) {
-		EventManager.callEvent(new ServerJoinPreEvent(this, callback));
-	}
-
-	@Override
-	public void leave(Consumer<IResponse> callback) {
-		EventManager.callEvent(new ServerLeavePreEvent(this, callback));
-	}
-
-	@Override
-	public IPlayer getPlayer() {
-		return player;
+	public IServerPlayerList getPlayers() {
+		return players;
 	}
 
 	@Override
@@ -138,7 +126,7 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	@Override
-	public SoundModifierList getSoundModifierList() {
+	public ISoundModifierList getSoundModifierList() {
 		return soundModifierList;
 	}
 
@@ -158,148 +146,24 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
 	}
 
-	protected Player getInternalPlayer() {
-		return player;
+	/**
+	 * @return The mumble connection in order to send messages to the remote.
+	 */
+	protected MumbleTcpConnection getConnection() {
+		return connection;
 	}
 
-	protected void internalAddChannel(String name, String soundModifierName, IParameterList parameterList) {
-		channelList.internalAdd(new Channel(mumbleConnection, name, new ArrayList<OtherPlayer>(), soundModifierName, parameterList));
-	}
-
-	protected void internalRemoveChannel(String channelName) {
-		channelList.internalRemove(channelName);
-	}
-
-	protected void internalSetChannelName(String oldName, String newName) {
-		channelList.getChannel(oldName).internalSetName(newName);
-	}
-
-	protected void internalAddPlayerToChannel(String channelName, String playerName) {
-		channelList.getChannel(channelName).internalAddPlayer(playerName);
-	}
-
-	protected void internalRemovePlayerFromChannel(String channelName, String playerName) {
-		channelList.getChannel(channelName).internalRemovePlayer(playerName);
-	}
-
-	protected void internalSetSoundModifierOfChannel(String channelName, String soundModifierName, ParameterList parameterList) {
-		channelList.getChannel(channelName).internalSetSoundModifier(soundModifierName, parameterList);
-	}
-
-	protected void updatePlayerInfo(Object[] payload, int currentIndex, boolean uuidSet) {
-		if (!uuidSet) {
-			UUID uuid = (UUID) payload[currentIndex++];
-			player.setUUID(uuid);
-		}
-
-		boolean isOnline = (boolean) payload[currentIndex++];
-		player.setIsOnline(isOnline);
-		if (player.isOnline()) {
-			player.setName((String) payload[currentIndex++]);
-			player.setIsAdmin((boolean) payload[currentIndex++]);
-		} else
-			player.setIsAdmin(false);
-	}
-
-	protected void onPlayerMuteChanged(String playerName, boolean isMute) {
-		if (playerName.equals(player.getName()))
-			player.internalSetMute(isMute);
-		channelList.onPlayerMuteChanged(playerName, isMute);
-	}
-
-	protected void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		if (playerName.equals(player.getName()))
-			player.internalSetDeafen(isDeafen);
-		channelList.onPlayerDeafenChanged(playerName, isDeafen);
-	}
-
-	@EventHandler
-	private void onConnectionComplete(ConnectionCompleteEvent event) {
-		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
+	/**
+	 * Set the the new reachable status of the remote.
+	 * 
+	 * @param isReachable True if the remote is reachable, false otherwise.
+	 */
+	protected void setIsReachable(boolean isReachable) {
+		if (!this.isReachable.compareAndSet(!isReachable, isReachable))
 			return;
 
-		setIsReachable(true);
-	}
-
-	@EventHandler
-	private void onConnectionDisposed(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
-			return;
-
-		setIsReachable(false);
-	}
-
-	@EventHandler
-	private void onConnectionLost(ConnectionLostEvent event) {
-		if (!event.getConnection().equals(mumbleConnection.getTcpConnection()))
-			return;
-
-		setIsReachable(false);
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerJoin(ServerJoinPreEvent event) {
-		if (!event.getServer().equals(this) || isJoined)
-			return;
-
-		isJoined = true;
-
-		player = new Player(mumbleConnection, false, "Unknown", null, false);
-		channelList = new ChannelList(mumbleConnection, player);
-		mumbleConnection.join(response -> {
-			event.getCallback().accept(response);
-			if (!response.hasFailed())
-				EventManager.callEvent(new ServerJoinPostEvent(this));
-			else
-				isJoined = false;
-		});
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerLeave(ServerLeavePreEvent event) {
-		if (!event.getServer().equals(this) || !isJoined)
-			return;
-
-		isJoined = false;
-		mumbleConnection.leave(response -> {
-			event.getCallback().accept(response);
-			if (!response.hasFailed())
-				EventManager.callEvent(new ServerLeavePostEvent(this));
-			else
-				isJoined = true;
-		});
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onNameChange(ServerNameChangePreEvent event) {
-		if (!event.getServer().equals(this))
-			return;
-
-		String oldName = this.name;
-		this.name = event.getNewName();
-		EventManager.callEvent(new ServerNameChangePostEvent(this, oldName));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onAddressChange(ServerIpAddressChangePreEvent event) {
-		if (!event.getServer().equals(this))
-			return;
-
-		String oldAddress = this.address;
-		this.address = event.getNewAddress();
-		reinitialize();
-		EventManager.callEvent(new ServerIpAddressChangePostEvent(this, oldAddress));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPortNumberChange(ServerPortNumberChangePreEvent event) {
-		if (!event.getServer().equals(this))
-			return;
-
-		int oldPort = this.port;
-		this.port = event.getNewPort();
-		reinitialize();
-		EventManager.callEvent(new ServerPortNumberChangePostEvent(this, oldPort));
+		this.isReachable.set(isReachable);
+		EventManager.callEvent(new ServerReachableChangeEvent(this, isReachable));
 	}
 
 	private void checkIsDisposed() {
@@ -308,29 +172,23 @@ public class MumbleServer implements IMumbleServer, IEventListener {
 	}
 
 	private void reinitialize() {
-		if (mumbleConnection != null && !mumbleConnection.isDisposed())
+		if (connection != null && !connection.getTcpClient().getConnection().isDisposed())
 			closeConnection();
 		openConnection();
-	}
-
-	private void setIsReachable(boolean isReachable) {
-		if (!this.isReachable.compareAndSet(!isReachable, isReachable))
-			return;
-		this.isReachable.set(isReachable);
-		EventManager.callEvent(new ServerReachableChangeEvent(this, isReachable));
 	}
 
 	private void openConnection() {
 		if (!isOpened.compareAndSet(false, true))
 			return;
-		mumbleConnection = new MumbleConnection(this);
-		mumbleConnection.connect();
+
+		connection = new MumbleTcpConnection(this);
+		connection.getTcpClient().getConnection().connect();
 	}
 
 	private void closeConnection() {
 		if (!isOpened.compareAndSet(true, false))
 			return;
-		mumbleConnection.dispose();
+		connection.getTcpClient().getConnection().dispose();
 		setIsReachable(false);
 	}
 }

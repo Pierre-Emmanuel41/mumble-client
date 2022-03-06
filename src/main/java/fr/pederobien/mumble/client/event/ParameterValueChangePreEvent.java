@@ -9,20 +9,18 @@ import fr.pederobien.utils.ICancellable;
 
 public class ParameterValueChangePreEvent extends ParameterEvent implements ICancellable {
 	private boolean isCancelled;
-	private Object currentValue, newValue;
+	private Object newValue;
 	private Consumer<IResponse> callback;
 
 	/**
 	 * Creates an event thrown when the value of a parameter is about to change.
 	 * 
-	 * @param parameter    The parameter whose the value is about to change.
-	 * @param currentValue The current parameter value.
-	 * @param newValue     The future parameter new value.
-	 * @param callback     The action to execute when an answer has been received from the server.
+	 * @param parameter The parameter whose the value is about to change.
+	 * @param newValue  The future parameter new value.
+	 * @param callback  The action to execute when an answer has been received from the server.
 	 */
-	public ParameterValueChangePreEvent(Parameter<?> parameter, Object currentValue, Object newValue, Consumer<IResponse> callback) {
+	public ParameterValueChangePreEvent(Parameter<?> parameter, Object newValue, Consumer<IResponse> callback) {
 		super(parameter);
-		this.currentValue = currentValue;
 		this.newValue = newValue;
 		this.callback = callback;
 	}
@@ -35,13 +33,6 @@ public class ParameterValueChangePreEvent extends ParameterEvent implements ICan
 	@Override
 	public void setCancelled(boolean isCancelled) {
 		this.isCancelled = isCancelled;
-	}
-
-	/**
-	 * @return The current parameter value.
-	 */
-	public Object getCurrentValue() {
-		return currentValue;
 	}
 
 	/**
@@ -62,7 +53,7 @@ public class ParameterValueChangePreEvent extends ParameterEvent implements ICan
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("parameter=" + getParameter().getName());
-		joiner.add("currentValue=" + getCurrentValue());
+		joiner.add("currentValue=" + getParameter().getValue());
 		joiner.add("newValue=" + getNewValue());
 		return String.format("%s_%s", getName(), joiner);
 	}

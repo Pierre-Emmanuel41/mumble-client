@@ -1,48 +1,50 @@
 package fr.pederobien.mumble.client.impl;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
-import fr.pederobien.mumble.client.event.ChannelRemovePostEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePreEvent;
-import fr.pederobien.mumble.client.event.PlayerAddToChannelPostEvent;
-import fr.pederobien.mumble.client.event.PlayerAddToChannelPreEvent;
-import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPostEvent;
-import fr.pederobien.mumble.client.event.PlayerRemoveFromChannelPreEvent;
-import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
-import fr.pederobien.mumble.client.interfaces.IOtherPlayer;
-import fr.pederobien.mumble.client.interfaces.IParameterList;
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.interfaces.IPlayer;
+import fr.pederobien.mumble.client.interfaces.IPlayerList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
-import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
 
-public class Channel extends InternalObject implements IChannel {
+public class Channel implements IChannel {
+	private IMumbleServer server;
 	private String name;
-	private Map<String, OtherPlayer> players;
-	private Player player;
+	private PlayerList players;
 	private SoundModifier soundModifier;
 
-	public Channel(MumbleConnection connection, String name, List<OtherPlayer> players, String soundModifierName, IParameterList parameterList) {
-		super(connection);
+	/**
+	 * Creates a channel based on the given parameters.
+	 * 
+	 * @param server        The mumble server associated to the channel.
+	 * @param name          The channel's name.
+	 * @param players       The list of players registered in the channel.
+	 * @param soundModifier The channel's sound modifier.
+	 */
+	public Channel(IMumbleServer server, String name, List<IPlayer> players, SoundModifier soundModifier) {
+		this.server = server;
 		this.name = name;
-		this.players = new LinkedHashMap<String, OtherPlayer>();
+		this.players = new PlayerList(this);
 
-		this.soundModifier = (SoundModifier) getMumbleServer().getSoundModifierList().getByName(soundModifierName).get();
-		soundModifier.getParameters().updateAndRegister(parameterList);
-		soundModifier.setChannel(this);
+		this.soundModifier = soundModifier;
+		this.soundModifier.setChannel(this);
 
-		for (OtherPlayer player : players)
-			this.players.put(player.getName(), player);
+		for (IPlayer player : players)
+			players.add(player);
+	}
+
+	@Override
+	public IMumbleServer getMumbleServer() {
+		return server;
 	}
 
 	@Override
@@ -52,26 +54,20 @@ public class Channel extends InternalObject implements IChannel {
 
 	@Override
 	public void setName(String name, Consumer<IResponse> callback) {
-		if (this.name == name)
+		if (this.name.equals(name))
 			return;
 
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, callback));
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setName0(name);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, update));
 	}
 
 	@Override
-	public void addPlayer(Consumer<IResponse> callback) {
-		EventManager.callEvent(new PlayerAddToChannelPreEvent(this, player.getName(), callback));
-	}
-
-	@Override
-	public void removePlayer(Consumer<IResponse> callback) {
-		IOtherPlayer removed = players.get(player.getName());
-		EventManager.callEvent(new PlayerRemoveFromChannelPreEvent(this, removed, callback));
-	}
-
-	@Override
-	public Map<String, IOtherPlayer> getPlayers() {
-		return Collections.unmodifiableMap(players);
+	public IPlayerList getPlayers() {
+		return players;
 	}
 
 	@Override
@@ -84,12 +80,14 @@ public class Channel extends InternalObject implements IChannel {
 		if (this.soundModifier.equals(soundModifier))
 			return;
 
-		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, getSoundModifier(), soundModifier, callback));
-	}
+		checkSoundModifier(soundModifier);
 
-	@Override
-	public MumbleServer getMumbleServer() {
-		return getConnection().getMumbleServer();
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setSoundModifier0(soundModifier);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier, update));
 	}
 
 	@Override
@@ -107,114 +105,64 @@ public class Channel extends InternalObject implements IChannel {
 		return name.equals(other.getName());
 	}
 
-	public void internalSetPlayer(Player player) {
-		this.player = player;
+	/**
+	 * Set the name of this channel.
+	 * 
+	 * @param name The new channel name.
+	 */
+	protected void setName(String name) {
+		if (this.name.equals(name))
+			return;
+
+		setName0(name);
 	}
 
-	public void internalSetName(String name) {
-		String oldName = new String(this.name);
+	/**
+	 * Set the sound modifier of this channel.
+	 * 
+	 * @param soundModifier The new channel's sound modifier.
+	 */
+	protected void setSoundModifier(ISoundModifier soundModifier) {
+		if (this.soundModifier.equals(soundModifier))
+			return;
+
+		checkSoundModifier(soundModifier);
+		setSoundModifier0(soundModifier);
+	}
+
+	/**
+	 * Set the name of this channel.
+	 * 
+	 * @param name The new channel name.
+	 */
+	private void setName0(String name) {
+		String oldName = this.name;
 		this.name = name;
 		EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
 	}
 
-	public void internalAddPlayer(String playerName) {
-		if (players.get(playerName) != null)
-			return;
+	/**
+	 * Set the sound modifier of this channel.
+	 * 
+	 * @param soundModifier The new channel's sound modifier.
+	 */
+	private void setSoundModifier0(ISoundModifier soundModifier) {
+		SoundModifier oldSoundModifier = (SoundModifier) soundModifier;
+		oldSoundModifier.setChannel(null);
 
-		OtherPlayer added = new OtherPlayer(getConnection(), player, playerName);
-		players.put(playerName, added);
-		if (player.getName().equals(added.getName()))
-			this.player.setChannel(this);
-		EventManager.callEvent(new PlayerAddToChannelPostEvent(this, added));
-	}
-
-	public void internalRemovePlayer(String playerName) {
-		IOtherPlayer removed = players.remove(playerName);
-		if (removed == null)
-			return;
-
-		if (removed.getName().equals(player.getName()))
-			player.setChannel(null);
-
-		EventManager.callEvent(new PlayerRemoveFromChannelPostEvent(this, removed));
-	}
-
-	public void onPlayerMuteChanged(String playerName, boolean isMute) {
-		OtherPlayer otherPlayer = players.get(playerName);
-		if (otherPlayer == null)
-			return;
-		otherPlayer.internalSetMute(isMute);
-	}
-
-	public void onPlayerDeafenChanged(String playerName, boolean isDeafen) {
-		OtherPlayer otherPlayer = players.get(playerName);
-		if (otherPlayer == null)
-			return;
-		otherPlayer.internalSetDeafen(isDeafen);
-	}
-
-	public void internalSetSoundModifier(String soundModifierName, ParameterList parameterList) {
-		if (getSoundModifier().getName().equals(soundModifierName))
-			return;
-
-		Optional<ISoundModifier> optModifier = getMumbleServer().getSoundModifierList().getByName(soundModifierName);
-		if (!optModifier.isPresent())
-			return;
-
-		ISoundModifier oldSoundModifier = soundModifier;
-		((SoundModifier) oldSoundModifier).setChannel(null);
-
-		soundModifier = (SoundModifier) optModifier.get();
-		soundModifier.getParameters().update(parameterList);
-		soundModifier.setChannel(this);
+		this.soundModifier = (SoundModifier) soundModifier;
+		this.soundModifier.setChannel(this);
 		EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onNameChange(ChannelNameChangePreEvent event) {
-		if (!event.getChannel().equals(this))
-			return;
-
-		getConnection().renameChannel(this.name, name, event.getCallback());
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onAddPlayer(PlayerAddToChannelPreEvent event) {
-		if (!event.getChannel().equals(this))
-			return;
-
-		getConnection().addPlayerToChannel(getName(), player.getName(), event.getCallback());
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerRemove(PlayerRemoveFromChannelPreEvent event) {
-		if (!event.getChannel().equals(this))
-			return;
-
-		getConnection().removePlayerfromChannel(getName(), player.getName(), event.getCallback());
-	}
-
-	@EventHandler
-	private void onChannelRemove(ChannelRemovePostEvent event) {
-		if (!event.getChannel().equals(this))
-			return;
-
-		EventManager.unregisterListener(this);
-	}
-
-	@EventHandler
-	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
-		if (!event.getChannel().equals(this))
-			return;
-
-		getConnection().setChannelSoundModifier(getName(), event.getNewSoundModifier(), event.getCallback());
-	}
-
-	@EventHandler
-	private void onServerLeave(ServerLeavePostEvent event) {
-		if (!event.getServer().equals(getConnection().getMumbleServer()))
-			return;
-
-		EventManager.unregisterListener(this);
+	/**
+	 * Check if the given sound modifier is registered on the server.
+	 * 
+	 * @param soundModifier The sound modifier to check.
+	 */
+	private void checkSoundModifier(ISoundModifier soundModifier) {
+		Optional<ISoundModifier> optSoundModifier = getMumbleServer().getSoundModifierList().get(soundModifier.getName());
+		if (!optSoundModifier.isPresent() || soundModifier != optSoundModifier.get())
+			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 	}
 }

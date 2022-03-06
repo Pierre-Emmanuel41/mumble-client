@@ -10,7 +10,7 @@ import fr.pederobien.utils.ICancellable;
 
 public class ChannelSoundModifierChangePreEvent extends ChannelEvent implements ICancellable {
 	private boolean isCancelled;
-	private ISoundModifier currentSoundModifier, newSoundModifier;
+	private ISoundModifier newSoundModifier;
 	private Consumer<IResponse> callback;
 
 	/**
@@ -20,9 +20,8 @@ public class ChannelSoundModifierChangePreEvent extends ChannelEvent implements 
 	 * @param newSoundModifier The future channel sound modifier.
 	 * @param callback         The action to execute when an answer has been received from the server.
 	 */
-	public ChannelSoundModifierChangePreEvent(IChannel channel, ISoundModifier currentSoundModifier, ISoundModifier newSoundModifier, Consumer<IResponse> callback) {
+	public ChannelSoundModifierChangePreEvent(IChannel channel, ISoundModifier newSoundModifier, Consumer<IResponse> callback) {
 		super(channel);
-		this.currentSoundModifier = currentSoundModifier;
 		this.newSoundModifier = newSoundModifier;
 		this.callback = callback;
 	}
@@ -35,13 +34,6 @@ public class ChannelSoundModifierChangePreEvent extends ChannelEvent implements 
 	@Override
 	public void setCancelled(boolean isCancelled) {
 		this.isCancelled = isCancelled;
-	}
-
-	/**
-	 * @return The actual channel sound modifier.
-	 */
-	public ISoundModifier getCurrentSoundModifier() {
-		return currentSoundModifier;
 	}
 
 	/**
@@ -62,7 +54,7 @@ public class ChannelSoundModifierChangePreEvent extends ChannelEvent implements 
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("channel=" + getChannel().getName());
-		joiner.add("currentSoundModifier=" + getCurrentSoundModifier().getName());
+		joiner.add("currentSoundModifier=" + getChannel().getSoundModifier().getName());
 		joiner.add("newSoundModifier=" + getNewSoundModifier().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}

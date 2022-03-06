@@ -4,33 +4,56 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.PlayerAdminStatusChangePostEvent;
-import fr.pederobien.mumble.client.event.PlayerChannelChangePostEvent;
-import fr.pederobien.mumble.client.event.PlayerChannelChangePreEvent;
-import fr.pederobien.mumble.client.event.PlayerDeafenChangePostEvent;
-import fr.pederobien.mumble.client.event.PlayerDeafenChangePreEvent;
-import fr.pederobien.mumble.client.event.PlayerMuteChangePostEvent;
-import fr.pederobien.mumble.client.event.PlayerMuteChangePreEvent;
-import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangeEvent;
-import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
+import fr.pederobien.mumble.client.event.PlayerAdminStatusChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
-import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.mumble.client.interfaces.IPosition;
+import fr.pederobien.mumble.client.interfaces.IResponse;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.utils.event.EventPriority;
-import fr.pederobien.vocal.client.interfaces.IVocalClient;
 
-public class Player extends InternalObject implements IPlayer {
-	private UUID uuid;
+public class Player implements IPlayer {
+	private UUID identifier;
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private IChannel channel;
-	private String name;
+	private IPosition position;
+	private String name, gameAddress;
+	private int gamePort;
 
-	public Player(MumbleConnection connection, boolean isOnline, String name, UUID uuid, boolean isAdmin) {
-		super(connection);
-		this.isOnline = isOnline;
+	/**
+	 * Creates a player based on the given parameters.
+	 * 
+	 * @param name        The player's name.
+	 * @param isOnline    The player's online status.
+	 * @param gameAddress The IP address used to play to the game.
+	 * @param gamePort    The port number used to play to the game.
+	 * @param identifier  The player's identifier.
+	 * @param isAdmin     The player's administrator status.
+	 * @param isMute      The player's mute status.
+	 * @param isDeafen    The player's deafen status.
+	 */
+	public Player(String name, boolean isOnline, String gameAddress, int gamePort, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
+			double z, double yaw, double pitch) {
 		this.name = name;
-		this.uuid = uuid;
+		this.isOnline = isOnline;
+		this.gameAddress = gameAddress;
+		this.gamePort = gamePort;
+		this.identifier = identifier;
 		this.isAdmin = isAdmin;
+		this.isMute = isMute;
+		this.isDeafen = isDeafen;
+
+		position = new Position(this, x, y, z, yaw, pitch);
 	}
 
 	@Override
@@ -38,8 +61,53 @@ public class Player extends InternalObject implements IPlayer {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	@Override
+	public void setName(String name, Consumer<IResponse> callback) {
+		if (this.name.equals(name))
+			return;
+
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setName0(name);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerNameChangePreEvent(this, name, update));
+	}
+
+	@Override
+	public String getGameAddress() {
+		return gameAddress;
+	}
+
+	@Override
+	public void setGameAddress(String gameAddress, Consumer<IResponse> callback) {
+		if (this.gameAddress.equals(gameAddress))
+			return;
+
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setGameAddress0(gameAddress);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, gameAddress, getGamePort(), update));
+	}
+
+	@Override
+	public int getGamePort() {
+		return gamePort;
+	}
+
+	@Override
+	public void setGamePort(int gamePort, Consumer<IResponse> callback) {
+		if (this.gamePort == gamePort)
+			return;
+
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setGamePort0(gamePort);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, getGameAddress(), gamePort, update));
 	}
 
 	@Override
@@ -47,26 +115,22 @@ public class Player extends InternalObject implements IPlayer {
 		return isAdmin;
 	}
 
-	/**
-	 * Set if the player is currently an admin in game.
-	 * 
-	 * @param isAdmin If the player is an admin in game.
-	 */
-	public void setIsAdmin(boolean isAdmin) {
+	@Override
+	public void setAdmin(boolean isAdmin, Consumer<IResponse> callback) {
 		if (this.isAdmin == isAdmin)
 			return;
 
-		this.isAdmin = isAdmin;
-		EventManager.callEvent(new PlayerAdminStatusChangePostEvent(this, isAdmin));
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setAdmin0(isAdmin);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerAdminStatusChangePreEvent(this, isAdmin, update));
 	}
 
 	@Override
-	public UUID getUUID() {
-		return uuid;
-	}
-
-	public void setUUID(UUID uuid) {
-		this.uuid = uuid;
+	public UUID getIdentifier() {
+		return identifier;
 	}
 
 	@Override
@@ -74,29 +138,22 @@ public class Player extends InternalObject implements IPlayer {
 		return isOnline;
 	}
 
-	/**
-	 * Set if the player is currently logged in game.
-	 * 
-	 * @param isOnline If the player is currently logged in game.
-	 */
-	public void setIsOnline(boolean isOnline) {
+	@Override
+	public void setOnline(boolean isOnline, Consumer<IResponse> callback) {
 		if (this.isOnline == isOnline)
 			return;
 
-		this.isOnline = isOnline;
-		EventManager.callEvent(new PlayerOnlineStatusChangeEvent(this, isOnline));
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setOnline0(isOnline);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerOnlineStatusChangePreEvent(this, isOnline, update));
 	}
 
 	@Override
 	public IChannel getChannel() {
 		return channel;
-	}
-
-	public void setChannel(IChannel channel) {
-		if (this.channel != null && this.channel.equals(channel))
-			return;
-
-		EventManager.callEvent(new PlayerChannelChangePreEvent(this, getChannel(), channel));
 	}
 
 	@Override
@@ -105,11 +162,16 @@ public class Player extends InternalObject implements IPlayer {
 	}
 
 	@Override
-	public void setMute(boolean isMute) {
+	public void setMute(boolean isMute, Consumer<IResponse> callback) {
 		if (this.isMute == isMute)
 			return;
 
-		EventManager.callEvent(new PlayerMuteChangePreEvent(this, isMute));
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setMute0(isMute);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, update));
 	}
 
 	@Override
@@ -118,16 +180,26 @@ public class Player extends InternalObject implements IPlayer {
 	}
 
 	@Override
-	public void setDeafen(boolean isDeafen) {
+	public void setDeafen(boolean isDeafen, Consumer<IResponse> callback) {
 		if (this.isDeafen == isDeafen)
 			return;
 
-		EventManager.callEvent(new PlayerDeafenChangePreEvent(this, isDeafen));
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				setDeafen0(isDeafen);
+			callback.accept(response);
+		};
+		EventManager.callEvent(new PlayerDeafenStatusChangePreEvent(this, isDeafen, update));
+	}
+
+	@Override
+	public IPosition getPosition() {
+		return position;
 	}
 
 	@Override
 	public String toString() {
-		return getName() + "[" + uuid + "]";
+		return String.format("Player={name=%s,identifier=%s}", getName(), getIdentifier());
 	}
 
 	@Override
@@ -139,85 +211,190 @@ public class Player extends InternalObject implements IPlayer {
 			return false;
 
 		IPlayer other = (IPlayer) obj;
-		return getUUID().equals(other.getUUID());
+		return identifier.equals(other.getIdentifier());
 	}
 
 	/**
-	 * Set the status mute of this player. When set, it will notify each observers.
+	 * Set the channel in which the player is registered. When set to null, then the player is registered in no channel.
 	 * 
-	 * @param isMute The new mute player status.
+	 * @param channel The new player channel.
 	 */
-	public void internalSetMute(boolean isMute) {
-		this.isMute = isMute;
-		updateAudioConnection(isMute, client -> client.pauseMicrophone(), client -> client.resumeMicrophone());
-		EventManager.callEvent(new PlayerMuteChangePostEvent(this, isMute));
+	public void setChannel(IChannel channel) {
+		this.channel = channel;
 	}
 
 	/**
-	 * Set the status mute of this player. When set, it will notify each observers.
+	 * Update player properties according to the given message.
 	 * 
-	 * @param isMute The new mute player status.
+	 * @param message The message that contains an update of player properties.
 	 */
-	public void internalSetDeafen(boolean isDeafen) {
-		this.isDeafen = isDeafen;
-		updateAudioConnection(isDeafen, client -> client.pauseSpeakers(), client -> client.resumeSpeakers());
-		EventManager.callEvent(new PlayerDeafenChangePostEvent(this, isDeafen));
-	}
+	protected void update(PlayerSetMessageV10 message) {
+		setOnline(message.getPlayerInfo().isOnline());
 
-	private void updateAudioConnection(boolean condition, Consumer<IVocalClient> onTrue, Consumer<IVocalClient> onFalse) {
-		if (condition)
-			onTrue.accept(getConnection().getVocalClient());
-		else
-			onFalse.accept(getConnection().getVocalClient());
-	}
-
-	private void updateMumbleConnection(boolean condition, Consumer<MumbleConnection> onTrue, Consumer<MumbleConnection> onFalse) {
-		if (condition)
-			onTrue.accept(getConnection());
-		else
-			onFalse.accept(getConnection());
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelChange(PlayerChannelChangePreEvent event) {
-		if (!event.getPlayer().equals(this))
-			return;
-
-		IChannel oldChannel = this.channel;
-		this.channel = event.getNewChannel();
-
-		// Starting/Stopping the voice communication
-		if (channel == null)
-			getConnection().getVocalClient().disconnect();
-		else {
-			setMute(false);
-			setDeafen(false);
-			getConnection().getVocalClient().connect();
+		if (message.getPlayerInfo().isOnline()) {
+			identifier = message.getPlayerInfo().getIdentifier();
+			gameAddress = message.getPlayerInfo().getGameAddress();
+			gamePort = message.getPlayerInfo().getGamePort();
+			setName(message.getPlayerInfo().getName());
+			setOnline(message.getPlayerInfo().isOnline());
+			setAdmin(message.getPlayerInfo().isAdmin());
+			setMute(message.getPlayerInfo().isMute());
+			setDeafen(message.getPlayerInfo().isDeafen());
 		}
-		EventManager.callEvent(new PlayerChannelChangePostEvent(this, oldChannel));
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onMuteChange(PlayerMuteChangePreEvent event) {
-		if (!event.getPlayer().equals(this))
+	/**
+	 * Set the name of this player.
+	 * 
+	 * @param name The new player name.
+	 */
+	protected void setName(String name) {
+		if (this.name.equals(name))
 			return;
 
-		updateMumbleConnection(event.isMute(), connection -> connection.pauseMicrophone(), connection -> connection.resumeMicrophone());
+		setName0(name);
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onDeafenChange(PlayerDeafenChangePreEvent event) {
-		if (!event.getPlayer().equals(this))
+	/**
+	 * Set the player online status.
+	 * 
+	 * @param isAdmin The new player online status.
+	 */
+	protected void setOnline(boolean isOnline) {
+		if (this.isOnline == isOnline)
 			return;
 
-		updateMumbleConnection(event.isDeafen(), connection -> connection.pauseSpeakers(), connection -> connection.resumeSpeakers());
+		setOnline0(isOnline);
 	}
 
-	@EventHandler
-	private void onServerLeave(ServerLeavePostEvent event) {
-		if (!event.getServer().equals(getConnection().getMumbleServer()))
+	/**
+	 * Set the player's game address.
+	 * 
+	 * @param gameAddress The address used by the player to play to the game.
+	 */
+	protected void setGameAddress(String gameAddress) {
+		if (this.gameAddress.equals(gameAddress))
 			return;
 
-		EventManager.unregisterListener(this);
+		setGameAddress0(gameAddress);
+	}
+
+	/**
+	 * Set the player's game port.
+	 * 
+	 * @param gamePort The game port used by the player in order to play to the game.
+	 */
+	protected void setGamePort(int gamePort) {
+		if (this.gamePort == gamePort)
+			return;
+
+		setGamePort0(gamePort);
+	}
+
+	/**
+	 * Set the player administrator status.
+	 * 
+	 * @param isAdmin The new player administrator status.
+	 */
+	protected void setAdmin(boolean isAdmin) {
+		if (this.isAdmin == isAdmin)
+			return;
+
+		setAdmin0(isAdmin);
+	}
+
+	/**
+	 * Set the player mute status.
+	 * 
+	 * @param isMute The new player mute status.
+	 */
+	protected void setMute(boolean isMute) {
+		if (this.isMute == isMute)
+			return;
+
+		setMute0(isMute);
+	}
+
+	/**
+	 * Set the player deafen status.
+	 * 
+	 * @param isDeafen The new player deafen status.
+	 */
+	protected void setDeafen(boolean isDeafen) {
+		if (this.isDeafen == isDeafen)
+			return;
+
+		setDeafen0(isDeafen);
+	}
+
+	/**
+	 * Set the name of this player.
+	 * 
+	 * @param name The new player name.
+	 */
+	private void setName0(String name) {
+		String oldName = this.name;
+		this.name = name;
+		EventManager.callEvent(new PlayerNameChangePostEvent(this, oldName));
+	}
+
+	/**
+	 * Set the player online status.
+	 * 
+	 * @param isAdmin The new player online status.
+	 */
+	private void setOnline0(boolean isOnline) {
+		this.isOnline = isOnline;
+		EventManager.callEvent(new PlayerOnlineStatusChangePostEvent(this, isOnline));
+	}
+
+	/**
+	 * Set the player game address.
+	 * 
+	 * @param gameAddress The new player's game address.
+	 */
+	private void setGameAddress0(String gameAddress) {
+		this.gameAddress = gameAddress;
+		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, gameAddress, getGamePort()));
+	}
+
+	/**
+	 * Set the player game port.
+	 * 
+	 * @param gamePort The new player's game port.
+	 */
+	private void setGamePort0(int gamePort) {
+		this.gamePort = gamePort;
+		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, getGameAddress(), gamePort));
+	}
+
+	/**
+	 * Set the player administrator status.
+	 * 
+	 * @param isAdmin The new player administrator status.
+	 */
+	private void setAdmin0(boolean isAdmin) {
+		this.isAdmin = isAdmin;
+		EventManager.callEvent(new PlayerAdminStatusChangePostEvent(this, isAdmin));
+	}
+
+	/**
+	 * Set the player mute status.
+	 * 
+	 * @param isMute The new player mute status.
+	 */
+	private void setMute0(boolean isMute) {
+		this.isMute = isMute;
+		EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, isMute));
+	}
+
+	/**
+	 * Set the player deafen status.
+	 * 
+	 * @param isDeafen The new player deafen status.
+	 */
+	private void setDeafen0(boolean isDeafen) {
+		this.isDeafen = isDeafen;
+		EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, isDeafen));
 	}
 }

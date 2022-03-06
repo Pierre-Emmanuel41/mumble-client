@@ -1,35 +1,57 @@
 package fr.pederobien.mumble.client.interfaces;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-public interface IChannelList extends Iterable<Map.Entry<String, IChannel>> {
-
-	/**
-	 * Create a channel with the given name and add it to this server configuration. The sound modifier passed in parameter is only
-	 * used to gather the current value of each parameter.
-	 * 
-	 * @param channelName   The name of the channel to add.
-	 * @param soundModifier The sound modifier associated to the channel to add.
-	 * @param callback      the callback that is executed after reception of the answer from the remote.
-	 */
-	void addChannel(String channelName, ISoundModifier soundModifier, Consumer<IResponse> callback);
-
-	/**
-	 * Remove the channel associated to the given name if it exists.
-	 * 
-	 * @param channelName The name of the channel to remove.
-	 * @param callback    the callback that is executed after reception of the answer from the remote.
-	 */
-	void removeChannel(String channelName, Consumer<IResponse> callback);
-
-	/**
-	 * @return The list of channels registered on the server. This list is unmodifiable.
-	 */
-	Map<String, IChannel> getChannels();
+public interface IChannelList extends Iterable<IChannel> {
 
 	/**
 	 * @return The server to which this channel list is associated.
 	 */
 	IMumbleServer getMumbleServer();
+
+	/**
+	 * @return The name of this channel list.
+	 */
+	String getName();
+
+	/**
+	 * Creates a channel with the given name and add it to this list.
+	 * 
+	 * @param name          The name of the channel to add.
+	 * @param soundModifier The sound modifier associated to the channel to add.
+	 * @param callback      The callback to run when an answer is received from the server.
+	 * 
+	 * @throws IllegalArgumentException If the sound modifier does not comes from sound modifier list of the mumble server.
+	 */
+	void add(String name, ISoundModifier soundModifier, Consumer<IResponse> callback);
+
+	/**
+	 * Remove the channel associated to the given name if it exists.
+	 * 
+	 * @param name     The name of the channel to remove.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	void remove(String name, Consumer<IResponse> callback);
+
+	/**
+	 * Get the player associated to the given name.
+	 * 
+	 * @param name The player name.
+	 * 
+	 * @return An optional that contains the player if registered, an empty optional otherwise.
+	 */
+	Optional<IChannel> getChannel(String name);
+
+	/**
+	 * @return a sequential {@code Stream} over the elements in this collection.
+	 */
+	Stream<IChannel> stream();
+
+	/**
+	 * @return A copy of the underlying list.
+	 */
+	List<IChannel> toList();
 }
