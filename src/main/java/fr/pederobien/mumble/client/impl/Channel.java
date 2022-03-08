@@ -57,12 +57,7 @@ public class Channel implements IChannel {
 		if (this.name.equals(name))
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setName0(name);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, update));
+		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, callback));
 	}
 
 	@Override
@@ -106,11 +101,11 @@ public class Channel implements IChannel {
 	}
 
 	/**
-	 * Set the name of this channel.
+	 * Set the name of this channel. For internal use only.
 	 * 
 	 * @param name The new channel name.
 	 */
-	protected void setName(String name) {
+	public void setName(String name) {
 		if (this.name.equals(name))
 			return;
 

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -112,12 +113,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 	@Override
 	protected void channelsSet(ChannelsSetMessageV10 request) {
-		/*
-		 * try { getServer().getChannels().getChannel(request.getOldName()).get().setName(request.getNewName()); return
-		 * MumbleServerMessageFactory.answer(request, request.getProperties()); } catch (ChannelAlreadyRegisteredException e) { return
-		 * MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_ALREADY_EXISTS); } catch (ChannelNotRegisteredException e) {
-		 * return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS); }
-		 */
+		((Channel) getServer().getChannelList().getChannel(request.getOldName()).get()).setName(request.getNewName());
 	}
 
 	@Override
