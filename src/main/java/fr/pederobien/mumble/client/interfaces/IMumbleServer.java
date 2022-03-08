@@ -62,6 +62,11 @@ public interface IMumbleServer {
 	void dispose();
 
 	/**
+	 * @return True if this server is disposed.
+	 */
+	boolean isDisposed();
+
+	/**
 	 * @return The list of players.
 	 */
 	IServerPlayerList getPlayers();

@@ -118,6 +118,11 @@ public abstract class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
+	public boolean isDisposed() {
+		return isDisposed.get();
+	}
+
+	@Override
 	public IServerPlayerList getPlayers() {
 		return players;
 	}
