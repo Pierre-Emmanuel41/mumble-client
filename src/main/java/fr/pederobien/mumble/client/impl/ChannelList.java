@@ -60,25 +60,15 @@ public class ChannelList implements IChannelList, IEventListener {
 			throw new ChannelAlreadyRegisteredException(this, registered);
 
 		Optional<ISoundModifier> optSoundModifier = getMumbleServer().getSoundModifierList().get(soundModifier.getName());
-		if (!optSoundModifier.isPresent() || soundModifier != optSoundModifier.get())
+		if (!optSoundModifier.isPresent())
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				addChannel(name, soundModifier);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new ChannelListChannelAddPreEvent(this, name, soundModifier, update));
+		EventManager.callEvent(new ChannelListChannelAddPreEvent(this, name, soundModifier, callback));
 	}
 
 	@Override
 	public void remove(String name, Consumer<IResponse> callback) {
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				removeChannel(name);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new ChannelListChannelRemovePreEvent(this, name, update));
+		EventManager.callEvent(new ChannelListChannelRemovePreEvent(this, name, callback));
 	}
 
 	@Override
