@@ -22,6 +22,7 @@ import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
+import fr.pederobien.mumble.common.impl.model.ChannelInfo.LazyChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ChannelInfo.SimpleChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.utils.event.EventManager;
@@ -87,32 +88,31 @@ public class ChannelList implements IChannelList, IEventListener {
 	}
 
 	/**
-	 * Creates a channel associated to the given name and sound modifier and add it to this list.
+	 * Creates a channel associated to the given name and sound modifier and add it to this list. For internal use only.
 	 * 
 	 * @param info A description of the channel to create.
 	 */
-	protected IChannel add(SimpleChannelInfo info) {
-		IChannel registered = channels.get(info.getName());
-		if (registered != null)
-			throw new ChannelAlreadyRegisteredException(this, registered);
-
-		ISoundModifier soundModifier = getMumbleServer().getSoundModifierList().get(info.getSoundModifierInfo().getName()).get();
-		ParameterList parameters = new ParameterList();
-		for (LazyParameterInfo parameterInfo : info.getSoundModifierInfo().getParameterInfo())
-			parameters.add(parameterInfo);
-		soundModifier.getParameters().update(parameters);
-
-		return addChannel(info.getName(), soundModifier);
+	public IChannel add(SimpleChannelInfo info) {
+		return addChannel(info.getName(), info.getSoundModifierInfo().getName(), info.getSoundModifierInfo().getParameterInfo());
 	}
 
 	/**
-	 * Removes the channel from this list.
+	 * Creates a channel associated to the given name and sound modifier and add it to this list. For internal use only.
+	 * 
+	 * @param info A description of the channel to create.
+	 */
+	public IChannel add(LazyChannelInfo info) {
+		return addChannel(info.getName(), info.getSoundModifierInfo().getName(), info.getSoundModifierInfo().getParameterInfo());
+	}
+
+	/**
+	 * Removes the channel from this list. For internal use only.
 	 * 
 	 * @param name The name of the channel to remove.
 	 * 
 	 * @return The removed channel if registered, null otherwise.
 	 */
-	protected IChannel remove(String name) {
+	public IChannel remove(String name) {
 		return removeChannel(name);
 	}
 
@@ -154,5 +154,28 @@ public class ChannelList implements IChannelList, IEventListener {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	/**
+	 * Creates a channel associated to the given name and sound modifier and add it to this list.
+	 * 
+	 * @param name              The channle's name.
+	 * @param soundModifierName The sound modifier's name.
+	 * @param parameterInfo     A description of each sound modifier's parameter.
+	 * 
+	 * @return The created channel.
+	 */
+	private IChannel addChannel(String name, String soundModifierName, List<LazyParameterInfo> parameterInfo) {
+		IChannel registered = channels.get(name);
+		if (registered != null)
+			throw new ChannelAlreadyRegisteredException(this, registered);
+
+		ISoundModifier soundModifier = getMumbleServer().getSoundModifierList().get(soundModifierName).get();
+		ParameterList parameters = new ParameterList();
+		for (LazyParameterInfo info : parameterInfo)
+			parameters.add(info);
+		soundModifier.getParameters().update(parameters);
+
+		return addChannel(name, soundModifier);
 	}
 }

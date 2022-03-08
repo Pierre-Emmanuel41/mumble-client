@@ -9,6 +9,7 @@ import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPortNumberChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerPortNumberChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
+import fr.pederobien.mumble.client.impl.request.RequestManager;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IServerPlayerList;
@@ -23,6 +24,7 @@ public abstract class MumbleServer implements IMumbleServer {
 	private IServerPlayerList players;
 	private IChannelList channelList;
 	private ISoundModifierList soundModifierList;
+	private RequestManager requestManager;
 
 	protected AtomicBoolean isOpened;
 
@@ -31,13 +33,13 @@ public abstract class MumbleServer implements IMumbleServer {
 		this.address = remoteAddress;
 		this.port = port;
 
-		connection = new MumbleTcpConnection(this);
 		players = new ServerPlayerList(this);
 		channelList = new ChannelList(this);
 		soundModifierList = new SoundModifierList();
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
 		isOpened = new AtomicBoolean(false);
+		requestManager = new RequestManager(this);
 	}
 
 	@Override
@@ -144,6 +146,13 @@ public abstract class MumbleServer implements IMumbleServer {
 			return false;
 		MumbleServer other = (MumbleServer) obj;
 		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
+	}
+
+	/**
+	 * @return The request manager in order to perform a specific action according the remote request.
+	 */
+	public RequestManager getRequestManager() {
+		return requestManager;
 	}
 
 	/**

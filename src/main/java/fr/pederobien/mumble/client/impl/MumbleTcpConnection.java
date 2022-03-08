@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
+import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
@@ -36,6 +37,7 @@ import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleTcpConnection implements IEventListener {
+	private IMumbleServer server;
 	private MumbleTcpClient tcpClient;
 
 	/**
@@ -44,6 +46,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 * @param server The server that contains the IP address and the TCP port number.
 	 */
 	public MumbleTcpConnection(IMumbleServer server) {
+		this.server = server;
 		tcpClient = new MumbleTcpClient(server.getAddress(), server.getPort());
 
 		EventManager.registerListener(this);
@@ -167,6 +170,11 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
 		tcpClient.onParameterValueChange(event.getParameter(), event.getNewValue(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler
+	private void onUnexpectedDataReceive(UnexpectedDataReceivedEvent event) {
+		((MumbleServer) server).getRequestManager().apply(MumbleClientMessageFactory.parse(event.getAnswer()));
 	}
 
 	/**
