@@ -39,10 +39,14 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 		joinFailed = false;
 		lock.lock();
 		try {
-			if (!joined.await(5000, TimeUnit.MILLISECONDS))
-				throw new Error("Technical error: Time out on server configuration request.");
-			if (joinFailed)
-				throw new Error("Technical error: Fail to retrieve the server configuration");
+			if (!joined.await(5000, TimeUnit.MILLISECONDS)) {
+				getConnection().getTcpClient().getConnection().dispose();
+				throw new IllegalStateException("Time out on server configuration request.");
+			}
+			if (joinFailed) {
+				getConnection().getTcpClient().getConnection().dispose();
+				throw new IllegalStateException("Technical error: Fail to retrieve the server configuration");
+			}
 
 			setIsReachable(true);
 		} catch (InterruptedException e) {
