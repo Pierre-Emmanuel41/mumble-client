@@ -15,6 +15,7 @@ import fr.pederobien.mumble.client.event.ChannelListChannelAddPostEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePostEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePreEvent;
+import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
@@ -25,6 +26,7 @@ import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.model.ChannelInfo.LazyChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ChannelInfo.SimpleChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
@@ -37,6 +39,8 @@ public class ChannelList implements IChannelList, IEventListener {
 		this.server = server;
 		channels = new LinkedHashMap<String, IChannel>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -85,6 +89,28 @@ public class ChannelList implements IChannelList, IEventListener {
 	@Override
 	public List<IChannel> toList() {
 		return new ArrayList<IChannel>(channels.values());
+	}
+
+	@EventHandler
+	private void onChannelNameChange(ChannelNameChangePostEvent event) {
+		if (channels.get(event.getOldName()) == null)
+			return;
+
+		Optional<IChannel> optOldChannel = getChannel(event.getOldName());
+		if (!optOldChannel.isPresent())
+			return;
+
+		Optional<IChannel> optNewChannel = getChannel(event.getChannel().getName());
+		if (optNewChannel.isPresent())
+			throw new ChannelAlreadyRegisteredException(this, optNewChannel.get());
+
+		lock.lock();
+		try {
+			channels.remove(event.getOldName());
+			channels.put(event.getChannel().getName(), event.getChannel());
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
