@@ -22,6 +22,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
@@ -49,6 +50,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> playerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		playerMap.put(Oid.SET, request -> playerInfoSet((PlayerSetMessageV10) request));
 		playerMap.put(Oid.ADD, request -> addPlayer((PlayerAddMessageV10) request));
+		playerMap.put(Oid.REMOVE, request -> removePlayer((PlayerRemoveMessageV10) request));
 		getRequests().put(Idc.PLAYER, playerMap);
 
 		// Channels player map
@@ -324,5 +326,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void addPlayer(PlayerAddMessageV10 request) {
 		((ServerPlayerList) getServer().getPlayers()).add(request.getPlayerInfo());
+	}
+
+	/**
+	 * Removes a player from the server.
+	 * 
+	 * @param request The request sent by the server in order to remove a player.
+	 */
+	private void removePlayer(PlayerRemoveMessageV10 request) {
+		((ServerPlayerList) getServer().getPlayers()).remove(request.getPlayerName());
 	}
 }

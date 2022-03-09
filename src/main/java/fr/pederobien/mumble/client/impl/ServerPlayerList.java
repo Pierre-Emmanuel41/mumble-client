@@ -64,12 +64,10 @@ public class ServerPlayerList implements IServerPlayerList {
 
 	@Override
 	public void remove(String name, Consumer<IResponse> callback) {
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				removePlayer(name);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new ServerPlayerListPlayerRemovePreEvent(this, name, update));
+		if (!get(name).isPresent())
+			return;
+
+		EventManager.callEvent(new ServerPlayerListPlayerRemovePreEvent(this, name, callback));
 	}
 
 	@Override
@@ -102,12 +100,12 @@ public class ServerPlayerList implements IServerPlayerList {
 	}
 
 	/**
-	 * Removes the player associated to the given name.
+	 * Removes the player associated to the given name. For internal use only.
 	 * 
 	 * @param name The name of the player to remove.
 	 * @return The player if registered, null otherwise.
 	 */
-	protected IPlayer remove(String name) {
+	public IPlayer remove(String name) {
 		return removePlayer(name);
 	}
 

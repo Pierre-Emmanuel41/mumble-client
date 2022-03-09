@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.event;
 
+import java.util.StringJoiner;
+
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IServerPlayerList;
 
@@ -17,7 +19,9 @@ public class ServerPlayerListPlayerRemovePostEvent extends ServerPlayerListEvent
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
-		return super.toString();
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
+		joiner.add("list=" + getList().getName());
+		joiner.add("player=" + getPlayer().getName());
+		return String.format("%s_%s", getName(), joiner);
 	}
 }
