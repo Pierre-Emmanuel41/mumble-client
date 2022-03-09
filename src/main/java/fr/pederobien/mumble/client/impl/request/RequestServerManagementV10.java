@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
+import fr.pederobien.mumble.client.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
@@ -14,6 +15,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
@@ -36,17 +38,18 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	public RequestServerManagementV10(IMumbleServer server) {
 		super(server);
 
-		// Player info map
-		Map<Oid, Consumer<IMumbleMessage>> playerInfoMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
-		playerInfoMap.put(Oid.SET, request -> playerInfoSet((PlayerSetMessageV10) request));
-		getRequests().put(Idc.PLAYER, playerInfoMap);
-
 		// Channels map
 		Map<Oid, Consumer<IMumbleMessage>> channelsMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
-		channelsMap.put(Oid.ADD, request -> channelsAdd((ChannelsAddMessageV10) request));
-		channelsMap.put(Oid.REMOVE, request -> channelsRemove((ChannelsRemoveMessageV10) request));
-		channelsMap.put(Oid.SET, request -> channelsSet((ChannelsSetMessageV10) request));
+		channelsMap.put(Oid.ADD, request -> addChannel((ChannelsAddMessageV10) request));
+		channelsMap.put(Oid.REMOVE, request -> removeChannel((ChannelsRemoveMessageV10) request));
+		channelsMap.put(Oid.SET, request -> renameChannel((ChannelsSetMessageV10) request));
 		getRequests().put(Idc.CHANNELS, channelsMap);
+
+		// Player map
+		Map<Oid, Consumer<IMumbleMessage>> playerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerMap.put(Oid.SET, request -> playerInfoSet((PlayerSetMessageV10) request));
+		playerMap.put(Oid.ADD, request -> addPlayer((PlayerAddMessageV10) request));
+		getRequests().put(Idc.PLAYER, playerMap);
 
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -99,21 +102,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return MumbleServerMessageFactory.answer(request,
 		 * request.getProperties());
 		 */
-	}
-
-	@Override
-	protected void channelsAdd(ChannelsAddMessageV10 request) {
-		((ChannelList) getServer().getChannelList()).add(request.getChannelInfo());
-	}
-
-	@Override
-	protected void channelsRemove(ChannelsRemoveMessageV10 request) {
-		((ChannelList) getServer().getChannelList()).remove(request.getChannelName());
-	}
-
-	@Override
-	protected void channelsSet(ChannelsSetMessageV10 request) {
-		((Channel) getServer().getChannelList().getChannel(request.getOldName()).get()).setName(request.getNewName());
 	}
 
 	@Override
@@ -299,5 +287,42 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * 
 		 * return MumbleServerMessageFactory.answer(request, informations.toArray());
 		 */
+	}
+
+	/**
+	 * Adds a channel to this server.
+	 * 
+	 * @param request The request sent by the remote in order to add a channel.
+	 */
+	private void addChannel(ChannelsAddMessageV10 request) {
+		((ChannelList) getServer().getChannelList()).add(request.getChannelInfo());
+	}
+
+	/**
+	 * Removes a channel from this server.
+	 * 
+	 * @param request The request sent by the remote in order to remove a channel.
+	 */
+	private void removeChannel(ChannelsRemoveMessageV10 request) {
+		((ChannelList) getServer().getChannelList()).remove(request.getChannelName());
+	}
+
+	/**
+	 * Renames a channel.
+	 * 
+	 * @param request the request sent by the remote in order to rename a channel.
+	 */
+	private void renameChannel(ChannelsSetMessageV10 request) {
+		((Channel) getServer().getChannelList().getChannel(request.getOldName()).get()).setName(request.getNewName());
+
+	}
+
+	/**
+	 * Adds a player on the server.
+	 * 
+	 * @param request The request sent by the server in order to add a player.
+	 */
+	private void addPlayer(PlayerAddMessageV10 request) {
+		((ServerPlayerList) getServer().getPlayers()).add(request.getPlayerInfo());
 	}
 }

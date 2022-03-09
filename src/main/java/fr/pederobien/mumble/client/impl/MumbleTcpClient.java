@@ -2,7 +2,6 @@ package fr.pederobien.mumble.client.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
@@ -56,7 +55,6 @@ public class MumbleTcpClient {
 	 * @param isOnline    The player's online status.
 	 * @param gameAddress The game address used to play to the game.
 	 * @param gamePort    The port number used to play to the game.
-	 * @param identifier  The player's identifier.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
@@ -67,8 +65,8 @@ public class MumbleTcpClient {
 	 * @param pitch       The player's pitch angle.
 	 * @param callback    The callback to run when an answer is received from the server.
 	 */
-	public void onServerPlayerAdd(String name, String gameAddress, int gamePort, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
-			double z, double yaw, double pitch, Consumer<ResponseCallbackArgs> callback) {
+	public void onServerPlayerAdd(String name, String gameAddress, int gamePort, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z,
+			double yaw, double pitch, Consumer<ResponseCallbackArgs> callback) {
 		List<Object> properties = new ArrayList<Object>();
 
 		// Player's name
@@ -79,9 +77,6 @@ public class MumbleTcpClient {
 
 		// Player's gamePort
 		properties.add(gamePort);
-
-		// Player's identifier
-		properties.add(identifier);
 
 		// Player's administrator status
 		properties.add(isAdmin);
@@ -107,7 +102,7 @@ public class MumbleTcpClient {
 		// Player's pitch
 		properties.add(pitch);
 
-		send(builder(Idc.PLAYER, Oid.ADD, properties).build(callback));
+		send(builder(Idc.PLAYER, Oid.ADD, properties.toArray()).build(callback));
 	}
 
 	/**

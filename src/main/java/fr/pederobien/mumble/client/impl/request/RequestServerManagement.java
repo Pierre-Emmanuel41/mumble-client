@@ -7,11 +7,8 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
@@ -76,27 +73,6 @@ public abstract class RequestServerManagement {
 	 * @param request The request sent by the remote.
 	 */
 	protected abstract void playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Adds a channel to the server channels list.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void channelsAdd(ChannelsAddMessageV10 request);
-
-	/**
-	 * Removes a channel from the server channels list.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void channelsRemove(ChannelsRemoveMessageV10 request);
-
-	/**
-	 * Set the name of a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void channelsSet(ChannelsSetMessageV10 request);
 
 	/**
 	 * Adds a player to a channel.

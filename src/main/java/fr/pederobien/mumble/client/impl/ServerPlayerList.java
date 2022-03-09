@@ -53,20 +53,13 @@ public class ServerPlayerList implements IServerPlayerList {
 	}
 
 	@Override
-	public void add(String name, String gameAddress, int gamePort, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z,
-			double yaw, double pitch, Consumer<IResponse> callback) {
+	public void add(String name, String gameAddress, int gamePort, boolean isAdmin, double x, double y, double z, double yaw, double pitch,
+			Consumer<IResponse> callback) {
 		IPlayer player = players.get(name);
 		if (player != null)
 			throw new ServerPlayerAlreadyRegisteredException(this, player);
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				addPlayer(name, gameAddress, gamePort, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
-			callback.accept(response);
-		};
-
-		EventManager
-				.callEvent(new ServerPlayerListPlayerAddPreEvent(this, name, gameAddress, gamePort, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch, update));
+		EventManager.callEvent(new ServerPlayerListPlayerAddPreEvent(this, name, gameAddress, gamePort, isAdmin, false, false, x, y, z, yaw, pitch, callback));
 	}
 
 	@Override
@@ -95,11 +88,11 @@ public class ServerPlayerList implements IServerPlayerList {
 	}
 
 	/**
-	 * Creates a player and add it to this list.
+	 * Adds a player. For internal use only.
 	 * 
 	 * @param info A description of the player to add.
 	 */
-	protected IPlayer add(FullPlayerInfo info) {
+	public IPlayer add(FullPlayerInfo info) {
 		IPlayer player = players.get(info.getName());
 		if (player != null)
 			throw new ServerPlayerAlreadyRegisteredException(this, player);

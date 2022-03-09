@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.client.event;
 
 import java.util.StringJoiner;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -13,7 +12,6 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	private String name;
 	private String gameAddress;
 	private int gamePort;
-	private UUID identifier;
 	private boolean isAdmin, isMute, isDeafen;
 	private double x, y, z, yaw, pitch;
 	private Consumer<IResponse> callback;
@@ -25,7 +23,6 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	 * @param name        The player's name.
 	 * @param gameAddress The game address used to play to the game.
 	 * @param gamePort    The port number used to play to the game.
-	 * @param identifier  The player's identifier.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
@@ -36,13 +33,12 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	 * @param pitch       The player's pitch angle.
 	 * @param callback    The callback to run when an answer is received from the server.
 	 */
-	public ServerPlayerListPlayerAddPreEvent(IServerPlayerList list, String name, String gameAddress, int gamePort, UUID identifier, boolean isAdmin, boolean isMute,
-			boolean isDeafen, double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback) {
+	public ServerPlayerListPlayerAddPreEvent(IServerPlayerList list, String name, String gameAddress, int gamePort, boolean isAdmin, boolean isMute, boolean isDeafen,
+			double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback) {
 		super(list);
 		this.name = name;
 		this.gameAddress = gameAddress;
 		this.gamePort = gamePort;
-		this.identifier = identifier;
 		this.isAdmin = isAdmin;
 		this.isMute = isMute;
 		this.isDeafen = isDeafen;
@@ -83,13 +79,6 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	 */
 	public int getGamePort() {
 		return gamePort;
-	}
-
-	/**
-	 * @return The player's identifier.
-	 */
-	public UUID getIdentifier() {
-		return identifier;
 	}
 
 	/**
@@ -162,10 +151,14 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 		joiner.add("name=" + getPlayerName());
 		joiner.add("gameAddress=" + getGameAddress());
 		joiner.add("gamePort=" + getGamePort());
-		joiner.add("identifier=" + getIdentifier());
 		joiner.add("isAdmin=" + isAdmin());
 		joiner.add("isMute=" + isMute());
 		joiner.add("isDeafen=" + isDeafen());
+		joiner.add("x=" + getX());
+		joiner.add("y=" + getY());
+		joiner.add("z=" + getZ());
+		joiner.add("yaw=" + getYaw());
+		joiner.add("pitch=" + getPitch());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

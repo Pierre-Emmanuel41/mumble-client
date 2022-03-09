@@ -92,8 +92,8 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerAdd(ServerPlayerListPlayerAddPreEvent event) {
-		tcpClient.onServerPlayerAdd(event.getPlayerName(), event.getGameAddress(), event.getGamePort(), event.getIdentifier(), event.isAdmin(), event.isMute(),
-				event.isDeafen(), event.getX(), event.getY(), event.getZ(), event.getYaw(), event.getPitch(), args -> parse(args, event.getCallback(), null));
+		tcpClient.onServerPlayerAdd(event.getPlayerName(), event.getGameAddress(), event.getGamePort(), event.isAdmin(), event.isMute(), event.isDeafen(), event.getX(),
+				event.getY(), event.getZ(), event.getYaw(), event.getPitch(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
