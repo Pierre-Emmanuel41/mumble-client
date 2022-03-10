@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePostEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPreEvent;
@@ -27,11 +28,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class PlayerList implements IPlayerList, IEventListener {
-	private IChannel channel;
+	private Channel channel;
 	private Map<String, IPlayer> players;
 	private Lock lock;
 
-	public PlayerList(IChannel channel) {
+	public PlayerList(Channel channel) {
 		this.channel = channel;
 		players = new LinkedHashMap<String, IPlayer>();
 		lock = new ReentrantLock(true);
@@ -113,6 +114,14 @@ public class PlayerList implements IPlayerList, IEventListener {
 	@EventHandler
 	private void onChannelRemove(ChannelListChannelRemovePostEvent event) {
 		if (!event.getChannel().equals(channel))
+			return;
+
+		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(channel.getMumbleServer().getConnection().getTcpClient().getConnection()))
 			return;
 
 		EventManager.unregisterListener(this);

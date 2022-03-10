@@ -12,6 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPreEvent;
@@ -29,11 +30,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ServerPlayerList implements IServerPlayerList, IEventListener {
-	private IMumbleServer server;
+	private MumbleServer server;
 	private Map<String, IPlayer> players;
 	private Lock lock;
 
-	public ServerPlayerList(IMumbleServer server) {
+	public ServerPlayerList(MumbleServer server) {
 		this.server = server;
 
 		players = new HashMap<String, IPlayer>();
@@ -131,6 +132,14 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(server.getConnection().getTcpClient().getConnection()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 
 	/**

@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePreEvent;
@@ -22,7 +23,6 @@ import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerPositionChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerRemovePreEvent;
-import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -38,7 +38,7 @@ import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class MumbleTcpConnection implements IEventListener {
-	private IMumbleServer server;
+	private MumbleServer server;
 	private MumbleTcpClient tcpClient;
 
 	/**
@@ -46,7 +46,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 * 
 	 * @param server The server that contains the IP address and the TCP port number.
 	 */
-	public MumbleTcpConnection(IMumbleServer server) {
+	public MumbleTcpConnection(MumbleServer server) {
 		this.server = server;
 		tcpClient = new MumbleTcpClient(server.getAddress(), server.getPort());
 
@@ -63,10 +63,9 @@ public class MumbleTcpConnection implements IEventListener {
 	/**
 	 * Send a message to the remote in order to retrieve the server configuration.
 	 * 
-	 * @param server   The server to update.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	public void getServerInfo(IMumbleServer server, Consumer<IResponse> callback) {
+	public void getServerInfo(Consumer<IResponse> callback) {
 		tcpClient.getServerInfo(args -> parse(args, callback, message -> {
 			if (!(message instanceof ServerInfoGetMessageV10))
 				return false;
@@ -76,7 +75,7 @@ public class MumbleTcpConnection implements IEventListener {
 				((ServerPlayerList) server.getPlayers()).add(playerInfo);
 
 			for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo()) {
-				ParameterList parameterList = new ParameterList();
+				ParameterList parameterList = new ParameterList(server);
 				for (FullParameterInfo parameterInfo : modifierInfo.getParameterInfo())
 					parameterList.add(parameterInfo);
 
@@ -181,6 +180,14 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler
 	private void onUnexpectedDataReceive(UnexpectedDataReceivedEvent event) {
 		((MumbleServer) server).getRequestManager().apply(MumbleClientMessageFactory.parse(event.getAnswer()));
+	}
+
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(tcpClient.getConnection()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 
 	/**

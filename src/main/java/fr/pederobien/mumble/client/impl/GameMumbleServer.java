@@ -78,7 +78,7 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 			}
 		};
 
-		getConnection().getServerInfo(this, callback);
+		getConnection().getServerInfo(callback);
 	}
 
 	@EventHandler
@@ -87,6 +87,7 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 			return;
 
 		setIsReachable(false);
+		EventManager.unregisterListener(this);
 	}
 
 	@EventHandler

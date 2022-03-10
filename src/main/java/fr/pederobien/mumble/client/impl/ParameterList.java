@@ -6,18 +6,30 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class ParameterList implements IParameterList {
+public class ParameterList implements IParameterList, IEventListener {
+	private MumbleServer server;
 	private Map<String, IParameter<?>> parameters;
 
-	public ParameterList() {
+	/**
+	 * Creates a list of parameter associated to the given mumble server.
+	 * 
+	 * @param server The server associated to this parameters list.
+	 */
+	public ParameterList(MumbleServer server) {
+		this.server = server;
 		parameters = new LinkedHashMap<String, IParameter<?>>();
+
+		EventManager.registerListener(this);
 	}
 
 	/**
@@ -127,6 +139,17 @@ public class ParameterList implements IParameterList {
 	 */
 	protected void updateAndRegister(IParameterList parameterList) {
 		update(parameterList, parameter -> parameter.register());
+	}
+
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(server.getConnection().getTcpClient().getConnection()))
+			return;
+
+		for (IParameter<?> parameter : this)
+			EventManager.unregisterListener((IEventListener) parameter);
+
+		EventManager.unregisterListener(this);
 	}
 
 	private void update(IParameterList parameterList, Consumer<Parameter<?>> consumer) {

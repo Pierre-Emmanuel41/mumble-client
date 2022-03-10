@@ -9,7 +9,6 @@ import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
-import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IPlayerList;
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -17,9 +16,9 @@ import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
 
 public class Channel implements IChannel {
-	private IMumbleServer server;
+	private MumbleServer server;
 	private String name;
-	private PlayerList players;
+	private IPlayerList players;
 	private SoundModifier soundModifier;
 
 	/**
@@ -30,7 +29,7 @@ public class Channel implements IChannel {
 	 * @param players       The list of players registered in the channel.
 	 * @param soundModifier The channel's sound modifier.
 	 */
-	public Channel(IMumbleServer server, String name, List<IPlayer> players, SoundModifier soundModifier) {
+	public Channel(MumbleServer server, String name, List<IPlayer> players, SoundModifier soundModifier) {
 		this.server = server;
 		this.name = name;
 		this.players = new PlayerList(this);
@@ -43,7 +42,7 @@ public class Channel implements IChannel {
 	}
 
 	@Override
-	public IMumbleServer getMumbleServer() {
+	public MumbleServer getMumbleServer() {
 		return server;
 	}
 

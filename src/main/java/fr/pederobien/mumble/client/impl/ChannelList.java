@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelAddPostEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePostEvent;
@@ -19,7 +20,6 @@ import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
-import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
@@ -31,11 +31,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ChannelList implements IChannelList, IEventListener {
-	private IMumbleServer server;
+	private MumbleServer server;
 	private Map<String, IChannel> channels;
 	private Lock lock;
 
-	public ChannelList(IMumbleServer server) {
+	public ChannelList(MumbleServer server) {
 		this.server = server;
 		channels = new LinkedHashMap<String, IChannel>();
 		lock = new ReentrantLock(true);
@@ -49,7 +49,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	}
 
 	@Override
-	public IMumbleServer getMumbleServer() {
+	public MumbleServer getMumbleServer() {
 		return server;
 	}
 
@@ -113,6 +113,14 @@ public class ChannelList implements IChannelList, IEventListener {
 		}
 	}
 
+	@EventHandler
+	private void onConnectionDispose(ConnectionDisposedEvent event) {
+		if (!event.getConnection().equals(server.getConnection().getTcpClient().getConnection()))
+			return;
+
+		EventManager.unregisterListener(this);
+	}
+
 	/**
 	 * Creates a channel associated to the given name and sound modifier and add it to this list. For internal use only.
 	 * 
@@ -150,7 +158,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	 * 
 	 * @throws ChannelAlreadyRegisteredException if a channel is already registered for the channel name.
 	 */
-	private Channel addChannel(String name, ISoundModifier soundModifier) {
+	private IChannel addChannel(String name, ISoundModifier soundModifier) {
 		lock.lock();
 		try {
 			Channel channel = new Channel(server, name, new ArrayList<IPlayer>(), (SoundModifier) soundModifier);
@@ -173,7 +181,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	private IChannel removeChannel(String name) {
 		lock.lock();
 		try {
-			IChannel channel = channels.remove(name);
+			Channel channel = (Channel) channels.remove(name);
 			if (channel != null)
 				EventManager.callEvent(new ChannelListChannelRemovePostEvent(this, channel));
 			return channel;
@@ -197,7 +205,7 @@ public class ChannelList implements IChannelList, IEventListener {
 			throw new ChannelAlreadyRegisteredException(this, registered);
 
 		ISoundModifier soundModifier = getMumbleServer().getSoundModifierList().get(soundModifierName).get();
-		ParameterList parameters = new ParameterList();
+		ParameterList parameters = new ParameterList(server);
 		for (LazyParameterInfo info : parameterInfo)
 			parameters.add(info);
 		soundModifier.getParameters().update(parameters);
