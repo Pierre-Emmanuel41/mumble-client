@@ -108,7 +108,7 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePreEvent event) {
-		tcpClient.onPlayerNameChange(event.getPlayer(), event.getName(), args -> parse(args, event.getCallback(), null));
+		tcpClient.onPlayerNameChange(event.getPlayer(), event.getNewName(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

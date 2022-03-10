@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
+import fr.pederobien.mumble.client.impl.Player;
 import fr.pederobien.mumble.client.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -20,6 +21,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerNameSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
@@ -52,6 +54,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerMap.put(Oid.ADD, request -> addPlayer((PlayerAddMessageV10) request));
 		playerMap.put(Oid.REMOVE, request -> removePlayer((PlayerRemoveMessageV10) request));
 		getRequests().put(Idc.PLAYER, playerMap);
+
+		// Player name map
+		Map<Oid, Consumer<IMumbleMessage>> playerNameMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerNameMap.put(Oid.SET, request -> renamePlayer((PlayerNameSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_NAME, playerNameMap);
 
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -335,5 +342,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void removePlayer(PlayerRemoveMessageV10 request) {
 		((ServerPlayerList) getServer().getPlayers()).remove(request.getPlayerName());
+	}
+
+	/**
+	 * Renames a player on the server.
+	 * 
+	 * @param request The request received from the server in order to rename a player.
+	 */
+	private void renamePlayer(PlayerNameSetMessageV10 request) {
+		((Player) getServer().getPlayers().get(request.getOldName()).get()).setName(request.getNewName());
 	}
 }

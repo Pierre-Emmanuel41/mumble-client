@@ -66,12 +66,7 @@ public class Player implements IPlayer {
 		if (this.name.equals(name))
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setName0(name);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerNameChangePreEvent(this, name, update));
+		EventManager.callEvent(new PlayerNameChangePreEvent(this, name, callback));
 	}
 
 	@Override
@@ -224,6 +219,18 @@ public class Player implements IPlayer {
 	}
 
 	/**
+	 * Set the name of this player. For internal use only.
+	 * 
+	 * @param name The new player name.
+	 */
+	public void setName(String name) {
+		if (this.name.equals(name))
+			return;
+
+		setName0(name);
+	}
+
+	/**
 	 * Update player properties according to the given message.
 	 * 
 	 * @param message The message that contains an update of player properties.
@@ -241,18 +248,6 @@ public class Player implements IPlayer {
 			setMute(message.getPlayerInfo().isMute());
 			setDeafen(message.getPlayerInfo().isDeafen());
 		}
-	}
-
-	/**
-	 * Set the name of this player.
-	 * 
-	 * @param name The new player name.
-	 */
-	protected void setName(String name) {
-		if (this.name.equals(name))
-			return;
-
-		setName0(name);
 	}
 
 	/**

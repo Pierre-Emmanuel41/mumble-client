@@ -52,7 +52,7 @@ public class PlayerNameChangePreEvent extends PlayerEvent implements ICancellabl
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("oldName=" + getPlayer().getName());
+		joiner.add("player=" + getPlayer().getName());
 		joiner.add("newName=" + getNewName());
 		return String.format("%s_%s", getName(), joiner);
 	}

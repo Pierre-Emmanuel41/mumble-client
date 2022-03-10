@@ -12,6 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.mumble.client.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerRemovePostEvent;
@@ -23,9 +24,11 @@ import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class ServerPlayerList implements IServerPlayerList {
+public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	private IMumbleServer server;
 	private Map<String, IPlayer> players;
 	private Lock lock;
@@ -35,6 +38,8 @@ public class ServerPlayerList implements IServerPlayerList {
 
 		players = new HashMap<String, IPlayer>();
 		lock = new ReentrantLock(true);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -107,6 +112,25 @@ public class ServerPlayerList implements IServerPlayerList {
 	 */
 	public IPlayer remove(String name) {
 		return removePlayer(name);
+	}
+
+	@EventHandler
+	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+		Optional<IPlayer> optOldPlayer = get(event.getOldName());
+		if (!optOldPlayer.isPresent())
+			return;
+
+		Optional<IPlayer> optNewPlayer = get(event.getPlayer().getName());
+		if (optNewPlayer.isPresent())
+			throw new ServerPlayerAlreadyRegisteredException(this, optNewPlayer.get());
+
+		lock.lock();
+		try {
+			players.remove(event.getOldName());
+			players.put(event.getPlayer().getName(), event.getPlayer());
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/**
