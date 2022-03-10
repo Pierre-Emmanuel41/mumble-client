@@ -1,9 +1,12 @@
 package fr.pederobien.mumble.client.impl.request;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
 import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
 import fr.pederobien.mumble.client.impl.Player;
@@ -16,6 +19,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
@@ -30,6 +34,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
+import fr.pederobien.utils.event.EventManager;
 
 public class RequestServerManagementV10 extends RequestServerManagement {
 
@@ -59,6 +64,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> playerNameMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		playerNameMap.put(Oid.SET, request -> renamePlayer((PlayerNameSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_NAME, playerNameMap);
+
+		// Game port map
+		Map<Oid, Consumer<IMumbleMessage>> gamePortMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		gamePortMap.put(Oid.GET, request -> checkGamePort((GamePortGetMessageV10) request));
+		getRequests().put(Idc.GAME_PORT, gamePortMap);
 
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -329,7 +339,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	/**
 	 * Adds a player on the server.
 	 * 
-	 * @param request The request sent by the server in order to add a player.
+	 * @param request The request sent by the remote in order to add a player.
 	 */
 	private void addPlayer(PlayerAddMessageV10 request) {
 		((ServerPlayerList) getServer().getPlayers()).add(request.getPlayerInfo());
@@ -338,7 +348,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	/**
 	 * Removes a player from the server.
 	 * 
-	 * @param request The request sent by the server in order to remove a player.
+	 * @param request The request sent by the remote in order to remove a player.
 	 */
 	private void removePlayer(PlayerRemoveMessageV10 request) {
 		((ServerPlayerList) getServer().getPlayers()).remove(request.getPlayerName());
@@ -347,9 +357,24 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	/**
 	 * Renames a player on the server.
 	 * 
-	 * @param request The request received from the server in order to rename a player.
+	 * @param request The request sent by the remote in order to rename a player.
 	 */
 	private void renamePlayer(PlayerNameSetMessageV10 request) {
 		((Player) getServer().getPlayers().get(request.getOldName()).get()).setName(request.getNewName());
+	}
+
+	/**
+	 * Check if a specific port is currently used.
+	 * 
+	 * @param request The request sent by the remote in order to check is a port is currently used.
+	 */
+	private void checkGamePort(GamePortGetMessageV10 request) {
+		boolean isUsed = false;
+		try (ServerSocket server = new ServerSocket(request.getPort())) {
+		} catch (IOException e) {
+			isUsed = true;
+		}
+
+		EventManager.callEvent(new GamePortCheckPostEvent(request, isUsed));
 	}
 }

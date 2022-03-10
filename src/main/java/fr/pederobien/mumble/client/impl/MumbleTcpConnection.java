@@ -9,6 +9,7 @@ import fr.pederobien.mumble.client.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePreEvent;
+import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerAdminStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
@@ -170,6 +171,11 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
 		tcpClient.onParameterValueChange(event.getParameter(), event.getNewValue(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onGamePortCheck(GamePortCheckPostEvent event) {
+		tcpClient.onGamePortCheck(event.getRequest(), event.getPort(), event.isUsed());
 	}
 
 	@EventHandler

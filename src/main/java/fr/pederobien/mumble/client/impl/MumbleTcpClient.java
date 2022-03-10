@@ -334,6 +334,19 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to set if a port is used on client side.
+	 * 
+	 * @param request The request sent by the remote in order to check if a specific port is used.
+	 * @param port    The port to check.
+	 * @param isUsed  True if the port is used, false otherwise.
+	 */
+	protected void onGamePortCheck(IMumbleMessage request, int port, boolean isUsed) {
+		IMumbleMessage answer = MumbleClientMessageFactory.answer(request, Idc.GAME_PORT, Oid.SET, port, isUsed);
+		send(new RequestCallbackMessage(answer.generate(), answer.getHeader().getIdentifier()));
+
+	}
+
+	/**
 	 * Send the given message to the remote.
 	 * 
 	 * @param message The message to send.
