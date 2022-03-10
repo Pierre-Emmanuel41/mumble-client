@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.interfaces;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -21,7 +22,7 @@ public interface IPlayer {
 	/**
 	 * @return The address used by the player to play to the game.
 	 */
-	String getGameAddress();
+	InetSocketAddress getGameAddress();
 
 	/**
 	 * Set the player's game address.
@@ -29,20 +30,7 @@ public interface IPlayer {
 	 * @param gameAddress The new address used by the player to play to the game.
 	 * @param callback    The callback to run when an answer is received from the server.
 	 */
-	void setGameAddress(String gameAddress, Consumer<IResponse> callback);
-
-	/**
-	 * @return The game port number used by the player to player to the game.
-	 */
-	int getGamePort();
-
-	/**
-	 * Set the player's game port.
-	 * 
-	 * @param gamePort The new port used by the player to play to the game.
-	 * @param callback The callback to run when an answer is received from the server.
-	 */
-	void setGamePort(int gamePort, Consumer<IResponse> callback);
+	void setGameAddress(InetSocketAddress gameAddress, Consumer<IResponse> callback);
 
 	/**
 	 * @return True if this player is an administrator for this server.

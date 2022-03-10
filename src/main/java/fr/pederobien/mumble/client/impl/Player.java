@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -27,27 +28,25 @@ public class Player implements IPlayer {
 	private boolean isAdmin, isOnline, isMute, isDeafen;
 	private IChannel channel;
 	private IPosition position;
-	private String name, gameAddress;
-	private int gamePort;
+	private String name;
+	private InetSocketAddress gameAddress;
 
 	/**
 	 * Creates a player based on the given parameters.
 	 * 
 	 * @param name        The player's name.
 	 * @param isOnline    The player's online status.
-	 * @param gameAddress The IP address used to play to the game.
-	 * @param gamePort    The port number used to play to the game.
+	 * @param gameAddress The address used to play to the game.
 	 * @param identifier  The player's identifier.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
 	 */
-	public Player(String name, boolean isOnline, String gameAddress, int gamePort, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
+	public Player(String name, boolean isOnline, InetSocketAddress gameAddress, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
 			double z, double yaw, double pitch) {
 		this.name = name;
 		this.isOnline = isOnline;
 		this.gameAddress = gameAddress;
-		this.gamePort = gamePort;
 		this.identifier = identifier;
 		this.isAdmin = isAdmin;
 		this.isMute = isMute;
@@ -70,39 +69,16 @@ public class Player implements IPlayer {
 	}
 
 	@Override
-	public String getGameAddress() {
+	public InetSocketAddress getGameAddress() {
 		return gameAddress;
 	}
 
 	@Override
-	public void setGameAddress(String gameAddress, Consumer<IResponse> callback) {
+	public void setGameAddress(InetSocketAddress gameAddress, Consumer<IResponse> callback) {
 		if (this.gameAddress.equals(gameAddress))
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setGameAddress0(gameAddress);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, gameAddress, getGamePort(), update));
-	}
-
-	@Override
-	public int getGamePort() {
-		return gamePort;
-	}
-
-	@Override
-	public void setGamePort(int gamePort, Consumer<IResponse> callback) {
-		if (this.gamePort == gamePort)
-			return;
-
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setGamePort0(gamePort);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, getGameAddress(), gamePort, update));
+		EventManager.callEvent(new PlayerGameAddressChangePreEvent(this, gameAddress, callback));
 	}
 
 	@Override
@@ -238,6 +214,18 @@ public class Player implements IPlayer {
 	}
 
 	/**
+	 * Set the player's game address.
+	 * 
+	 * @param gameAddress The address used by the player to play to the game.
+	 */
+	public void setGameAddress(InetSocketAddress gameAddress) {
+		if (this.gameAddress.equals(gameAddress))
+			return;
+
+		setGameAddress0(gameAddress);
+	}
+
+	/**
 	 * Update player properties according to the given message.
 	 * 
 	 * @param message The message that contains an update of player properties.
@@ -248,37 +236,12 @@ public class Player implements IPlayer {
 		if (message.getPlayerInfo().isOnline()) {
 			identifier = message.getPlayerInfo().getIdentifier();
 			gameAddress = message.getPlayerInfo().getGameAddress();
-			gamePort = message.getPlayerInfo().getGamePort();
 			setName(message.getPlayerInfo().getName());
 			setOnline(message.getPlayerInfo().isOnline());
 			setAdmin(message.getPlayerInfo().isAdmin());
 			setMute(message.getPlayerInfo().isMute());
 			setDeafen(message.getPlayerInfo().isDeafen());
 		}
-	}
-
-	/**
-	 * Set the player's game address.
-	 * 
-	 * @param gameAddress The address used by the player to play to the game.
-	 */
-	protected void setGameAddress(String gameAddress) {
-		if (this.gameAddress.equals(gameAddress))
-			return;
-
-		setGameAddress0(gameAddress);
-	}
-
-	/**
-	 * Set the player's game port.
-	 * 
-	 * @param gamePort The game port used by the player in order to play to the game.
-	 */
-	protected void setGamePort(int gamePort) {
-		if (this.gamePort == gamePort)
-			return;
-
-		setGamePort0(gamePort);
 	}
 
 	/**
@@ -343,19 +306,9 @@ public class Player implements IPlayer {
 	 * 
 	 * @param gameAddress The new player's game address.
 	 */
-	private void setGameAddress0(String gameAddress) {
+	private void setGameAddress0(InetSocketAddress gameAddress) {
 		this.gameAddress = gameAddress;
-		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, gameAddress, getGamePort()));
-	}
-
-	/**
-	 * Set the player game port.
-	 * 
-	 * @param gamePort The new player's game port.
-	 */
-	private void setGamePort0(int gamePort) {
-		this.gamePort = gamePort;
-		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, getGameAddress(), gamePort));
+		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, gameAddress));
 	}
 
 	/**

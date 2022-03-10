@@ -32,7 +32,6 @@ public class ServerPlayerListPlayerAddPostEvent extends ServerPlayerListEvent {
 		joiner.add("list=" + getList().getName());
 		joiner.add("name=" + getPlayer().getName());
 		joiner.add("gameAddress=" + getPlayer().getGameAddress());
-		joiner.add("gamePort=" + getPlayer().getGamePort());
 		joiner.add("isAdmin=" + getPlayer().isAdmin());
 		joiner.add("isMute=" + getPlayer().isMute());
 		joiner.add("isDeafen=" + getPlayer().isDeafen());

@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.event;
 
+import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
@@ -10,8 +11,7 @@ import fr.pederobien.utils.ICancellable;
 public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent implements ICancellable {
 	private boolean isCancelled;
 	private String name;
-	private String gameAddress;
-	private int gamePort;
+	private InetSocketAddress gameAddress;
 	private boolean isAdmin, isMute, isDeafen;
 	private double x, y, z, yaw, pitch;
 	private Consumer<IResponse> callback;
@@ -22,7 +22,6 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	 * @param list        The list to which the player will be added.
 	 * @param name        The player's name.
 	 * @param gameAddress The game address used to play to the game.
-	 * @param gamePort    The port number used to play to the game.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
@@ -33,12 +32,11 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	 * @param pitch       The player's pitch angle.
 	 * @param callback    The callback to run when an answer is received from the server.
 	 */
-	public ServerPlayerListPlayerAddPreEvent(IServerPlayerList list, String name, String gameAddress, int gamePort, boolean isAdmin, boolean isMute, boolean isDeafen,
+	public ServerPlayerListPlayerAddPreEvent(IServerPlayerList list, String name, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen,
 			double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback) {
 		super(list);
 		this.name = name;
 		this.gameAddress = gameAddress;
-		this.gamePort = gamePort;
 		this.isAdmin = isAdmin;
 		this.isMute = isMute;
 		this.isDeafen = isDeafen;
@@ -70,15 +68,8 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 	/**
 	 * @return The address used to play to the game.
 	 */
-	public String getGameAddress() {
+	public InetSocketAddress getGameAddress() {
 		return gameAddress;
-	}
-
-	/**
-	 * @return The port number used to play to the game.
-	 */
-	public int getGamePort() {
-		return gamePort;
 	}
 
 	/**
@@ -150,7 +141,6 @@ public class ServerPlayerListPlayerAddPreEvent extends ServerPlayerListEvent imp
 		joiner.add("list=" + getList().getName());
 		joiner.add("name=" + getPlayerName());
 		joiner.add("gameAddress=" + getGameAddress());
-		joiner.add("gamePort=" + getGamePort());
 		joiner.add("isAdmin=" + isAdmin());
 		joiner.add("isMute=" + isMute());
 		joiner.add("isDeafen=" + isDeafen());

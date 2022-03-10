@@ -1,46 +1,37 @@
 package fr.pederobien.mumble.client.event;
 
+import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
 public class PlayerGameAddressChangePostEvent extends PlayerEvent {
-	private String gameAddress;
-	private int gamePort;
+	private InetSocketAddress oldGameAddress;
 
 	/**
 	 * Creates an event thrown when the game address or the game port of a player is about to change.
 	 * 
 	 * @param player      The player whose the game address or the game port is about to change.
 	 * @param gameAddress The new player's game address.
-	 * @param gamePort    The new player's game port.
 	 */
-	public PlayerGameAddressChangePostEvent(IPlayer player, String gameAddress, int gamePort) {
+	public PlayerGameAddressChangePostEvent(IPlayer player, InetSocketAddress oldGameAddress) {
 		super(player);
-		this.gameAddress = gameAddress;
-		this.gamePort = gamePort;
+		this.oldGameAddress = oldGameAddress;
 	}
 
 	/**
 	 * @return The new player's game address.
 	 */
-	public String getGameAddress() {
-		return gameAddress;
-	}
-
-	/**
-	 * @return The new player's game port.
-	 */
-	public int getGamePort() {
-		return gamePort;
+	public InetSocketAddress getOldGameAddress() {
+		return oldGameAddress;
 	}
 
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add(String.format("oldAddress=%s:%s", getPlayer().getGameAddress(), getPlayer().getGamePort()));
-		joiner.add(String.format("newAddress=%s:%s", gameAddress, gamePort));
+		joiner.add("newGameAddress=" + getPlayer().getGameAddress());
+		joiner.add("oldGameAddress=" + getOldGameAddress());
 		return super.toString();
 	}
 }

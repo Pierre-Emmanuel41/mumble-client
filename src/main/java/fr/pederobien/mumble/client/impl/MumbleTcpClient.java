@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -54,7 +55,6 @@ public class MumbleTcpClient {
 	 * @param name        The player's name.
 	 * @param isOnline    The player's online status.
 	 * @param gameAddress The game address used to play to the game.
-	 * @param gamePort    The port number used to play to the game.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
@@ -65,18 +65,18 @@ public class MumbleTcpClient {
 	 * @param pitch       The player's pitch angle.
 	 * @param callback    The callback to run when an answer is received from the server.
 	 */
-	public void onServerPlayerAdd(String name, String gameAddress, int gamePort, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z,
-			double yaw, double pitch, Consumer<ResponseCallbackArgs> callback) {
+	public void onServerPlayerAdd(String name, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z, double yaw,
+			double pitch, Consumer<ResponseCallbackArgs> callback) {
 		List<Object> properties = new ArrayList<Object>();
 
 		// Player's name
 		properties.add(name);
 
 		// Player's game address
-		properties.add(gameAddress);
+		properties.add(gameAddress.getAddress().getHostAddress());
 
 		// Player's gamePort
-		properties.add(gamePort);
+		properties.add(gameAddress.getPort());
 
 		// Player's administrator status
 		properties.add(isAdmin);
@@ -142,11 +142,10 @@ public class MumbleTcpClient {
 	 * 
 	 * @param player         The player whose the game address has changed.
 	 * @param newGameAddress The new game address.
-	 * @param newGamePort    The new game port.
 	 * @param callback       The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerGameAddressChange(IPlayer player, String newGameAddress, int newGamePort, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), newGameAddress, newGamePort).build(callback));
+	public void onPlayerGameAddressChange(IPlayer player, InetSocketAddress newGameAddress, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_GAME_ADDRESS, Oid.SET, player.getName(), newGameAddress.getAddress().getHostAddress(), newGameAddress.getPort()).build(callback));
 	}
 
 	/**

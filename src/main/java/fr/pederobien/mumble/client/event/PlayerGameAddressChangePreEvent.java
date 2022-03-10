@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.event;
 
+import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
@@ -9,8 +10,7 @@ import fr.pederobien.utils.ICancellable;
 
 public class PlayerGameAddressChangePreEvent extends PlayerEvent implements ICancellable {
 	private boolean isCancelled;
-	private String gameAddress;
-	private int gamePort;
+	private InetSocketAddress newGameAddress;
 	private Consumer<IResponse> callback;
 
 	/**
@@ -21,10 +21,9 @@ public class PlayerGameAddressChangePreEvent extends PlayerEvent implements ICan
 	 * @param gamePort    The new player's game port.
 	 * @param callback    The callback to run when an answer is received from the server.
 	 */
-	public PlayerGameAddressChangePreEvent(IPlayer player, String gameAddress, int gamePort, Consumer<IResponse> callback) {
+	public PlayerGameAddressChangePreEvent(IPlayer player, InetSocketAddress newGameAddress, Consumer<IResponse> callback) {
 		super(player);
-		this.gameAddress = gameAddress;
-		this.gamePort = gamePort;
+		this.newGameAddress = newGameAddress;
 		this.callback = callback;
 	}
 
@@ -41,15 +40,8 @@ public class PlayerGameAddressChangePreEvent extends PlayerEvent implements ICan
 	/**
 	 * @return The new player's game address.
 	 */
-	public String getGameAddress() {
-		return gameAddress;
-	}
-
-	/**
-	 * @return The new player's game port.
-	 */
-	public int getGamePort() {
-		return gamePort;
+	public InetSocketAddress getNewGameAddress() {
+		return newGameAddress;
 	}
 
 	/**
@@ -63,8 +55,8 @@ public class PlayerGameAddressChangePreEvent extends PlayerEvent implements ICan
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add(String.format("oldAddress=%s:%s", getPlayer().getGameAddress(), getPlayer().getGamePort()));
-		joiner.add(String.format("newAddress=%s:%s", gameAddress, gamePort));
+		joiner.add("oldAddress=" + getPlayer().getGameAddress());
+		joiner.add("newAddress=" + getNewGameAddress());
 		return super.toString();
 	}
 }

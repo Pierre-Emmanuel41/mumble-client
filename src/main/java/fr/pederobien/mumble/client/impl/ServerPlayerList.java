@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,13 +60,12 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	}
 
 	@Override
-	public void add(String name, String gameAddress, int gamePort, boolean isAdmin, double x, double y, double z, double yaw, double pitch,
-			Consumer<IResponse> callback) {
+	public void add(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback) {
 		IPlayer player = players.get(name);
 		if (player != null)
 			throw new ServerPlayerAlreadyRegisteredException(this, player);
 
-		EventManager.callEvent(new ServerPlayerListPlayerAddPreEvent(this, name, gameAddress, gamePort, isAdmin, false, false, x, y, z, yaw, pitch, callback));
+		EventManager.callEvent(new ServerPlayerListPlayerAddPreEvent(this, name, gameAddress, isAdmin, false, false, x, y, z, yaw, pitch, callback));
 	}
 
 	@Override
@@ -101,8 +101,8 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		if (player != null)
 			throw new ServerPlayerAlreadyRegisteredException(this, player);
 
-		return addPlayer(info.getName(), info.getGameAddress(), info.getGamePort(), info.getIdentifier(), info.isAdmin(), info.isMute(), info.isDeafen(), info.getX(),
-				info.getY(), info.getZ(), info.getY(), info.getPitch());
+		return addPlayer(info.getName(), info.getGameAddress(), info.getIdentifier(), info.isAdmin(), info.isMute(), info.isDeafen(), info.getX(), info.getY(),
+				info.getZ(), info.getY(), info.getPitch());
 	}
 
 	/**
@@ -147,7 +147,6 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * 
 	 * @param name        The player's name.
 	 * @param gameAddress The game address used to play to the game.
-	 * @param gamePort    The port number used to play to the game.
 	 * @param identifier  The player's identifier.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
@@ -162,12 +161,12 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * 
 	 * @throws PlayerAlreadyRegisteredException if a player is already registered for the player name.
 	 */
-	private IPlayer addPlayer(String name, String gameAddress, int gamePort, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
+	private IPlayer addPlayer(String name, InetSocketAddress gameAddress, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
 			double z, double yaw, double pitch) {
 		lock.lock();
 		IPlayer player = null;
 		try {
-			player = new Player(name, true, gameAddress, gamePort, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
+			player = new Player(name, true, gameAddress, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
 			players.put(player.getName(), player);
 		} finally {
 			lock.unlock();

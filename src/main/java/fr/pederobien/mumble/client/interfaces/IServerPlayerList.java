@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.interfaces;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -24,7 +25,6 @@ public interface IServerPlayerList extends Iterable<IPlayer> {
 	 * 
 	 * @param name        The player's name.
 	 * @param gameAddress The game address used to play to the game.
-	 * @param gamePort    The port number used to play to the game.
 	 * @param isAdmin     The player's administrator status.
 	 * @param x           The player's x coordinate.
 	 * @param y           The player's y coordinate.
@@ -37,7 +37,7 @@ public interface IServerPlayerList extends Iterable<IPlayer> {
 	 * 
 	 * @throws ServerPlayerAlreadyRegisteredException If a player is already registered for the player name.
 	 */
-	void add(String name, String gameAddress, int gamePort, boolean isAdmin, double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback);
+	void add(String name, InetSocketAddress gameAddress, boolean isAdmin, double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback);
 
 	/**
 	 * Removes the player associated to the given name.
