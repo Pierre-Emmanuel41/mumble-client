@@ -26,6 +26,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerNameSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
@@ -69,6 +70,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> gamePortMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		gamePortMap.put(Oid.GET, request -> checkGamePort((GamePortGetMessageV10) request));
 		getRequests().put(Idc.GAME_PORT, gamePortMap);
+
+		// Player online map
+		Map<Oid, Consumer<IMumbleMessage>> playerOnlineMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerOnlineMap.put(Oid.SET, request -> setPlayerOnline((PlayerOnlineSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_ONLINE, playerOnlineMap);
 
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -376,5 +382,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		}
 
 		EventManager.callEvent(new GamePortCheckPostEvent(request, isUsed));
+	}
+
+	/**
+	 * Set the online status of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the online status of a player.
+	 */
+	private void setPlayerOnline(PlayerOnlineSetMessageV10 request) {
+		((Player) getServer().getPlayers().get(request.getPlayerName()).get()).setOnline(request.isOnline());
 	}
 }

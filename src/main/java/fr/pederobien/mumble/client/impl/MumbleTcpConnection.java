@@ -104,7 +104,7 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineStatusChange(PlayerOnlineStatusChangePreEvent event) {
-		tcpClient.onPlayerOnlineChange(event.getPlayer(), args -> parse(args, event.getCallback(), null));
+		tcpClient.onPlayerOnlineChange(event.getPlayer(), event.getNewOnline(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

@@ -138,12 +138,7 @@ public class Player implements IPlayer {
 		if (this.isOnline == isOnline)
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setOnline0(isOnline);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerOnlineStatusChangePreEvent(this, isOnline, update));
+		EventManager.callEvent(new PlayerOnlineStatusChangePreEvent(this, isOnline, callback));
 	}
 
 	@Override
@@ -231,6 +226,18 @@ public class Player implements IPlayer {
 	}
 
 	/**
+	 * Set the player online status. For internal use only.
+	 * 
+	 * @param isAdmin The new player online status.
+	 */
+	public void setOnline(boolean isOnline) {
+		if (this.isOnline == isOnline)
+			return;
+
+		setOnline0(isOnline);
+	}
+
+	/**
 	 * Update player properties according to the given message.
 	 * 
 	 * @param message The message that contains an update of player properties.
@@ -248,18 +255,6 @@ public class Player implements IPlayer {
 			setMute(message.getPlayerInfo().isMute());
 			setDeafen(message.getPlayerInfo().isDeafen());
 		}
-	}
-
-	/**
-	 * Set the player online status.
-	 * 
-	 * @param isAdmin The new player online status.
-	 */
-	protected void setOnline(boolean isOnline) {
-		if (this.isOnline == isOnline)
-			return;
-
-		setOnline0(isOnline);
 	}
 
 	/**

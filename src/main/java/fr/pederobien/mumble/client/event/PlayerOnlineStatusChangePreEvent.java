@@ -8,19 +8,19 @@ import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerOnlineStatusChangePreEvent extends PlayerEvent implements ICancellable {
-	private boolean isCancelled, isOnline;
+	private boolean isCancelled, newOnline;
 	private Consumer<IResponse> callback;
 
 	/**
 	 * Creates an event thrown when the online status of a player is about to change.
 	 * 
-	 * @param player   The player whose the online status is about to change.
-	 * @param isOnline The new online status of the player.
-	 * @param callback The callback to run when an answer is received from the server.
+	 * @param player    The player whose the online status is about to change.
+	 * @param newOnline The new online status of the player.
+	 * @param callback  The callback to run when an answer is received from the server.
 	 */
-	public PlayerOnlineStatusChangePreEvent(IPlayer player, boolean isOnline, Consumer<IResponse> callback) {
+	public PlayerOnlineStatusChangePreEvent(IPlayer player, boolean newOnline, Consumer<IResponse> callback) {
 		super(player);
-		this.isOnline = isOnline;
+		this.newOnline = newOnline;
 		this.callback = callback;
 	}
 
@@ -35,10 +35,10 @@ public class PlayerOnlineStatusChangePreEvent extends PlayerEvent implements ICa
 	}
 
 	/**
-	 * @return The new online status of the player.
+	 * @return The new player's online status.
 	 */
-	public boolean isOnline() {
-		return isOnline;
+	public boolean getNewOnline() {
+		return newOnline;
 	}
 
 	/**
@@ -50,9 +50,9 @@ public class PlayerOnlineStatusChangePreEvent extends PlayerEvent implements ICa
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("online=" + isOnline());
+		joiner.add("newOnline=" + getNewOnline());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }
