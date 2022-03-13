@@ -48,7 +48,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 */
 	public MumbleTcpConnection(MumbleServer server) {
 		this.server = server;
-		tcpClient = new MumbleTcpClient(server.getAddress(), server.getPort());
+		tcpClient = new MumbleTcpClient(server.getAddress());
 
 		EventManager.registerListener(this);
 	}

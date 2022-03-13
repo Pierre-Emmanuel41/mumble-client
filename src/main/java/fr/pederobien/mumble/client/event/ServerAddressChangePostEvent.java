@@ -1,27 +1,28 @@
 package fr.pederobien.mumble.client.event;
 
+import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 
-public class ServerIpAddressChangePostEvent extends ServerEvent {
-	private String oldAddress;
+public class ServerAddressChangePostEvent extends ServerEvent {
+	private InetSocketAddress oldAddress;
 
 	/**
-	 * Creates an event thrown when the IP address of a server has changed.
+	 * Creates an event thrown when the address of a server has changed.
 	 * 
-	 * @param server     The server whose IP address has changed.
-	 * @param oldAddress The old server IP address.
+	 * @param server     The server whose address has changed.
+	 * @param oldAddress The old server address.
 	 */
-	public ServerIpAddressChangePostEvent(IMumbleServer server, String oldAddress) {
+	public ServerAddressChangePostEvent(IMumbleServer server, InetSocketAddress oldAddress) {
 		super(server);
 		this.oldAddress = oldAddress;
 	}
 
 	/**
-	 * @return The old server IP address.
+	 * @return The old server address.
 	 */
-	public String getOldAddress() {
+	public InetSocketAddress getOldAddress() {
 		return oldAddress;
 	}
 

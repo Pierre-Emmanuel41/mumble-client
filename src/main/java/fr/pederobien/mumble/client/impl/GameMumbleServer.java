@@ -1,5 +1,6 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -19,8 +20,14 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 	private Condition joined;
 	private boolean joinFailed;
 
-	public GameMumbleServer(String name, String remoteAddress, int port) {
-		super(name, remoteAddress, port);
+	/**
+	 * Creates a server that represents a game server.
+	 * 
+	 * @param name    The server name.
+	 * @param address The server address.
+	 */
+	public GameMumbleServer(String name, InetSocketAddress address) {
+		super(name, address);
 
 		lock = new ReentrantLock(true);
 		joined = lock.newCondition();

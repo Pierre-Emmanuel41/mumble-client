@@ -1,21 +1,22 @@
 package fr.pederobien.mumble.client.event;
 
+import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
-public class ServerIpAddressChangePreEvent extends ServerEvent implements ICancellable {
+public class ServerAddressChangePreEvent extends ServerEvent implements ICancellable {
 	private boolean isCancelled;
-	private String newAddress;
+	private InetSocketAddress newAddress;
 
 	/**
-	 * Creates an event thrown when the IP address of a server is about to change.
+	 * Creates an event thrown when the address of a server is about to change.
 	 * 
-	 * @param server     The server whose IP address is about to change.
-	 * @param newAddress The future new server IP address.
+	 * @param server     The server whose address is about to change.
+	 * @param newAddress The new server address.
 	 */
-	public ServerIpAddressChangePreEvent(IMumbleServer server, String newAddress) {
+	public ServerAddressChangePreEvent(IMumbleServer server, InetSocketAddress newAddress) {
 		super(server);
 		this.newAddress = newAddress;
 	}
@@ -31,9 +32,9 @@ public class ServerIpAddressChangePreEvent extends ServerEvent implements ICance
 	}
 
 	/**
-	 * @return The new server IP address.
+	 * @return The new server address.
 	 */
-	public String getNewAddress() {
+	public InetSocketAddress getNewAddress() {
 		return newAddress;
 	}
 

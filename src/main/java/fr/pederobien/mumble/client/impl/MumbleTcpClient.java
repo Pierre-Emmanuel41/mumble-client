@@ -26,11 +26,10 @@ public class MumbleTcpClient {
 	/**
 	 * Creates a Mumble TCP client for the given IP address and port number
 	 * 
-	 * @param address The server IP address
-	 * @param port    The port number for the TCP connection.
+	 * @param address The server address
 	 */
-	public MumbleTcpClient(String address, int port) {
-		this.connection = new TcpClientImpl(address, port, new MessageExtractor());
+	public MumbleTcpClient(InetSocketAddress address) {
+		this.connection = new TcpClientImpl(address.getAddress().getHostAddress(), address.getPort(), new MessageExtractor());
 	}
 
 	/**

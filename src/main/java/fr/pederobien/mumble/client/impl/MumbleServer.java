@@ -1,13 +1,12 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.pederobien.mumble.client.event.ServerIpAddressChangePostEvent;
-import fr.pederobien.mumble.client.event.ServerIpAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
-import fr.pederobien.mumble.client.event.ServerPortNumberChangePostEvent;
-import fr.pederobien.mumble.client.event.ServerPortNumberChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.impl.request.RequestManager;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
@@ -17,8 +16,8 @@ import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventManager;
 
 public abstract class MumbleServer implements IMumbleServer {
-	private String name, address;
-	private int port;
+	private String name;
+	private InetSocketAddress address;
 	private AtomicBoolean isDisposed, isReachable;
 	private MumbleTcpConnection connection;
 	private IServerPlayerList players;
@@ -28,10 +27,15 @@ public abstract class MumbleServer implements IMumbleServer {
 
 	protected AtomicBoolean isOpened;
 
-	public MumbleServer(String name, String remoteAddress, int port) {
+	/**
+	 * Creates a mumble server associated with a name and an address.
+	 * 
+	 * @param name    The server name.
+	 * @param address The server address.
+	 */
+	public MumbleServer(String name, InetSocketAddress address) {
 		this.name = name;
-		this.address = remoteAddress;
-		this.port = port;
+		this.address = address;
 
 		players = new ServerPlayerList(this);
 		channelList = new ChannelList(this);
@@ -57,39 +61,21 @@ public abstract class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
-	public String getAddress() {
+	public InetSocketAddress getAddress() {
 		return address;
 	}
 
 	@Override
-	public void setAddress(String address) {
+	public void setAddress(InetSocketAddress address) {
 		if (this.address != null && this.address.equals(address))
 			return;
 
-		String oldAddress = this.address;
+		InetSocketAddress oldAddress = this.address;
 		Runnable update = () -> {
 			this.address = address;
 			reinitialize();
 		};
-		EventManager.callEvent(new ServerIpAddressChangePreEvent(this, address), update, new ServerIpAddressChangePostEvent(this, oldAddress));
-	}
-
-	@Override
-	public int getPort() {
-		return port;
-	}
-
-	@Override
-	public void setPort(int port) {
-		if (this.port == port)
-			return;
-
-		int oldPort = this.port;
-		Runnable update = () -> {
-			this.port = port;
-			reinitialize();
-		};
-		EventManager.callEvent(new ServerPortNumberChangePreEvent(this, port), update, new ServerPortNumberChangePostEvent(this, oldPort));
+		EventManager.callEvent(new ServerAddressChangePreEvent(this, address), update, new ServerAddressChangePostEvent(this, oldAddress));
 	}
 
 	@Override
@@ -139,7 +125,7 @@ public abstract class MumbleServer implements IMumbleServer {
 
 	@Override
 	public String toString() {
-		return String.format("Server={Name=%s, address=%s, tcpPort=%s}", name, address, port);
+		return String.format("Server={Name=%s, address=%s, tcpPort=%s}", name, address.getAddress().getHostAddress(), address.getPort());
 	}
 
 	@Override
@@ -150,7 +136,7 @@ public abstract class MumbleServer implements IMumbleServer {
 		if (!(obj instanceof MumbleServer))
 			return false;
 		MumbleServer other = (MumbleServer) obj;
-		return name.equals(other.getName()) && address.equals(other.getAddress()) && port == other.getPort();
+		return name.equals(other.getName()) && address.equals(other.getAddress());
 	}
 
 	/**

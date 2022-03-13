@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.interfaces;
 
+import java.net.InetSocketAddress;
+
 public interface IMumbleServer {
 	public static final String DEFAULT_NAME = "";
 	public static final String DEFAULT_ADDRESS = "0.0.0.0";
@@ -20,26 +22,14 @@ public interface IMumbleServer {
 	/**
 	 * @return The server address.
 	 */
-	String getAddress();
+	InetSocketAddress getAddress();
 
 	/**
 	 * Set the address of this server.
 	 * 
 	 * @param address The new server address.
 	 */
-	void setAddress(String address);
-
-	/**
-	 * @return The port number of this server for TCP and UDP communication.
-	 */
-	int getPort();
-
-	/**
-	 * Set the port number of this server for TCP and UDP communication.
-	 * 
-	 * @param port The new server port number.
-	 */
-	void setPort(int port);
+	void setAddress(InetSocketAddress address);
 
 	/**
 	 * @return True if the server is reachable and requests can be sent to the remote, false otherwise.
