@@ -341,7 +341,7 @@ public class MumbleTcpClient {
 	 */
 	protected void onGamePortCheck(IMumbleMessage request, int port, boolean isUsed) {
 		IMumbleMessage answer = MumbleClientMessageFactory.answer(request, Idc.GAME_PORT, Oid.SET, port, isUsed);
-		send(new RequestCallbackMessage(answer.generate(), answer.getHeader().getIdentifier()));
+		send(new RequestCallbackMessage(answer.generate(), answer.getHeader().getSequence()));
 
 	}
 
