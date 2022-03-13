@@ -57,6 +57,6 @@ public class PlayerGameAddressChangePreEvent extends PlayerEvent implements ICan
 		joiner.add("player=" + getPlayer().getName());
 		joiner.add("oldAddress=" + getPlayer().getGameAddress());
 		joiner.add("newAddress=" + getNewGameAddress());
-		return super.toString();
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

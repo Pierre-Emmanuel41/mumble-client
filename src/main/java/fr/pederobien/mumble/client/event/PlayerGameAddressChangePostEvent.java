@@ -32,6 +32,6 @@ public class PlayerGameAddressChangePostEvent extends PlayerEvent {
 		joiner.add("player=" + getPlayer().getName());
 		joiner.add("newGameAddress=" + getPlayer().getGameAddress());
 		joiner.add("oldGameAddress=" + getOldGameAddress());
-		return super.toString();
+		return String.format("%s_%s", getName(), joiner);
 	}
 }

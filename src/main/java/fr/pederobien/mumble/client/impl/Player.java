@@ -214,7 +214,7 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set the player's game address.
+	 * Set the player's game address. For internal use only.
 	 * 
 	 * @param gameAddress The address used by the player to play to the game.
 	 */

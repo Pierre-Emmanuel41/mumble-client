@@ -22,6 +22,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
@@ -75,6 +76,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> playerOnlineMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		playerOnlineMap.put(Oid.SET, request -> setPlayerOnline((PlayerOnlineSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_ONLINE, playerOnlineMap);
+
+		// Player game address map
+		Map<Oid, Consumer<IMumbleMessage>> playerGameAddressMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerGameAddressMap.put(Oid.SET, request -> setPlayerGameAddress((PlayerGameAddressSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_GAME_ADDRESS, playerGameAddressMap);
 
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -391,5 +397,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void setPlayerOnline(PlayerOnlineSetMessageV10 request) {
 		((Player) getServer().getPlayers().get(request.getPlayerName()).get()).setOnline(request.isOnline());
+	}
+
+	/**
+	 * Set the game address of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the game address of a player.
+	 */
+	private void setPlayerGameAddress(PlayerGameAddressSetMessageV10 request) {
+		((Player) getServer().getPlayers().get(request.getPlayerName()).get()).setGameAddress(request.getGameAddress());
 	}
 }
