@@ -21,6 +21,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerGameAddressSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
@@ -81,6 +82,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> playerGameAddressMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		playerGameAddressMap.put(Oid.SET, request -> setPlayerGameAddress((PlayerGameAddressSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_GAME_ADDRESS, playerGameAddressMap);
+
+		// Player game address map
+		Map<Oid, Consumer<IMumbleMessage>> playerAdminMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerAdminMap.put(Oid.SET, request -> setPlayerAdmin((PlayerAdminSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_ADMIN, playerAdminMap);
 
 		// Player mute map
 		Map<Oid, Consumer<IMumbleMessage>> playerMuteMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -382,6 +388,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void setPlayerGameAddress(PlayerGameAddressSetMessageV10 request) {
 		((Player) getServer().getPlayers().get(request.getPlayerName()).get()).setGameAddress(request.getGameAddress());
+	}
+
+	/**
+	 * Set the administrator status of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the administrator status of a player.
+	 */
+	private void setPlayerAdmin(PlayerAdminSetMessageV10 request) {
+		((Player) getServer().getPlayers().get(request.getPlayerName()).get()).setAdmin(request.isAdmin());
 	}
 
 	/**

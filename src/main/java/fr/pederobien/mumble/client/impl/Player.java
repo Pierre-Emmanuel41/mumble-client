@@ -4,8 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.event.PlayerAdminStatusChangePostEvent;
-import fr.pederobien.mumble.client.event.PlayerAdminStatusChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerAdminChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePostEvent;
@@ -91,12 +91,7 @@ public class Player implements IPlayer {
 		if (this.isAdmin == isAdmin)
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setAdmin0(isAdmin);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerAdminStatusChangePreEvent(this, isAdmin, update));
+		EventManager.callEvent(new PlayerAdminChangePreEvent(this, isAdmin, callback));
 	}
 
 	@Override
@@ -216,6 +211,18 @@ public class Player implements IPlayer {
 	}
 
 	/**
+	 * Set the player administrator status.
+	 * 
+	 * @param isAdmin The new player administrator status.
+	 */
+	public void setAdmin(boolean isAdmin) {
+		if (this.isAdmin == isAdmin)
+			return;
+
+		setAdmin0(isAdmin);
+	}
+
+	/**
 	 * Set the player mute status. For internal use only.
 	 * 
 	 * @param isMute The new player mute status.
@@ -259,18 +266,6 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set the player administrator status.
-	 * 
-	 * @param isAdmin The new player administrator status.
-	 */
-	protected void setAdmin(boolean isAdmin) {
-		if (this.isAdmin == isAdmin)
-			return;
-
-		setAdmin0(isAdmin);
-	}
-
-	/**
 	 * Set the name of this player.
 	 * 
 	 * @param name The new player name.
@@ -309,8 +304,9 @@ public class Player implements IPlayer {
 	 * @param isAdmin The new player administrator status.
 	 */
 	private void setAdmin0(boolean isAdmin) {
+		boolean oldAdmin = this.isAdmin;
 		this.isAdmin = isAdmin;
-		EventManager.callEvent(new PlayerAdminStatusChangePostEvent(this, isAdmin));
+		EventManager.callEvent(new PlayerAdminChangePostEvent(this, oldAdmin));
 	}
 
 	/**

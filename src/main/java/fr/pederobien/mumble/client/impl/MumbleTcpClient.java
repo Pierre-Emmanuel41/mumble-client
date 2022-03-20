@@ -151,10 +151,11 @@ public class MumbleTcpClient {
 	 * Send a message to the remote in order to update the player administrator status.
 	 * 
 	 * @param player   The player whose the administrator status has changed.
+	 * @param newAdmin The new player's administrator status.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerAdminChange(IPlayer player, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), player.isAdmin()).build(callback));
+	public void onPlayerAdminChange(IPlayer player, boolean newAdmin, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_ADMIN, Oid.SET, player.getName(), newAdmin).build(callback));
 	}
 
 	/**
