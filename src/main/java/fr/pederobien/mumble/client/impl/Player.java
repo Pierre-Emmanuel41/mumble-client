@@ -145,12 +145,7 @@ public class Player implements IPlayer {
 		if (this.isDeafen == isDeafen)
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setDeafen0(isDeafen);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerDeafenStatusChangePreEvent(this, isDeafen, update));
+		EventManager.callEvent(new PlayerDeafenStatusChangePreEvent(this, isDeafen, callback));
 	}
 
 	@Override
@@ -221,7 +216,7 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set the player mute status.
+	 * Set the player mute status. For internal use only.
 	 * 
 	 * @param isMute The new player mute status.
 	 */
@@ -230,6 +225,18 @@ public class Player implements IPlayer {
 			return;
 
 		setMute0(isMute);
+	}
+
+	/**
+	 * Set the player deafen status. For internal use only.
+	 * 
+	 * @param isDeafen The new player deafen status.
+	 */
+	public void setDeafen(boolean isDeafen) {
+		if (this.isDeafen == isDeafen)
+			return;
+
+		setDeafen0(isDeafen);
 	}
 
 	/**
@@ -261,18 +268,6 @@ public class Player implements IPlayer {
 			return;
 
 		setAdmin0(isAdmin);
-	}
-
-	/**
-	 * Set the player deafen status.
-	 * 
-	 * @param isDeafen The new player deafen status.
-	 */
-	protected void setDeafen(boolean isDeafen) {
-		if (this.isDeafen == isDeafen)
-			return;
-
-		setDeafen0(isDeafen);
 	}
 
 	/**
@@ -335,7 +330,8 @@ public class Player implements IPlayer {
 	 * @param isDeafen The new player deafen status.
 	 */
 	private void setDeafen0(boolean isDeafen) {
+		boolean oldDeafen = this.isDeafen;
 		this.isDeafen = isDeafen;
-		EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, isDeafen));
+		EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, oldDeafen));
 	}
 }

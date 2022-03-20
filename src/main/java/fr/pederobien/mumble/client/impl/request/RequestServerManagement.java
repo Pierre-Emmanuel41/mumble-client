@@ -9,7 +9,6 @@ import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
@@ -86,13 +85,6 @@ public abstract class RequestServerManagement {
 	 * @param request The request sent by the remote.
 	 */
 	protected abstract void channelsPlayerRemove(ChannelsPlayerRemoveMessageV10 request);
-
-	/**
-	 * Deafens or undeafens a player.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void playerDeafenSet(PlayerDeafenSetMessageV10 request);
 
 	/**
 	 * Mutes or unmutes a player by another player.

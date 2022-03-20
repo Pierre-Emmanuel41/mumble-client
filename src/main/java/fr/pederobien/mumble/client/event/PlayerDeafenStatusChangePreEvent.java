@@ -8,19 +8,20 @@ import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerDeafenStatusChangePreEvent extends PlayerEvent implements ICancellable {
-	private boolean isCancelled, isDeafen;
+	private boolean isCancelled, newDeafen;
 	private Consumer<IResponse> callback;
 
 	/**
 	 * Creates an event thrown when the deafen status of a player is about to change.
 	 * 
-	 * @param player   The player whose the deafen status is about to change.
-	 * @param isDeafen The new deafen status of the player.
-	 * @param callback The callback to run when an answer is received from the server.
+	 * @param player    The player whose the deafen status is about to change.
+	 * @param newDeafen The new player's deafen status.
+	 * @param callback  The callback to run when an answer is received from the server.
 	 */
-	public PlayerDeafenStatusChangePreEvent(IPlayer player, boolean isDeafen, Consumer<IResponse> callback) {
+	public PlayerDeafenStatusChangePreEvent(IPlayer player, boolean newDeafen, Consumer<IResponse> callback) {
 		super(player);
-		this.isDeafen = isDeafen;
+		this.newDeafen = newDeafen;
+		this.callback = callback;
 	}
 
 	@Override
@@ -34,10 +35,10 @@ public class PlayerDeafenStatusChangePreEvent extends PlayerEvent implements ICa
 	}
 
 	/**
-	 * @return The new deafen status of the player.
+	 * @return The new player's deafen status.
 	 */
-	public boolean isDeafen() {
-		return isDeafen;
+	public boolean getNewDeafen() {
+		return newDeafen;
 	}
 
 	/**
@@ -51,7 +52,8 @@ public class PlayerDeafenStatusChangePreEvent extends PlayerEvent implements ICa
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("deafen=" + isDeafen());
+		joiner.add("currentDeafen=" + getPlayer().isDeafen());
+		joiner.add("newDeafen=" + getNewDeafen());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

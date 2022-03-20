@@ -171,11 +171,12 @@ public class MumbleTcpClient {
 	/**
 	 * Send a message to the remote in order to update the player deafen status.
 	 * 
-	 * @param player   The player whose the deafen status has changed.
-	 * @param callback The callback to run when an answer is received from the server.
+	 * @param player    The player whose the deafen status has changed.
+	 * @param newDeafen The new player's deafen status.
+	 * @param callback  The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerDeafenChange(IPlayer player, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), player.isDeafen()).build(callback));
+	public void onPlayerDeafenChange(IPlayer player, boolean newDeafen, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_DEAFEN, Oid.SET, player.getName(), newDeafen).build(callback));
 	}
 
 	/**

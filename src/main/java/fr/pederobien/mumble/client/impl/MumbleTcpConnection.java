@@ -128,7 +128,7 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenStatusChange(PlayerDeafenStatusChangePreEvent event) {
-		tcpClient.onPlayerDeafenChange(event.getPlayer(), args -> parse(args, event.getCallback(), null));
+		tcpClient.onPlayerDeafenChange(event.getPlayer(), event.getNewDeafen(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
