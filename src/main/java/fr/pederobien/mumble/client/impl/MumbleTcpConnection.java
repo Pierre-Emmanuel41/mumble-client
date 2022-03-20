@@ -123,7 +123,7 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteStatusChange(PlayerMuteStatusChangePreEvent event) {
-		tcpClient.onPlayerMuteChange(event.getPlayer(), args -> parse(args, event.getCallback(), null));
+		tcpClient.onPlayerMuteChange(event.getPlayer(), event.getNewMute(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

@@ -132,12 +132,7 @@ public class Player implements IPlayer {
 		if (this.isMute == isMute)
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setMute0(isMute);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, update));
+		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, callback));
 	}
 
 	@Override
@@ -226,6 +221,18 @@ public class Player implements IPlayer {
 	}
 
 	/**
+	 * Set the player mute status.
+	 * 
+	 * @param isMute The new player mute status.
+	 */
+	public void setMute(boolean isMute) {
+		if (this.isMute == isMute)
+			return;
+
+		setMute0(isMute);
+	}
+
+	/**
 	 * Update player properties according to the given message.
 	 * 
 	 * @param message The message that contains an update of player properties.
@@ -257,18 +264,6 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set the player mute status.
-	 * 
-	 * @param isMute The new player mute status.
-	 */
-	protected void setMute(boolean isMute) {
-		if (this.isMute == isMute)
-			return;
-
-		setMute0(isMute);
-	}
-
-	/**
 	 * Set the player deafen status.
 	 * 
 	 * @param isDeafen The new player deafen status.
@@ -297,8 +292,9 @@ public class Player implements IPlayer {
 	 * @param isAdmin The new player online status.
 	 */
 	private void setOnline0(boolean isOnline) {
+		boolean oldOnline = this.isOnline;
 		this.isOnline = isOnline;
-		EventManager.callEvent(new PlayerOnlineStatusChangePostEvent(this, isOnline));
+		EventManager.callEvent(new PlayerOnlineStatusChangePostEvent(this, oldOnline));
 	}
 
 	/**
@@ -307,8 +303,9 @@ public class Player implements IPlayer {
 	 * @param gameAddress The new player's game address.
 	 */
 	private void setGameAddress0(InetSocketAddress gameAddress) {
+		InetSocketAddress oldGameAddress = this.gameAddress;
 		this.gameAddress = gameAddress;
-		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, gameAddress));
+		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, oldGameAddress));
 	}
 
 	/**
@@ -327,8 +324,9 @@ public class Player implements IPlayer {
 	 * @param isMute The new player mute status.
 	 */
 	private void setMute0(boolean isMute) {
+		boolean oldMute = this.isMute;
 		this.isMute = isMute;
-		EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, isMute));
+		EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, oldMute));
 	}
 
 	/**

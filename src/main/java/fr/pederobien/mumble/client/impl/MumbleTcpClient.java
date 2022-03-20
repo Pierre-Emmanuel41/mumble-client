@@ -117,12 +117,12 @@ public class MumbleTcpClient {
 	/**
 	 * Send a message to the remote in order to update the player online status.
 	 * 
-	 * @param player   The player whose the online status has changed.
-	 * @param isOnline The new player's online status.
-	 * @param callback The callback to run when an answer is received from the server.
+	 * @param player    The player whose the online status has changed.
+	 * @param newOnline The new player's online status.
+	 * @param callback  The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerOnlineChange(IPlayer player, boolean isOnline, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.PLAYER_ONLINE, Oid.SET, player.getName(), isOnline).build(callback));
+	public void onPlayerOnlineChange(IPlayer player, boolean newOnline, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_ONLINE, Oid.SET, player.getName(), newOnline).build(callback));
 	}
 
 	/**
@@ -161,10 +161,11 @@ public class MumbleTcpClient {
 	 * Send a message to the remote in order to update the player mute status.
 	 * 
 	 * @param player   The player whose the mute status has changed.
+	 * @param newMute  The new player's mute status.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerMuteChange(IPlayer player, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.PLAYER_MUTE, Oid.SET, player.getName(), player.isMute()).build(callback));
+	public void onPlayerMuteChange(IPlayer player, boolean newMute, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_MUTE, Oid.SET, player.getName(), newMute).build(callback));
 	}
 
 	/**
