@@ -181,6 +181,18 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to mute or unmute a player for another player.
+	 * 
+	 * @param target   The player to mute or unmute for another player.
+	 * @param source   The player for which a player is mute or unmute.
+	 * @param newMute  The mute status of the player.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void onPlayerMuteByChange(IPlayer target, IPlayer source, boolean newMute, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), newMute).build(callback));
+	}
+
+	/**
 	 * Send a message to the remote in order to update the player position.
 	 * 
 	 * @param player   The player whose the coordinates are about to change.

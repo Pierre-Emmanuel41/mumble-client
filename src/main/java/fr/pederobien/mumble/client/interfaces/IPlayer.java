@@ -7,6 +7,11 @@ import java.util.function.Consumer;
 public interface IPlayer {
 
 	/**
+	 * @return The server on which this player is registered.
+	 */
+	IMumbleServer getServer();
+
+	/**
 	 * @return The player name.
 	 */
 	String getName();
@@ -80,6 +85,23 @@ public interface IPlayer {
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	void setMute(boolean isMute, Consumer<IResponse> callback);
+
+	/**
+	 * Indicates if this player is mute for the given player.
+	 * 
+	 * @param player The player to check.
+	 * @return True if this player is mute for the given player, false otherwise.
+	 */
+	boolean isMuteBy(IPlayer player);
+
+	/**
+	 * Set if this player is mute for another player.
+	 * 
+	 * @param player   The other player for which this player is mute.
+	 * @param isMute   True to mute, false to unmute.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	void setMuteBy(IPlayer player, boolean isMute, Consumer<IResponse> callback);
 
 	/**
 	 * @return True is this player is deafen, false otherwise.

@@ -166,7 +166,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		lock.lock();
 		IPlayer player = null;
 		try {
-			player = new Player(name, true, gameAddress, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
+			player = new Player(getServer(), name, true, gameAddress, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
 			players.put(player.getName(), player);
 		} finally {
 			lock.unlock();

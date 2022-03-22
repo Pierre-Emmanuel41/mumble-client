@@ -17,6 +17,7 @@ import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerRemovePreEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePreEvent;
@@ -129,6 +130,11 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenStatusChange(PlayerDeafenStatusChangePreEvent event) {
 		tcpClient.onPlayerDeafenChange(event.getPlayer(), event.getNewDeafen(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerMuteByChange(PlayerMuteByChangePreEvent event) {
+		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getMutingPlayer(), event.getNewMute(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

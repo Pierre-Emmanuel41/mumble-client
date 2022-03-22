@@ -1,6 +1,8 @@
 package fr.pederobien.mumble.client.impl;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -10,6 +12,8 @@ import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteByChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePostEvent;
@@ -17,6 +21,7 @@ import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IPosition;
 import fr.pederobien.mumble.client.interfaces.IResponse;
@@ -24,12 +29,15 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.utils.event.EventManager;
 
 public class Player implements IPlayer {
-	private UUID identifier;
-	private boolean isAdmin, isOnline, isMute, isDeafen;
-	private IChannel channel;
-	private IPosition position;
+	private IMumbleServer server;
 	private String name;
+	private boolean isOnline;
 	private InetSocketAddress gameAddress;
+	private UUID identifier;
+	private boolean isAdmin, isMute, isDeafen;
+	private IPosition position;
+	private IChannel channel;
+	private Map<IPlayer, Boolean> isMuteBy;
 
 	/**
 	 * Creates a player based on the given parameters.
@@ -42,8 +50,9 @@ public class Player implements IPlayer {
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
 	 */
-	public Player(String name, boolean isOnline, InetSocketAddress gameAddress, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
-			double z, double yaw, double pitch) {
+	public Player(IMumbleServer server, String name, boolean isOnline, InetSocketAddress gameAddress, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen,
+			double x, double y, double z, double yaw, double pitch) {
+		this.server = server;
 		this.name = name;
 		this.isOnline = isOnline;
 		this.gameAddress = gameAddress;
@@ -53,6 +62,12 @@ public class Player implements IPlayer {
 		this.isDeafen = isDeafen;
 
 		position = new Position(this, x, y, z, yaw, pitch);
+		isMuteBy = new HashMap<IPlayer, Boolean>();
+	}
+
+	@Override
+	public IMumbleServer getServer() {
+		return server;
 	}
 
 	@Override
@@ -128,6 +143,24 @@ public class Player implements IPlayer {
 			return;
 
 		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, callback));
+	}
+
+	@Override
+	public boolean isMuteBy(IPlayer player) {
+		Boolean isMute = isMuteBy.get(player);
+		return isMute == null ? false : isMute;
+	}
+
+	@Override
+	public void setMuteBy(IPlayer player, boolean isMute, Consumer<IResponse> callback) {
+		if (!getServer().getPlayers().toList().contains(player))
+			throw new IllegalArgumentException("The player must be registered on the server");
+
+		Boolean value = isMuteBy.get(player);
+		if (value != null && value == isMute)
+			return;
+
+		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute, callback));
 	}
 
 	@Override
@@ -247,6 +280,20 @@ public class Player implements IPlayer {
 	}
 
 	/**
+	 * Mute or unmute this player for another player. For internal use only.
+	 * 
+	 * @param player The player for which this player is mute or unmute.
+	 * @param isMute The new player mute status for the other player.
+	 */
+	public void setMuteBy(IPlayer player, boolean isMute) {
+		Boolean value = isMuteBy.get(player);
+		if (value != null && value == isMute)
+			return;
+
+		setMuteBy0(player, isMute);
+	}
+
+	/**
 	 * Update player properties according to the given message.
 	 * 
 	 * @param message The message that contains an update of player properties.
@@ -329,5 +376,18 @@ public class Player implements IPlayer {
 		boolean oldDeafen = this.isDeafen;
 		this.isDeafen = isDeafen;
 		EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, oldDeafen));
+	}
+
+	/**
+	 * Mute or unmute this player for another player.
+	 * 
+	 * @param player The player for which this player is mute or unmute.
+	 * @param isMute The new player mute status for the other player.
+	 */
+	private void setMuteBy0(IPlayer player, boolean isMute) {
+		Boolean value = isMuteBy.get(player);
+		boolean oldMute = value == null ? false : value;
+		isMuteBy.put(player, isMute);
+		EventManager.callEvent(new PlayerMuteByChangePostEvent(this, player, oldMute));
 	}
 }

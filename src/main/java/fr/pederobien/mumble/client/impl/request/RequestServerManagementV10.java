@@ -93,6 +93,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerMuteMap.put(Oid.SET, request -> setPlayerMute((PlayerMuteSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_MUTE, playerMuteMap);
 
+		// Player mute by map
+		Map<Oid, Consumer<IMumbleMessage>> playerMuteByMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerMuteByMap.put(Oid.SET, request -> setPlayerMuteBy((PlayerMuteBySetMessageV10) request));
+		getRequests().put(Idc.PLAYER_MUTE_BY, playerMuteByMap);
+
 		// Player deafen map
 		Map<Oid, Consumer<IMumbleMessage>> playerDeafenMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		playerDeafenMap.put(Oid.SET, request -> setPlayerDeafen((PlayerDeafenSetMessageV10) request));
@@ -103,11 +108,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		channelsPlayerMap.put(Oid.ADD, request -> channelsPlayerAdd((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player mute by map
-		Map<Oid, Consumer<IMumbleMessage>> playerMuteByMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
-		playerMuteByMap.put(Oid.SET, request -> playerMuteBySet((PlayerMuteBySetMessageV10) request));
-		getRequests().put(Idc.PLAYER_MUTE_BY, playerMuteByMap);
 
 		// Player kick map
 		Map<Oid, Consumer<IMumbleMessage>> playerKickMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -170,23 +170,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * 
 		 * // doing modification on the getServer(). optChannel.get().getPlayers().remove(optPlayerRemove.get()); return
 		 * MumbleServerMessageFactory.answer(request, request.getProperties());
-		 */
-	}
-
-	@Override
-	protected void playerMuteBySet(PlayerMuteBySetMessageV10 request) {
-		/*
-		 * Optional<Player> optMutingPlayer = getServer().getClients().getPlayer(request.getMutingPlayer()); if
-		 * (!optMutingPlayer.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-		 * 
-		 * Optional<Player> optMutedPlayer = getServer().getClients().getPlayer(request.getMutedPlayer()); if
-		 * (!optMutedPlayer.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-		 * 
-		 * if (!optMutingPlayer.get().isAdmin() && !optMutedPlayer.get().getChannel().equals(optMutingPlayer.get().getChannel())) return
-		 * MumbleServerMessageFactory.answer(request, ErrorCode.PLAYERS_IN_DIFFERENT_CHANNELS);
-		 * 
-		 * optMutedPlayer.get().setIsMuteBy(optMutingPlayer.get(), request.isMute()); return MumbleServerMessageFactory.answer(request,
-		 * request.getProperties());
 		 */
 	}
 
@@ -406,6 +389,17 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void setPlayerMute(PlayerMuteSetMessageV10 request) {
 		((Player) getServer().getPlayers().get(request.getPlayerName()).get()).setMute(request.isMute());
+	}
+
+	/**
+	 * Update the mute status of a target player for a source player.
+	 * 
+	 * @param request The request sent by the remote in order to mute or unmute a target player for a source player.
+	 */
+	private void setPlayerMuteBy(PlayerMuteBySetMessageV10 request) {
+		Player target = (Player) getServer().getPlayers().get(request.getTarget()).get();
+		Player source = (Player) getServer().getPlayers().get(request.getSource()).get();
+		target.setMuteBy(source, request.isMute());
 	}
 
 	/**
