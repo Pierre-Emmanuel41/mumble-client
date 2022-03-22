@@ -18,8 +18,8 @@ import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
-import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePostEvent;
-import fr.pederobien.mumble.client.event.PlayerOnlineStatusChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.client.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -124,7 +124,7 @@ public class Player implements IPlayer {
 		if (this.isOnline == isOnline)
 			return;
 
-		EventManager.callEvent(new PlayerOnlineStatusChangePreEvent(this, isOnline, callback));
+		EventManager.callEvent(new PlayerOnlineChangePreEvent(this, isOnline, callback));
 	}
 
 	@Override
@@ -331,7 +331,7 @@ public class Player implements IPlayer {
 	private void setOnline0(boolean isOnline) {
 		boolean oldOnline = this.isOnline;
 		this.isOnline = isOnline;
-		EventManager.callEvent(new PlayerOnlineStatusChangePostEvent(this, oldOnline));
+		EventManager.callEvent(new PlayerOnlineChangePostEvent(this, oldOnline));
 	}
 
 	/**

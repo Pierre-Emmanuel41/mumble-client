@@ -7,7 +7,7 @@ import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
-public class PlayerOnlineStatusChangePreEvent extends PlayerEvent implements ICancellable {
+public class PlayerOnlineChangePreEvent extends PlayerEvent implements ICancellable {
 	private boolean isCancelled, newOnline;
 	private Consumer<IResponse> callback;
 
@@ -18,7 +18,7 @@ public class PlayerOnlineStatusChangePreEvent extends PlayerEvent implements ICa
 	 * @param newOnline The new online status of the player.
 	 * @param callback  The callback to run when an answer is received from the server.
 	 */
-	public PlayerOnlineStatusChangePreEvent(IPlayer player, boolean newOnline, Consumer<IResponse> callback) {
+	public PlayerOnlineChangePreEvent(IPlayer player, boolean newOnline, Consumer<IResponse> callback) {
 		super(player);
 		this.newOnline = newOnline;
 		this.callback = callback;
@@ -52,6 +52,7 @@ public class PlayerOnlineStatusChangePreEvent extends PlayerEvent implements ICa
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentOnline=" + getPlayer().isOnline());
 		joiner.add("newOnline=" + getNewOnline());
 		return String.format("%s_%s", getName(), joiner);
 	}

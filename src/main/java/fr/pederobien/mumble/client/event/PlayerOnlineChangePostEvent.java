@@ -4,7 +4,7 @@ import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 
-public class PlayerOnlineStatusChangePostEvent extends PlayerEvent {
+public class PlayerOnlineChangePostEvent extends PlayerEvent {
 	private boolean oldOnline;
 
 	/**
@@ -13,7 +13,7 @@ public class PlayerOnlineStatusChangePostEvent extends PlayerEvent {
 	 * @param player    The player whose the online status has changed.
 	 * @param oldOnline The old player's online status.
 	 */
-	public PlayerOnlineStatusChangePostEvent(IPlayer player, boolean oldOnline) {
+	public PlayerOnlineChangePostEvent(IPlayer player, boolean oldOnline) {
 		super(player);
 		this.oldOnline = oldOnline;
 	}
@@ -27,8 +27,9 @@ public class PlayerOnlineStatusChangePostEvent extends PlayerEvent {
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentOnline=" + getPlayer().isOnline());
 		joiner.add("oldOnline=" + getOldOnline());
 		return String.format("%s_%s", getName(), joiner);
 	}
