@@ -12,6 +12,8 @@ import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePostEvent;
@@ -20,15 +22,19 @@ import fr.pederobien.mumble.client.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IPosition;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.EventPriority;
+import fr.pederobien.utils.event.IEventListener;
 
-public class Player implements IPlayer {
+public class Player implements IPlayer, IEventListener {
 	private IMumbleServer server;
 	private String name;
 	private boolean isOnline;
@@ -63,6 +69,8 @@ public class Player implements IPlayer {
 
 		position = new Position(this, x, y, z, yaw, pitch);
 		isMuteBy = new HashMap<IPlayer, Boolean>();
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -199,15 +207,6 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set the channel in which the player is registered. When set to null, then the player is registered in no channel.
-	 * 
-	 * @param channel The new player channel.
-	 */
-	public void setChannel(IChannel channel) {
-		this.channel = channel;
-	}
-
-	/**
 	 * Set the name of this player. For internal use only.
 	 * 
 	 * @param name The new player name.
@@ -244,7 +243,7 @@ public class Player implements IPlayer {
 	}
 
 	/**
-	 * Set the player administrator status.
+	 * Set the player administrator status. For internal use only.
 	 * 
 	 * @param isAdmin The new player administrator status.
 	 */
@@ -310,6 +309,30 @@ public class Player implements IPlayer {
 			setMute(message.getPlayerInfo().isMute());
 			setDeafen(message.getPlayerInfo().isDeafen());
 		}
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	private void onChannelsPlayerAdd(PlayerListPlayerAddPostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		channel = event.getList().getChannel();
+	}
+
+	@EventHandler(priority = EventPriority.LOWEST)
+	private void onChannelsPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		channel = null;
+	}
+
+	@EventHandler
+	private void onServerPlayerRemove(ServerPlayerListPlayerRemovePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 
 	/**

@@ -214,7 +214,7 @@ public class MumbleTcpClient {
 	 * @param player   The added player.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerAdd(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
+	public void onChannelPlayerAdd(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
 		send(builder(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName()).build(callback));
 	}
 

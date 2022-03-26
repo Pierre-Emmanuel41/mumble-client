@@ -144,8 +144,8 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerAdd(PlayerListPlayerAddPreEvent event) {
-		tcpClient.onPlayerAdd(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
+	private void onChannelPlayerAdd(PlayerListPlayerAddPreEvent event) {
+		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

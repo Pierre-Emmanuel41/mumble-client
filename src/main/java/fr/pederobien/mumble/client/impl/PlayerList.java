@@ -59,12 +59,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 	public void add(IPlayer player, Consumer<IResponse> callback) {
 		checkPlayer(player);
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				addPlayer(player);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerListPlayerAddPreEvent(this, player, update));
+		EventManager.callEvent(new PlayerListPlayerAddPreEvent(this, player, callback));
 	}
 
 	@Override
@@ -128,13 +123,12 @@ public class PlayerList implements IPlayerList, IEventListener {
 	}
 
 	/**
-	 * Adds the given player to this list.
+	 * Adds a player to this list. For internal use only.
 	 * 
-	 * @param player The player to add.
+	 * @param name The name of the player to add.
 	 */
-	public void add(IPlayer player) {
-		checkPlayer(player);
-		addPlayer(player);
+	public void add(String name) {
+		addPlayer(getChannel().getMumbleServer().getPlayers().get(name).get());
 	}
 
 	/**
@@ -170,7 +164,6 @@ public class PlayerList implements IPlayerList, IEventListener {
 	private void addPlayer(IPlayer player) {
 		lock.lock();
 		try {
-			((Player) player).setChannel(getChannel());
 			players.put(player.getName(), player);
 		} finally {
 			lock.unlock();
@@ -193,9 +186,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 			lock.unlock();
 		}
 
-		if (removed) {
-			((Player) player).setChannel(null);
+		if (removed)
 			EventManager.callEvent(new PlayerListPlayerRemovePostEvent(this, player));
-		}
 	}
 }
