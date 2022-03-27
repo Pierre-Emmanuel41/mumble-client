@@ -107,7 +107,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
-		channelsPlayerMap.put(Oid.SET, request -> channelsPlayerRemove((ChannelsPlayerRemoveMessageV10) request));
+		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
 
 		// Player kick map
@@ -139,20 +139,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR); } } else
 		 * getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return MumbleServerMessageFactory.answer(request,
 		 * request.getProperties());
-		 */
-	}
-
-	@Override
-	protected void channelsPlayerRemove(ChannelsPlayerRemoveMessageV10 request) {
-		/*
-		 * Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName()); if (!optChannel.isPresent())
-		 * return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
-		 * 
-		 * final Optional<Player> optPlayerRemove = getServer().getClients().getPlayer(request.getPlayerName()); if
-		 * (!optPlayerRemove.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-		 * 
-		 * // doing modification on the getServer(). optChannel.get().getPlayers().remove(optPlayerRemove.get()); return
-		 * MumbleServerMessageFactory.answer(request, request.getProperties());
 		 */
 	}
 
@@ -401,5 +387,14 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
 		((PlayerList) getServer().getChannelList().getChannel(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
+	}
+
+	/**
+	 * Removes a player from a channel.
+	 * 
+	 * @param request The request sent by the remote in order to remove a player from a channel.
+	 */
+	private void removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
+		((PlayerList) getServer().getChannelList().getChannel(request.getChannelName()).get().getPlayers()).remove(request.getPlayerName());
 	}
 }

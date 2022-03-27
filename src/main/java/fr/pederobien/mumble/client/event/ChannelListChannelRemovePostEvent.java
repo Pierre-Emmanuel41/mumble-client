@@ -29,7 +29,7 @@ public class ChannelListChannelRemovePostEvent extends ChannelListEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
-		joiner.add("list=" + getList().hashCode());
+		joiner.add("list=" + getList().getName());
 		joiner.add("channel=" + getChannel().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}

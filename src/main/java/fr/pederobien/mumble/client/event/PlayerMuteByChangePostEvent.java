@@ -49,7 +49,7 @@ public class PlayerMuteByChangePostEvent extends PlayerEvent {
 		joiner.add("target=" + getPlayer().getName());
 		joiner.add("source=" + getMutingPlayer().getName());
 		joiner.add("currentMute=" + getPlayer().isMuteBy(getMutingPlayer()));
-		joiner.add("newMute=" + getOldMute());
+		joiner.add("oldMute=" + getOldMute());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

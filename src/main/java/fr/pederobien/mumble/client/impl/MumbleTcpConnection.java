@@ -149,8 +149,8 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerRemove(PlayerListPlayerRemovePreEvent event) {
-		tcpClient.onPlayerRemove(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
+	private void onChannelPlayerRemove(PlayerListPlayerRemovePreEvent event) {
+		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

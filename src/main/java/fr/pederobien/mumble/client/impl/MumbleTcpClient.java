@@ -225,7 +225,7 @@ public class MumbleTcpClient {
 	 * @param player   The removed player.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerRemove(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
+	public void onChannelPlayerRemove(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
 		send(builder(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName()).build(callback));
 	}
 

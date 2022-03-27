@@ -64,12 +64,9 @@ public class PlayerList implements IPlayerList, IEventListener {
 
 	@Override
 	public void remove(IPlayer player, Consumer<IResponse> callback) {
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				removePlayer(player);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerListPlayerRemovePreEvent(this, player, update));
+		checkPlayerRegistered(player);
+
+		EventManager.callEvent(new PlayerListPlayerRemovePreEvent(this, player, callback));
 	}
 
 	@Override
@@ -132,12 +129,12 @@ public class PlayerList implements IPlayerList, IEventListener {
 	}
 
 	/**
-	 * Removes the player from this list.
+	 * Removes a player from this list. For internal use only.
 	 * 
-	 * @param player The player to remove.
+	 * @param name The name of the player to remove.
 	 */
-	public void remove(IPlayer player) {
-		removePlayer(player);
+	public void remove(String name) {
+		removePlayer(getChannel().getMumbleServer().getPlayers().get(name).get());
 	}
 
 	/**
@@ -145,13 +142,22 @@ public class PlayerList implements IPlayerList, IEventListener {
 	 * 
 	 * @param player The player to check.
 	 */
-	private void checkPlayer(IPlayer player) {
-		if (players.containsKey(player.getName()))
-			throw new PlayerAlreadyRegisteredException(this, player);
-
+	private void checkPlayerRegistered(IPlayer player) {
 		Optional<IPlayer> optPlayer = getChannel().getMumbleServer().getPlayers().get(player.getName());
 		if (!optPlayer.isPresent() || player != optPlayer.get())
 			throw new IllegalArgumentException("The player " + player.getName() + " is not registered on the server");
+	}
+
+	/**
+	 * Check if the given player is registered on the server and if it is registered on the channel.
+	 * 
+	 * @param player The player to check.
+	 */
+	private void checkPlayer(IPlayer player) {
+		checkPlayerRegistered(player);
+
+		if (players.containsKey(player.getName()))
+			throw new PlayerAlreadyRegisteredException(this, player);
 	}
 
 	/**
