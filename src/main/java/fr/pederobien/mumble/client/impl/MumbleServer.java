@@ -1,16 +1,20 @@
 package fr.pederobien.mumble.client.impl;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.pederobien.mumble.client.event.ServerAddressChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerAddressChangePostEvent;
+import fr.pederobien.mumble.client.event.ServerAddressChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.impl.request.RequestManager;
+import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventManager;
@@ -21,7 +25,7 @@ public abstract class MumbleServer implements IMumbleServer {
 	private AtomicBoolean isDisposed, isReachable;
 	private MumbleTcpConnection connection;
 	private IServerPlayerList players;
-	private IChannelList channelList;
+	private IChannelList channels;
 	private ISoundModifierList soundModifierList;
 	private RequestManager requestManager;
 
@@ -38,7 +42,7 @@ public abstract class MumbleServer implements IMumbleServer {
 		this.address = address;
 
 		players = new ServerPlayerList(this);
-		channelList = new ChannelList(this);
+		channels = new ChannelList(this);
 		soundModifierList = new SoundModifierList();
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
@@ -115,7 +119,7 @@ public abstract class MumbleServer implements IMumbleServer {
 
 	@Override
 	public IChannelList getChannels() {
-		return channelList;
+		return channels;
 	}
 
 	@Override
@@ -164,6 +168,24 @@ public abstract class MumbleServer implements IMumbleServer {
 
 		this.isReachable.set(isReachable);
 		EventManager.callEvent(new ServerReachableChangeEvent(this, isReachable));
+	}
+
+	/**
+	 * Clear the server configuration. In a first time, it removes all players from all channels, then removes all channels and
+	 * finally removes all players from the server player list.
+	 */
+	protected void clear() {
+		List<IChannel> channelList = new ArrayList<IChannel>(channels.toList());
+		for (IChannel channel : channelList) {
+			List<IPlayer> playerSet = new ArrayList<IPlayer>(channel.getPlayers().toList());
+			for (IPlayer player : playerSet)
+				((PlayerList) channel.getPlayers()).remove(player.getName());
+			((ChannelList) channels).remove(channel.getName());
+		}
+
+		List<IPlayer> playerSet = new ArrayList<IPlayer>(getPlayers().toList());
+		for (IPlayer player : playerSet)
+			((ServerPlayerList) getPlayers()).remove(player.getName());
 	}
 
 	private void checkIsDisposed() {

@@ -103,5 +103,6 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 			return;
 
 		setIsReachable(false);
+		clear();
 	}
 }
