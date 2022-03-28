@@ -85,7 +85,7 @@ public class MumbleTcpConnection implements IEventListener {
 			}
 
 			for (SimpleChannelInfo channelInfo : serverInfoMessage.getServerInfo().getChannelInfo())
-				((ChannelList) server.getChannelList()).add(channelInfo);
+				((ChannelList) server.getChannels()).add(channelInfo);
 
 			return true;
 		}));

@@ -64,7 +64,7 @@ public interface IMumbleServer {
 	/**
 	 * @return The list of channels.
 	 */
-	IChannelList getChannelList();
+	IChannelList getChannels();
 
 	/**
 	 * @return The list of sound modifiers.

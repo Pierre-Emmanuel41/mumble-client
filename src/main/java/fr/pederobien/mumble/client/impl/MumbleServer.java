@@ -114,7 +114,7 @@ public abstract class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
-	public IChannelList getChannelList() {
+	public IChannelList getChannels() {
 		return channelList;
 	}
 

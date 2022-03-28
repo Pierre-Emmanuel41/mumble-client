@@ -260,7 +260,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @param request The request sent by the remote in order to add a channel.
 	 */
 	private void addChannel(ChannelsAddMessageV10 request) {
-		((ChannelList) getServer().getChannelList()).add(request.getChannelInfo());
+		((ChannelList) getServer().getChannels()).add(request.getChannelInfo());
 	}
 
 	/**
@@ -269,7 +269,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @param request The request sent by the remote in order to remove a channel.
 	 */
 	private void removeChannel(ChannelsRemoveMessageV10 request) {
-		((ChannelList) getServer().getChannelList()).remove(request.getChannelName());
+		((ChannelList) getServer().getChannels()).remove(request.getChannelName());
 	}
 
 	/**
@@ -278,7 +278,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @param request the request sent by the remote in order to rename a channel.
 	 */
 	private void renameChannel(ChannelsSetMessageV10 request) {
-		((Channel) getServer().getChannelList().getChannel(request.getOldName()).get()).setName(request.getNewName());
+		((Channel) getServer().getChannels().get(request.getOldName()).get()).setName(request.getNewName());
 
 	}
 
@@ -386,7 +386,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @param request The request sent by the remote in order to add a player to a channel.
 	 */
 	private void addPlayerToChannel(ChannelsPlayerAddMessageV10 request) {
-		((PlayerList) getServer().getChannelList().getChannel(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
+		((PlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
 	}
 
 	/**
@@ -395,6 +395,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 * @param request The request sent by the remote in order to remove a player from a channel.
 	 */
 	private void removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
-		((PlayerList) getServer().getChannelList().getChannel(request.getChannelName()).get().getPlayers()).remove(request.getPlayerName());
+		((PlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).remove(request.getPlayerName());
 	}
 }
