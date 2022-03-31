@@ -13,6 +13,7 @@ import fr.pederobien.mumble.client.impl.Player;
 import fr.pederobien.mumble.client.impl.PlayerList;
 import fr.pederobien.mumble.client.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsAddMessageV10;
@@ -104,16 +105,16 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		playerDeafenMap.put(Oid.SET, request -> setPlayerDeafen((PlayerDeafenSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_DEAFEN, playerDeafenMap);
 
+		// Player kick map
+		Map<Oid, Consumer<IMumbleMessage>> playerKickMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		playerKickMap.put(Oid.SET, request -> kickPlayerFromChannel((PlayerKickSetMessageV10) request));
+		getRequests().put(Idc.PLAYER_KICK, playerKickMap);
+
 		// Channels player map
 		Map<Oid, Consumer<IMumbleMessage>> channelsPlayerMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		channelsPlayerMap.put(Oid.ADD, request -> addPlayerToChannel((ChannelsPlayerAddMessageV10) request));
 		channelsPlayerMap.put(Oid.REMOVE, request -> removePlayerFromChannel((ChannelsPlayerRemoveMessageV10) request));
 		getRequests().put(Idc.CHANNELS_PLAYER, channelsPlayerMap);
-
-		// Player kick map
-		Map<Oid, Consumer<IMumbleMessage>> playerKickMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
-		playerKickMap.put(Oid.ADD, request -> playerKickSet((PlayerKickSetMessageV10) request));
-		getRequests().put(Idc.PLAYER_KICK, playerKickMap);
 
 		// Player position map
 		Map<Oid, Consumer<IMumbleMessage>> playerPositionMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -139,18 +140,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR); } } else
 		 * getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return MumbleServerMessageFactory.answer(request,
 		 * request.getProperties());
-		 */
-	}
-
-	@Override
-	protected void playerKickSet(PlayerKickSetMessageV10 request) {
-		/*
-		 * final Optional<Player> optKickedPlayer = getServer().getClients().getPlayer(request.getKickedPlayer()); if
-		 * (!optKickedPlayer.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-		 * 
-		 * try { optKickedPlayer.get().getChannel().getPlayers().remove(optKickedPlayer.get()); return
-		 * MumbleServerMessageFactory.answer(request, request.getProperties()); } catch (NullPointerException e) { return
-		 * MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_REGISTERED); }
 		 */
 	}
 
@@ -367,7 +356,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void setPlayerMuteBy(PlayerMuteBySetMessageV10 request) {
 		Player target = (Player) getServer().getPlayers().get(request.getTarget()).get();
-		Player source = (Player) getServer().getPlayers().get(request.getSource()).get();
+		IPlayer source = (Player) getServer().getPlayers().get(request.getSource()).get();
 		target.setMuteBy(source, request.isMute());
 	}
 
@@ -396,5 +385,16 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	 */
 	private void removePlayerFromChannel(ChannelsPlayerRemoveMessageV10 request) {
 		((PlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).remove(request.getPlayerName());
+	}
+
+	/**
+	 * Kicks a player from its channel.
+	 * 
+	 * @param request The request sent by the remote in order to kick a player from a channel.
+	 */
+	private void kickPlayerFromChannel(PlayerKickSetMessageV10 request) {
+		Player kicked = (Player) getServer().getPlayers().get(request.getKicked()).get();
+		Player kicking = (Player) getServer().getPlayers().get(request.getKicking()).get();
+		kicked.kick(kicking);
 	}
 }

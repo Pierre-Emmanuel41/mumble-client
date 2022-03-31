@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.event.ChannelListChannelRemovePostEvent;
+import fr.pederobien.mumble.client.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerRemovePostEvent;
@@ -70,7 +71,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 	}
 
 	@Override
-	public Optional<IPlayer> getPlayer(String name) {
+	public Optional<IPlayer> get(String name) {
 		return Optional.ofNullable(players.get(name));
 	}
 
@@ -86,11 +87,11 @@ public class PlayerList implements IPlayerList, IEventListener {
 
 	@EventHandler
 	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
-		Optional<IPlayer> optOldPlayer = getPlayer(event.getOldName());
+		Optional<IPlayer> optOldPlayer = get(event.getOldName());
 		if (!optOldPlayer.isPresent())
 			return;
 
-		Optional<IPlayer> optNewPlayer = getPlayer(event.getPlayer().getName());
+		Optional<IPlayer> optNewPlayer = get(event.getPlayer().getName());
 		if (optNewPlayer.isPresent())
 			throw new PlayerAlreadyRegisteredException(this, optNewPlayer.get());
 
@@ -98,6 +99,19 @@ public class PlayerList implements IPlayerList, IEventListener {
 		try {
 			players.remove(event.getOldName());
 			players.put(event.getPlayer().getName(), event.getPlayer());
+		} finally {
+			lock.unlock();
+		}
+	}
+
+	@EventHandler
+	private void onPlayerKick(PlayerKickPostEvent event) {
+		if (!event.getChannel().equals(getChannel()))
+			return;
+
+		lock.lock();
+		try {
+			players.remove(event.getPlayer().getName());
 		} finally {
 			lock.unlock();
 		}

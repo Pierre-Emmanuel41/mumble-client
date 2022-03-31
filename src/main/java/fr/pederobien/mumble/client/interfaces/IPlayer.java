@@ -4,6 +4,9 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.exceptions.PlayerNotAdministratorException;
+import fr.pederobien.mumble.client.exceptions.PlayerNotRegisteredInChannelException;
+
 public interface IPlayer {
 
 	/**
@@ -120,4 +123,15 @@ public interface IPlayer {
 	 * @return The position in game of the player.
 	 */
 	IPosition getPosition();
+
+	/**
+	 * Kick this player by another player from a channel, if registered.
+	 * 
+	 * @param kickingPlayer The player kicking another player
+	 * @param callback      The callback to run when an answer is received from the server.
+	 * 
+	 * @throws PlayerNotAdministratorException        If the kicking player is not an administrator.
+	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
+	 */
+	void kick(IPlayer kickingPlayer, Consumer<IResponse> callback);
 }

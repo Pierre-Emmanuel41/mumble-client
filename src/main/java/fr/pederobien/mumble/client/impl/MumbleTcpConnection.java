@@ -15,6 +15,7 @@ import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerKickPreEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteByChangePreEvent;
@@ -92,6 +93,31 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelAdd(ChannelListChannelAddPreEvent event) {
+		tcpClient.onChannelAdd(event.getChannelName(), event.getSoundModifier(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelRemove(ChannelListChannelRemovePreEvent event) {
+		tcpClient.onChannelRemove(event.getChannelName(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelNameChange(ChannelNameChangePreEvent event) {
+		tcpClient.onChannelNameChange(event.getChannel(), event.getNewName(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelPlayerAdd(PlayerListPlayerAddPreEvent event) {
+		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onChannelPlayerRemove(PlayerListPlayerRemovePreEvent event) {
+		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerAdd(ServerPlayerListPlayerAddPreEvent event) {
 		tcpClient.onServerPlayerAdd(event.getPlayerName(), event.getGameAddress(), event.isAdmin(), event.isMute(), event.isDeafen(), event.getX(), event.getY(),
 				event.getZ(), event.getYaw(), event.getPitch(), args -> parse(args, event.getCallback(), null));
@@ -103,7 +129,7 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerOnlineStatusChange(PlayerOnlineChangePreEvent event) {
+	private void onPlayerOnlineChange(PlayerOnlineChangePreEvent event) {
 		tcpClient.onPlayerOnlineChange(event.getPlayer(), event.getNewOnline(), args -> parse(args, event.getCallback(), null));
 	}
 
@@ -128,13 +154,18 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onPlayerMuteByChange(PlayerMuteByChangePreEvent event) {
+		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getMutingPlayer(), event.getNewMute(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenStatusChange(PlayerDeafenStatusChangePreEvent event) {
 		tcpClient.onPlayerDeafenChange(event.getPlayer(), event.getNewDeafen(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteByChange(PlayerMuteByChangePreEvent event) {
-		tcpClient.onPlayerMuteByChange(event.getPlayer(), event.getMutingPlayer(), event.getNewMute(), args -> parse(args, event.getCallback(), null));
+	private void onPlayerKick(PlayerKickPreEvent event) {
+		tcpClient.onPlayerKick(event.getPlayer(), event.getKickingPlayer(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -144,33 +175,8 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerAdd(PlayerListPlayerAddPreEvent event) {
-		tcpClient.onChannelPlayerAdd(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerRemove(PlayerListPlayerRemovePreEvent event) {
-		tcpClient.onChannelPlayerRemove(event.getList().getChannel(), event.getPlayer(), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelNameChange(ChannelNameChangePreEvent event) {
-		tcpClient.onChannelNameChange(event.getChannel(), event.getNewName(), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
 		tcpClient.onSoundModifierChange(event.getChannel(), event.getNewSoundModifier(), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelAdd(ChannelListChannelAddPreEvent event) {
-		tcpClient.onChannelAdd(event.getChannelName(), event.getSoundModifier(), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelRemove(ChannelListChannelRemovePreEvent event) {
-		tcpClient.onChannelRemove(event.getChannelName(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

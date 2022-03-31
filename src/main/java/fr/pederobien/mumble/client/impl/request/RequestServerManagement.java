@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerKickSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
@@ -68,13 +67,6 @@ public abstract class RequestServerManagement {
 	 * @param request The request sent by the remote.
 	 */
 	protected abstract void playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Kicks a player from a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void playerKickSet(PlayerKickSetMessageV10 request);
 
 	/**
 	 * Get the position of a player.

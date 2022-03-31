@@ -3,6 +3,7 @@ package fr.pederobien.mumble.client.impl;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -12,6 +13,8 @@ import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerGameAddressChangePreEvent;
+import fr.pederobien.mumble.client.event.PlayerKickPostEvent;
+import fr.pederobien.mumble.client.event.PlayerKickPreEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.event.PlayerMuteByChangePostEvent;
@@ -23,6 +26,8 @@ import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.client.exceptions.PlayerNotAdministratorException;
+import fr.pederobien.mumble.client.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -190,6 +195,21 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@Override
+	public void kick(IPlayer kickingPlayer, Consumer<IResponse> callback) {
+		Optional<IPlayer> optPlayer = getChannel().getMumbleServer().getPlayers().get(kickingPlayer.getName());
+		if (!optPlayer.isPresent() || kickingPlayer != optPlayer.get())
+			throw new IllegalArgumentException("The player " + kickingPlayer.getName() + " is not registered on the server");
+
+		if (!kickingPlayer.isAdmin())
+			throw new PlayerNotAdministratorException(kickingPlayer);
+
+		if (channel == null)
+			throw new PlayerNotRegisteredInChannelException(this);
+
+		EventManager.callEvent(new PlayerKickPreEvent(this, channel, kickingPlayer, callback));
+	}
+
+	@Override
 	public String toString() {
 		return String.format("Player={name=%s,identifier=%s}", getName(), getIdentifier());
 	}
@@ -267,6 +287,20 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
+	 * Mute or unmute this player for another player. For internal use only.
+	 * 
+	 * @param player The player for which this player is mute or unmute.
+	 * @param isMute The new player mute status for the other player.
+	 */
+	public void setMuteBy(IPlayer player, boolean isMute) {
+		Boolean value = isMuteBy.get(player);
+		if (value != null && value == isMute)
+			return;
+
+		setMuteBy0(player, isMute);
+	}
+
+	/**
 	 * Set the player deafen status. For internal use only.
 	 * 
 	 * @param isDeafen The new player deafen status.
@@ -279,17 +313,15 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
-	 * Mute or unmute this player for another player. For internal use only.
+	 * Kick this player from its channel. For internal use only.
 	 * 
-	 * @param player The player for which this player is mute or unmute.
-	 * @param isMute The new player mute status for the other player.
+	 * @param player The player that has kicked this player.
 	 */
-	public void setMuteBy(IPlayer player, boolean isMute) {
-		Boolean value = isMuteBy.get(player);
-		if (value != null && value == isMute)
+	public void kick(IPlayer player) {
+		if (this.channel == null)
 			return;
 
-		setMuteBy0(player, isMute);
+		kick0(player);
 	}
 
 	/**
@@ -391,6 +423,19 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
+	 * Mute or unmute this player for another player.
+	 * 
+	 * @param player The player for which this player is mute or unmute.
+	 * @param isMute The new player mute status for the other player.
+	 */
+	private void setMuteBy0(IPlayer player, boolean isMute) {
+		Boolean value = isMuteBy.get(player);
+		boolean oldMute = value == null ? false : value;
+		isMuteBy.put(player, isMute);
+		EventManager.callEvent(new PlayerMuteByChangePostEvent(this, player, oldMute));
+	}
+
+	/**
 	 * Set the player deafen status.
 	 * 
 	 * @param isDeafen The new player deafen status.
@@ -402,15 +447,13 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
-	 * Mute or unmute this player for another player.
+	 * Kick this player by another player.
 	 * 
-	 * @param player The player for which this player is mute or unmute.
-	 * @param isMute The new player mute status for the other player.
+	 * @param player The player that has kicked this player.
 	 */
-	private void setMuteBy0(IPlayer player, boolean isMute) {
-		Boolean value = isMuteBy.get(player);
-		boolean oldMute = value == null ? false : value;
-		isMuteBy.put(player, isMute);
-		EventManager.callEvent(new PlayerMuteByChangePostEvent(this, player, oldMute));
+	private void kick0(IPlayer player) {
+		IChannel oldChannel = channel;
+		channel = null;
+		EventManager.callEvent(new PlayerKickPostEvent(this, oldChannel, player));
 	}
 }

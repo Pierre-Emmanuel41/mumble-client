@@ -49,6 +49,82 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to add a channel to the server.
+	 * 
+	 * @param name          The name of the channel to add.
+	 * @param soundModifier The channel's sound modifier.
+	 * @param callback      The callback to run when an answer is received from the server.
+	 */
+	public void onChannelAdd(String name, ISoundModifier soundModifier, Consumer<ResponseCallbackArgs> callback) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(name);
+
+		// Modifier's name
+		informations.add(soundModifier.getName());
+
+		// Number of parameters
+		informations.add(soundModifier.getParameters().size());
+
+		for (IParameter<?> parameter : soundModifier.getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+		}
+
+		send(builder(Idc.CHANNELS, Oid.ADD, informations.toArray()).build(callback));
+	}
+
+	/**
+	 * Send a message to the remote in order to remove a channel from the server.
+	 * 
+	 * @param name     The name of the removed channel.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void onChannelRemove(String name, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.CHANNELS, Oid.REMOVE, name).build(callback));
+	}
+
+	/**
+	 * Send e message to the remote in order to update the channel name.
+	 * 
+	 * @param channel  The channel whose the name has changed.
+	 * @param newName  The old channel name.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void onChannelNameChange(IChannel channel, String newName, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.CHANNELS, Oid.SET, channel.getName(), newName).build(callback));
+	}
+
+	/**
+	 * Send a message to the remote in order to add a player to a channel.
+	 * 
+	 * @param channel  The channel to which a player has been added.
+	 * @param player   The added player.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void onChannelPlayerAdd(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName()).build(callback));
+	}
+
+	/**
+	 * Send a message to the remote in order to remove a player from a channel.
+	 * 
+	 * @param channel  The channel from which a player has been removed.
+	 * @param player   The removed player.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void onChannelPlayerRemove(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName()).build(callback));
+	}
+
+	/**
 	 * Send a message to the remote in order to register a new player.
 	 * 
 	 * @param name        The player's name.
@@ -170,6 +246,18 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to mute or unmute a player for another player.
+	 * 
+	 * @param target   The player to mute or unmute for another player.
+	 * @param source   The player for which a player is mute or unmute.
+	 * @param newMute  The mute status of the player.
+	 * @param callback The callback to run when an answer is received from the server.
+	 */
+	public void onPlayerMuteByChange(IPlayer target, IPlayer source, boolean newMute, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), newMute).build(callback));
+	}
+
+	/**
 	 * Send a message to the remote in order to update the player deafen status.
 	 * 
 	 * @param player    The player whose the deafen status has changed.
@@ -181,15 +269,14 @@ public class MumbleTcpClient {
 	}
 
 	/**
-	 * Send a message to the remote in order to mute or unmute a player for another player.
+	 * Send a message to the remote in order to kick a player from a channel.
 	 * 
-	 * @param target   The player to mute or unmute for another player.
-	 * @param source   The player for which a player is mute or unmute.
-	 * @param newMute  The mute status of the player.
-	 * @param callback The callback to run when an answer is received from the server.
+	 * @param kickedPlayer  The player to kick.
+	 * @param KickingPlayer The player kicking another player.
+	 * @param callback      The callback to run when an answer is received from the server.
 	 */
-	public void onPlayerMuteByChange(IPlayer target, IPlayer source, boolean newMute, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.PLAYER_MUTE_BY, Oid.SET, target.getName(), source.getName(), newMute).build(callback));
+	public void onPlayerKick(IPlayer kickedPlayer, IPlayer KickingPlayer, Consumer<ResponseCallbackArgs> callback) {
+		send(builder(Idc.PLAYER_KICK, Oid.SET, kickedPlayer.getName(), KickingPlayer.getName()).build(callback));
 	}
 
 	/**
@@ -205,82 +292,6 @@ public class MumbleTcpClient {
 	 */
 	public void onPlayerPositionChange(IPlayer player, double x, double y, double z, double yaw, double pitch, Consumer<ResponseCallbackArgs> callback) {
 		send(builder(Idc.PLAYER_POSITION, Oid.SET, player.getName(), x, y, z, yaw, pitch).build(callback));
-	}
-
-	/**
-	 * Send a message to the remote in order to add a player to a channel.
-	 * 
-	 * @param channel  The channel to which a player has been added.
-	 * @param player   The added player.
-	 * @param callback The callback to run when an answer is received from the server.
-	 */
-	public void onChannelPlayerAdd(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.CHANNELS_PLAYER, Oid.ADD, channel.getName(), player.getName()).build(callback));
-	}
-
-	/**
-	 * Send a message to the remote in order to remove a player from a channel.
-	 * 
-	 * @param channel  The channel from which a player has been removed.
-	 * @param player   The removed player.
-	 * @param callback The callback to run when an answer is received from the server.
-	 */
-	public void onChannelPlayerRemove(IChannel channel, IPlayer player, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.CHANNELS_PLAYER, Oid.REMOVE, channel.getName(), player.getName()).build(callback));
-	}
-
-	/**
-	 * Send a message to the remote in order to add a channel to the server.
-	 * 
-	 * @param name          The name of the channel to add.
-	 * @param soundModifier The channel's sound modifier.
-	 * @param callback      The callback to run when an answer is received from the server.
-	 */
-	public void onChannelAdd(String name, ISoundModifier soundModifier, Consumer<ResponseCallbackArgs> callback) {
-		List<Object> informations = new ArrayList<Object>();
-
-		// Channel's name
-		informations.add(name);
-
-		// Modifier's name
-		informations.add(soundModifier.getName());
-
-		// Number of parameters
-		informations.add(soundModifier.getParameters().size());
-
-		for (IParameter<?> parameter : soundModifier.getParameters()) {
-			// Parameter's name
-			informations.add(parameter.getName());
-
-			// Parameter's type
-			informations.add(parameter.getType());
-
-			// Parameter's value
-			informations.add(parameter.getValue());
-		}
-
-		send(builder(Idc.CHANNELS, Oid.ADD, informations.toArray()).build(callback));
-	}
-
-	/**
-	 * Send a message to the remote in order to remove a channel from the server.
-	 * 
-	 * @param name     The name of the removed channel.
-	 * @param callback The callback to run when an answer is received from the server.
-	 */
-	public void onChannelRemove(String name, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.CHANNELS, Oid.REMOVE, name).build(callback));
-	}
-
-	/**
-	 * Send e message to the remote in order to update the channel name.
-	 * 
-	 * @param channel  The channel whose the name has changed.
-	 * @param newName  The old channel name.
-	 * @param callback The callback to run when an answer is received from the server.
-	 */
-	public void onChannelNameChange(IChannel channel, String newName, Consumer<ResponseCallbackArgs> callback) {
-		send(builder(Idc.CHANNELS, Oid.SET, channel.getName(), newName).build(callback));
 	}
 
 	/**

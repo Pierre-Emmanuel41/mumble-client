@@ -45,7 +45,7 @@ public interface IPlayerList extends Iterable<IPlayer> {
 	 * 
 	 * @return An optional that contains the player if registered, an empty optional otherwise.
 	 */
-	Optional<IPlayer> getPlayer(String name);
+	Optional<IPlayer> get(String name);
 
 	/**
 	 * @return a sequential {@code Stream} over the elements in this collection.
