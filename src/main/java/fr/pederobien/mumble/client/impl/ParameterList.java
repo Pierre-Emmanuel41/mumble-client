@@ -1,10 +1,13 @@
 package fr.pederobien.mumble.client.impl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
@@ -86,6 +89,16 @@ public class ParameterList implements IParameterList, IEventListener {
 	@Override
 	public ParameterList clone() {
 		return new ParameterList(this);
+	}
+
+	@Override
+	public Stream<IParameter<?>> stream() {
+		return toList().stream();
+	}
+
+	@Override
+	public List<IParameter<?>> toList() {
+		return new ArrayList<IParameter<?>>(parameters.values());
 	}
 
 	@Override

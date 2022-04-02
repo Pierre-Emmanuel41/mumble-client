@@ -1,7 +1,9 @@
 package fr.pederobien.mumble.client.interfaces;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
 
@@ -48,4 +50,14 @@ public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
 	 * @return A new parameter list.
 	 */
 	IParameterList clone();
+
+	/**
+	 * @return a sequential {@code Stream} over the elements in this collection.
+	 */
+	Stream<IParameter<?>> stream();
+
+	/**
+	 * @return A copy of the underlying list.
+	 */
+	List<IParameter<?>> toList();
 }
