@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.client.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.client.event.PlayerAdminChangePreEvent;
@@ -42,9 +43,9 @@ import fr.pederobien.utils.event.IEventListener;
 public class Player implements IPlayer, IEventListener {
 	private IMumbleServer server;
 	private String name;
+	private UUID identifier;
 	private boolean isOnline;
 	private InetSocketAddress gameAddress;
-	private UUID identifier;
 	private boolean isAdmin, isMute, isDeafen;
 	private IPosition position;
 	private IChannel channel;
@@ -54,14 +55,14 @@ public class Player implements IPlayer, IEventListener {
 	 * Creates a player based on the given parameters.
 	 * 
 	 * @param name        The player's name.
+	 * @param identifier  The player's identifier.
 	 * @param isOnline    The player's online status.
 	 * @param gameAddress The address used to play to the game.
-	 * @param identifier  The player's identifier.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
 	 */
-	public Player(IMumbleServer server, String name, boolean isOnline, InetSocketAddress gameAddress, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen,
+	public Player(IMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen,
 			double x, double y, double z, double yaw, double pitch) {
 		this.server = server;
 		this.name = name;
@@ -174,6 +175,11 @@ public class Player implements IPlayer, IEventListener {
 			return;
 
 		EventManager.callEvent(new PlayerMuteByChangePreEvent(this, player, isMute, callback));
+	}
+
+	@Override
+	public Stream<IPlayer> getMuteByPlayers() {
+		return isMuteBy.entrySet().stream().filter(entry -> entry.getValue()).map(entry -> entry.getKey());
 	}
 
 	@Override

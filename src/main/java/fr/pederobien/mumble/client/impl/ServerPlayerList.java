@@ -101,8 +101,8 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 		if (player != null)
 			throw new ServerPlayerAlreadyRegisteredException(this, player);
 
-		return addPlayer(info.getName(), info.getGameAddress(), info.getIdentifier(), info.isAdmin(), info.isMute(), info.isDeafen(), info.getX(), info.getY(),
-				info.getZ(), info.getY(), info.getPitch());
+		return addPlayer(info.getName(), info.getIdentifier(), info.isOnline(), info.getGameAddress(), info.isAdmin(), info.isMute(), info.isDeafen(), info.getX(),
+				info.getY(), info.getZ(), info.getY(), info.getPitch());
 	}
 
 	/**
@@ -146,8 +146,8 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * Thread safe operation that adds a player to the players list.
 	 * 
 	 * @param name        The player's name.
-	 * @param gameAddress The game address used to play to the game.
 	 * @param identifier  The player's identifier.
+	 * @param gameAddress The game address used to play to the game.
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
@@ -161,12 +161,12 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * 
 	 * @throws PlayerAlreadyRegisteredException if a player is already registered for the player name.
 	 */
-	private IPlayer addPlayer(String name, InetSocketAddress gameAddress, UUID identifier, boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y,
-			double z, double yaw, double pitch) {
+	private IPlayer addPlayer(String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen, double x,
+			double y, double z, double yaw, double pitch) {
 		lock.lock();
 		IPlayer player = null;
 		try {
-			player = new Player(getServer(), name, true, gameAddress, identifier, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
+			player = new Player(getServer(), name, identifier, isOnline, gameAddress, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
 			players.put(player.getName(), player);
 		} finally {
 			lock.unlock();

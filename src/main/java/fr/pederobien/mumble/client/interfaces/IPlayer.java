@@ -3,6 +3,7 @@ package fr.pederobien.mumble.client.interfaces;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import fr.pederobien.mumble.client.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.client.exceptions.PlayerNotRegisteredInChannelException;
@@ -107,6 +108,11 @@ public interface IPlayer {
 	void setMuteBy(IPlayer player, boolean isMute, Consumer<IResponse> callback);
 
 	/**
+	 * @return A list that contains players for which this player is mute.
+	 */
+	Stream<IPlayer> getMuteByPlayers();
+
+	/**
 	 * @return True is this player is deafen, false otherwise.
 	 */
 	boolean isDeafen();
@@ -130,7 +136,7 @@ public interface IPlayer {
 	 * @param kickingPlayer The player kicking another player
 	 * @param callback      The callback to run when an answer is received from the server.
 	 * 
-	 * @throws PlayerNotAdministratorException        If the kicking player is not an administrator.
+	 * @throws PlayerNotAdministratorException       If the kicking player is not an administrator.
 	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
 	 */
 	void kick(IPlayer kickingPlayer, Consumer<IResponse> callback);
