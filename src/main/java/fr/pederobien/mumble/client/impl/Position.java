@@ -28,7 +28,11 @@ public class Position implements IPosition {
 	 */
 	public Position(IPlayer player, double x, double y, double z, double yaw, double pitch) {
 		this.player = Objects.requireNonNull(player, "The player cannot be null");
-		update(x, y, z, yaw, pitch);
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.yaw = yaw;
+		this.pitch = pitch;
 	}
 
 	public Position(IPlayer player) {
@@ -87,16 +91,11 @@ public class Position implements IPosition {
 		if (this.x == x && this.y == y && this.z == z && this.yaw == yaw && this.pitch == pitch)
 			return;
 
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				update0(x, y, z, yaw, pitch);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new PlayerPositionChangePreEvent(player, x, y, z, yaw, pitch, update));
+		EventManager.callEvent(new PlayerPositionChangePreEvent(player, x, y, z, yaw, pitch, callback));
 	}
 
 	/**
-	 * Set the new coordinates of this position.
+	 * Set the new coordinates of this position. For internal use only.
 	 * 
 	 * @param x     The new x position.
 	 * @param y     The new y position.
@@ -104,7 +103,7 @@ public class Position implements IPosition {
 	 * @param yaw   The new yaw angle.
 	 * @param pitch The new pitch angle.
 	 */
-	protected void update(double x, double y, double z, double yaw, double pitch) {
+	public void update(double x, double y, double z, double yaw, double pitch) {
 		if (this.x == x && this.y == y && this.z == z && this.yaw == yaw && this.pitch == pitch)
 			return;
 
@@ -125,11 +124,20 @@ public class Position implements IPosition {
 	 * @param pitch The new pitch angle.
 	 */
 	private void update0(double x, double y, double z, double yaw, double pitch) {
+		double oldX = this.x;
 		this.x = x;
+
+		double oldY = this.y;
 		this.y = y;
+
+		double oldZ = this.z;
 		this.z = z;
+
+		double oldYaw = this.yaw;
 		this.yaw = yaw;
+
+		double oldPitch = this.pitch;
 		this.pitch = pitch;
-		EventManager.callEvent(new PlayerPositionChangePostEvent(player, x, y, z, yaw, pitch));
+		EventManager.callEvent(new PlayerPositionChangePostEvent(player, oldX, oldY, oldZ, oldYaw, oldPitch));
 	}
 }

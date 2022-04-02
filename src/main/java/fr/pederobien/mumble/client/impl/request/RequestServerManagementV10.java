@@ -11,6 +11,7 @@ import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
 import fr.pederobien.mumble.client.impl.Player;
 import fr.pederobien.mumble.client.impl.PlayerList;
+import fr.pederobien.mumble.client.impl.Position;
 import fr.pederobien.mumble.client.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -31,7 +32,6 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteBySetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerMuteSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerNameSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
@@ -118,8 +118,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		// Player position map
 		Map<Oid, Consumer<IMumbleMessage>> playerPositionMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
-		playerPositionMap.put(Oid.GET, request -> playerPositionGet((PlayerPositionGetMessageV10) request));
-		playerPositionMap.put(Oid.SET, request -> playerPositionSet((PlayerPositionSetMessageV10) request));
+		playerPositionMap.put(Oid.SET, request -> setPlayerPosition((PlayerPositionSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_POSITION, playerPositionMap);
 
 		// Sound modifier map
@@ -140,30 +139,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR); } } else
 		 * getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return MumbleServerMessageFactory.answer(request,
 		 * request.getProperties());
-		 */
-	}
-
-	@Override
-	protected void playerPositionGet(PlayerPositionGetMessageV10 request) {
-		/*
-		 * String playerName = request.getPlayerInfo().getName();
-		 * 
-		 * Optional<Player> optPlayer = getServer().getClients().getPlayer(playerName); if (!optPlayer.isPresent()) return
-		 * MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-		 * 
-		 * IPosition position = optPlayer.get().getPosition(); return MumbleServerMessageFactory.answer(request, playerName,
-		 * position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
-		 */
-	}
-
-	@Override
-	protected void playerPositionSet(PlayerPositionSetMessageV10 request) {
-		/*
-		 * Optional<Player> optPlayer = getServer().getClients().getPlayer(request.getPlayerName()); if (!optPlayer.isPresent()) return
-		 * MumbleServerMessageFactory.answer(request, ErrorCode.PLAYER_NOT_RECOGNIZED);
-		 * 
-		 * optPlayer.get().getPosition().update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
-		 * return MumbleServerMessageFactory.answer(request, request.getProperties());
 		 */
 	}
 
@@ -396,5 +371,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Player kicked = (Player) getServer().getPlayers().get(request.getKicked()).get();
 		Player kicking = (Player) getServer().getPlayers().get(request.getKicking()).get();
 		kicked.kick(kicking);
+	}
+
+	/**
+	 * Sets the position of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the position of a player.
+	 */
+	private void setPlayerPosition(PlayerPositionSetMessageV10 request) {
+		((Position) getServer().getPlayers().get(request.getPlayerName()).get().getPosition()).update(request.getX(), request.getY(), request.getZ(), request.getYaw(),
+				request.getPitch());
 	}
 }

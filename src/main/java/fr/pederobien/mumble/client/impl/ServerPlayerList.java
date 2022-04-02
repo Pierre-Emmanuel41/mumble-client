@@ -102,7 +102,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 			throw new ServerPlayerAlreadyRegisteredException(this, player);
 
 		return addPlayer(info.getName(), info.getIdentifier(), info.isOnline(), info.getGameAddress(), info.isAdmin(), info.isMute(), info.isDeafen(), info.getX(),
-				info.getY(), info.getZ(), info.getY(), info.getPitch());
+				info.getY(), info.getZ(), info.getYaw(), info.getPitch());
 	}
 
 	/**

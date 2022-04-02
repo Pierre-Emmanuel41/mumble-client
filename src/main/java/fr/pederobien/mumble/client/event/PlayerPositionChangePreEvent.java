@@ -92,11 +92,23 @@ public class PlayerPositionChangePreEvent extends PlayerEvent implements ICancel
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("x=" + FORMAT.format(getX()));
-		joiner.add("y=" + FORMAT.format(getY()));
-		joiner.add("z=" + FORMAT.format(getZ()));
-		joiner.add("yaw=" + FORMAT.format(getYaw()));
-		joiner.add("pitch=" + FORMAT.format(getPitch()));
+
+		StringJoiner currentJoiner = new StringJoiner(", ", "{", "}");
+		currentJoiner.add("x=" + FORMAT.format(getPlayer().getPosition().getX()));
+		currentJoiner.add("y=" + FORMAT.format(getPlayer().getPosition().getY()));
+		currentJoiner.add("z=" + FORMAT.format(getPlayer().getPosition().getZ()));
+		currentJoiner.add("yaw=" + FORMAT.format(getPlayer().getPosition().getYaw()));
+		currentJoiner.add("pitch=" + FORMAT.format(getPlayer().getPosition().getPitch()));
+		joiner.add("current=" + currentJoiner);
+
+		StringJoiner newJoiner = new StringJoiner(", ", "{", "}");
+		newJoiner.add("x=" + FORMAT.format(getX()));
+		newJoiner.add("y=" + FORMAT.format(getY()));
+		newJoiner.add("z=" + FORMAT.format(getZ()));
+		newJoiner.add("yaw=" + FORMAT.format(getYaw()));
+		newJoiner.add("pitch=" + FORMAT.format(getPitch()));
+		joiner.add("new=" + newJoiner);
+
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

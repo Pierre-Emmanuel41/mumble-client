@@ -7,18 +7,17 @@ import fr.pederobien.mumble.client.interfaces.IPlayer;
 
 public class PlayerPositionChangePostEvent extends PlayerEvent {
 	private static final DecimalFormat FORMAT = new DecimalFormat("#.####");
-
 	private double x, y, z, yaw, pitch;
 
 	/**
-	 * Creates an event thrown when the coordinates of a player are about to change.
+	 * Creates an event thrown when the coordinates of a player has changed.
 	 * 
-	 * @param player The player whose the coordinates are about to change.
-	 * @param x      The new x coordinates.
-	 * @param y      The new y coordinates.
-	 * @param z      The new z coordinates.
-	 * @param yaw    The new yaw angle.
-	 * @param pitch  The new pitch angle.
+	 * @param player The player whose the coordinates has changed.
+	 * @param x      The old x coordinates.
+	 * @param y      The old y coordinates.
+	 * @param z      The old z coordinates.
+	 * @param yaw    The old yaw angle.
+	 * @param pitch  The old pitch angle.
 	 */
 	public PlayerPositionChangePostEvent(IPlayer player, double x, double y, double z, double yaw, double pitch) {
 		super(player);
@@ -30,35 +29,35 @@ public class PlayerPositionChangePostEvent extends PlayerEvent {
 	}
 
 	/**
-	 * @return The new x coordinate.
+	 * @return The old x coordinate.
 	 */
 	public double getX() {
 		return x;
 	}
 
 	/**
-	 * @return The new y coordinate.
+	 * @return The old y coordinate.
 	 */
 	public double getY() {
 		return y;
 	}
 
 	/**
-	 * @return The new z coordinate.
+	 * @return The old z coordinate.
 	 */
 	public double getZ() {
 		return z;
 	}
 
 	/**
-	 * @return The new yaw angle.
+	 * @return The old yaw angle.
 	 */
 	public double getYaw() {
 		return yaw;
 	}
 
 	/**
-	 * @return The new pitch angle.
+	 * @return The old pitch angle.
 	 */
 	public double getPitch() {
 		return pitch;
@@ -68,11 +67,23 @@ public class PlayerPositionChangePostEvent extends PlayerEvent {
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("player=" + getPlayer().getName());
-		joiner.add("x=" + FORMAT.format(getX()));
-		joiner.add("y=" + FORMAT.format(getY()));
-		joiner.add("z=" + FORMAT.format(getZ()));
-		joiner.add("yaw=" + FORMAT.format(getYaw()));
-		joiner.add("pitch=" + FORMAT.format(getPitch()));
+
+		StringJoiner currentJoiner = new StringJoiner(", ", "{", "}");
+		currentJoiner.add("x=" + FORMAT.format(getPlayer().getPosition().getX()));
+		currentJoiner.add("y=" + FORMAT.format(getPlayer().getPosition().getY()));
+		currentJoiner.add("z=" + FORMAT.format(getPlayer().getPosition().getZ()));
+		currentJoiner.add("yaw=" + FORMAT.format(getPlayer().getPosition().getYaw()));
+		currentJoiner.add("pitch=" + FORMAT.format(getPlayer().getPosition().getPitch()));
+		joiner.add("current=" + currentJoiner);
+
+		StringJoiner oldJoiner = new StringJoiner(", ", "{", "}");
+		oldJoiner.add("x=" + FORMAT.format(getX()));
+		oldJoiner.add("y=" + FORMAT.format(getY()));
+		oldJoiner.add("z=" + FORMAT.format(getZ()));
+		oldJoiner.add("yaw=" + FORMAT.format(getYaw()));
+		oldJoiner.add("pitch=" + FORMAT.format(getPitch()));
+		joiner.add("old=" + oldJoiner);
+
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

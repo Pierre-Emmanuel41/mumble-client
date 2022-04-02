@@ -7,8 +7,6 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
@@ -67,20 +65,6 @@ public abstract class RequestServerManagement {
 	 * @param request The request sent by the remote.
 	 */
 	protected abstract void playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Get the position of a player.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void playerPositionGet(PlayerPositionGetMessageV10 request);
-
-	/**
-	 * Set the position of a player.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void playerPositionSet(PlayerPositionSetMessageV10 request);
 
 	/**
 	 * Get or update the sound modifier of a channel.

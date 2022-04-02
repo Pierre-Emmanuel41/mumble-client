@@ -170,7 +170,7 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerPositionChange(PlayerPositionChangePreEvent event) {
-		tcpClient.onPlayerPositionChange(event.getPlayer(), event.getX(), event.getY(), event.getZ(), event.getY(), event.getPitch(),
+		tcpClient.onPlayerPositionChange(event.getPlayer(), event.getX(), event.getY(), event.getZ(), event.getYaw(), event.getPitch(),
 				args -> parse(args, event.getCallback(), null));
 	}
 
