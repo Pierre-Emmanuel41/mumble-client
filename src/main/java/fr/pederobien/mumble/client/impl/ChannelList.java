@@ -26,6 +26,7 @@ import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.model.ChannelInfo.LazyChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ChannelInfo.SimpleChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
+import fr.pederobien.mumble.common.impl.model.PlayerInfo.SimplePlayerInfo;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -127,7 +128,10 @@ public class ChannelList implements IChannelList, IEventListener {
 	 * @param info A description of the channel to create.
 	 */
 	public IChannel add(SimpleChannelInfo info) {
-		return addChannel(info.getName(), info.getSoundModifierInfo().getName(), info.getSoundModifierInfo().getParameterInfo());
+		IChannel channel = addChannel(info.getName(), info.getSoundModifierInfo().getName(), info.getSoundModifierInfo().getParameterInfo());
+		for (SimplePlayerInfo playerInfo : info.getPlayerInfo())
+			((PlayerList) channel.getPlayers()).add(playerInfo.getName());
+		return channel;
 	}
 
 	/**
