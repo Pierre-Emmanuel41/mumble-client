@@ -85,6 +85,7 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 			}
 		};
 
+		setIsReachable(true);
 		getConnection().getServerInfo(callback);
 	}
 
