@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
 import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
+import fr.pederobien.mumble.client.impl.Parameter;
 import fr.pederobien.mumble.client.impl.Player;
 import fr.pederobien.mumble.client.impl.PlayerList;
 import fr.pederobien.mumble.client.impl.Position;
@@ -23,6 +24,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessage
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerDeafenSetMessageV10;
@@ -120,6 +122,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> playerPositionMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		playerPositionMap.put(Oid.SET, request -> setPlayerPosition((PlayerPositionSetMessageV10) request));
 		getRequests().put(Idc.PLAYER_POSITION, playerPositionMap);
+
+		// Parameter value map
+		Map<Oid, Consumer<IMumbleMessage>> parameterValueMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
+		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
 
 		// Sound modifier map
 		Map<Oid, Consumer<IMumbleMessage>> soundModifierMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -381,5 +388,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private void setPlayerPosition(PlayerPositionSetMessageV10 request) {
 		((Position) getServer().getPlayers().get(request.getPlayerName()).get().getPosition()).update(request.getX(), request.getY(), request.getZ(), request.getYaw(),
 				request.getPitch());
+	}
+
+	/**
+	 * Set the value of a parameter of a sound modifier associated to a channel.
+	 * 
+	 * @param request The request sent by the remote in order to update the value of a parameter.
+	 */
+	private void setParameterValue(ParameterValueSetMessageV10 request) {
+		((Parameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
+				.setValue(request.getNewValue());
 	}
 }

@@ -41,7 +41,7 @@ public interface IChannelList extends Iterable<IChannel> {
 	 * 
 	 * @param name The player name.
 	 * 
-	 * @return An optional that contains the player if registered, an empty optional otherwise.
+	 * @return An optional that contains the channel if registered, an empty optional otherwise.
 	 */
 	Optional<IChannel> get(String name);
 

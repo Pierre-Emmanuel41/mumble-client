@@ -51,7 +51,9 @@ public class ParameterValueChangePreEvent extends ParameterEvent implements ICan
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
+		joiner.add("channel=" + getParameter().getSoundModifier().getChannel().getName());
+		joiner.add("soundModifier=" + getParameter().getSoundModifier().getName());
 		joiner.add("parameter=" + getParameter().getName());
 		joiner.add("currentValue=" + getParameter().getValue());
 		joiner.add("newValue=" + getNewValue());

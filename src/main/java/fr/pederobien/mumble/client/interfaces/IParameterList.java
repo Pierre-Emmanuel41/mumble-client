@@ -1,8 +1,7 @@
 package fr.pederobien.mumble.client.interfaces;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
@@ -10,27 +9,11 @@ public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
 	/**
 	 * Get the parameter associated to the given name.
 	 * 
-	 * @param <T>           The type of the parameter to return
-	 * @param parameterName The parameter name.
+	 * @param name The parameter name.
 	 * 
-	 * @return The parameter associated to the name if registered.
+	 * @return An optional that contains the parameter if registered, an empty optional otherwise.
 	 */
-	<T> IParameter<T> getParameter(String parameterName);
-
-	/**
-	 * Set the value of a parameter.
-	 * 
-	 * @param <T>           The type of the parameter.
-	 * @param parameterName The parameter name.
-	 * @param value         The new parameter value.
-	 * @param callback      the callback that is executed after reception of the answer from the remote.
-	 */
-	<T> void setParameterValue(String parameterName, T value, Consumer<IResponse> callback);
-
-	/**
-	 * @return The underlying list of the registered parameters.
-	 */
-	Map<String, IParameter<?>> getParameters();
+	Optional<IParameter<?>> get(String name);
 
 	/**
 	 * @return The number of registered parameters.

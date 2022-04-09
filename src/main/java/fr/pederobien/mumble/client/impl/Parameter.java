@@ -127,14 +127,8 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 
 		if (!isAttached())
 			this.value = type.cast(value);
-		else {
-			Consumer<IResponse> update = response -> {
-				if (!response.hasFailed())
-					setValue0(value);
-				callback.accept(response);
-			};
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, value, update));
-		}
+		else
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, value, callback));
 	}
 
 	@Override
@@ -180,6 +174,13 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	}
 
 	/**
+	 * Register this parameter for the event manager.
+	 */
+	public void register() {
+		EventManager.registerListener(this);
+	}
+
+	/**
 	 * Set the sound modifier associated to this parameter.
 	 * 
 	 * @param soundModifier The sound modifier associated to this parameter.
@@ -189,10 +190,15 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	}
 
 	/**
-	 * Register this parameter for the event manager.
+	 * Set The value of this parameter. For internal use only.
+	 * 
+	 * @param value The new parameter value.
 	 */
-	public void register() {
-		EventManager.registerListener(this);
+	public void setValue(Object value) {
+		if (this.value.equals(value))
+			return;
+
+		setValue0(value);
 	}
 
 	/**
@@ -200,18 +206,6 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	 */
 	protected boolean isAttached() {
 		return soundModifier != null && soundModifier.getChannel() != null;
-	}
-
-	/**
-	 * Set internally the value of this parameter. A {@link ParameterValueChangePostEvent} is thrown.
-	 * 
-	 * @param value The new parameter value.
-	 */
-	protected void setValue(Object value) {
-		if (this.value.equals(value))
-			return;
-
-		setValue0(value);
 	}
 
 	/**

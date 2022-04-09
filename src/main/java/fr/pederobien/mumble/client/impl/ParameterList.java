@@ -1,18 +1,17 @@
 package fr.pederobien.mumble.client.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
-import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.utils.event.EventHandler;
@@ -52,23 +51,8 @@ public class ParameterList implements IParameterList, IEventListener {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public <T> IParameter<T> getParameter(String parameterName) {
-		return (IParameter<T>) parameters.get(parameterName);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> void setParameterValue(String parameterName, T value, Consumer<IResponse> callback) {
-		IParameter<?> parameter = parameters.get(parameterName);
-		if (parameter == null)
-			return;
-		((IParameter<T>) parameter).setValue(value, callback);
-	}
-
-	@Override
-	public Map<String, IParameter<?>> getParameters() {
-		return Collections.unmodifiableMap(parameters);
+	public Optional<IParameter<?>> get(String name) {
+		return Optional.ofNullable(parameters.get(name));
 	}
 
 	@Override
@@ -109,10 +93,14 @@ public class ParameterList implements IParameterList, IEventListener {
 		if (!(obj instanceof IParameterList))
 			return false;
 
-		Map<String, IParameter<?>> other = ((IParameterList) obj).getParameters();
+		IParameterList other = (IParameterList) obj;
+		Map<String, IParameter<?>> map = new LinkedHashMap<String, IParameter<?>>();
+		for (IParameter<?> parameter : other.toList())
+			map.put(parameter.getName(), parameter);
+
 		boolean parameterEquals = true;
 		for (Map.Entry<String, IParameter<?>> entry : parameters.entrySet())
-			parameterEquals &= entry.getValue().equals(other.get(entry.getKey()));
+			parameterEquals &= entry.getValue().equals(map.get(entry.getKey()));
 
 		return parameterEquals;
 	}
@@ -167,7 +155,11 @@ public class ParameterList implements IParameterList, IEventListener {
 
 	private void update(IParameterList parameterList, Consumer<Parameter<?>> consumer) {
 		for (IParameter<?> param : this) {
-			Parameter<?> parameter = (Parameter<?>) parameterList.getParameter(param.getName());
+			Optional<IParameter<?>> optParameter = parameterList.get(param.getName());
+			if (!optParameter.isPresent())
+				continue;
+
+			Parameter<?> parameter = (Parameter<?>) optParameter.get();
 			if (parameter == null)
 				continue;
 			((Parameter<?>) param).update(parameter.getValue());
