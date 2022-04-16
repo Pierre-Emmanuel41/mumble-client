@@ -13,6 +13,7 @@ import fr.pederobien.mumble.client.impl.Parameter;
 import fr.pederobien.mumble.client.impl.Player;
 import fr.pederobien.mumble.client.impl.PlayerList;
 import fr.pederobien.mumble.client.impl.Position;
+import fr.pederobien.mumble.client.impl.RangeParameter;
 import fr.pederobien.mumble.client.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
@@ -24,6 +25,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessage
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.ParameterMinValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAdminSetMessageV10;
@@ -127,6 +129,11 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		Map<Oid, Consumer<IMumbleMessage>> parameterValueMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
 		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
+
+		// Parameter min value map
+		Map<Oid, Consumer<IMumbleMessage>> parameterMinValueMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		parameterMinValueMap.put(Oid.SET, request -> setParameterMinValue((ParameterMinValueSetMessageV10) request));
+		getRequests().put(Idc.PARAMETER_MIN_VALUE, parameterMinValueMap);
 
 		// Sound modifier map
 		Map<Oid, Consumer<IMumbleMessage>> soundModifierMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -398,5 +405,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private void setParameterValue(ParameterValueSetMessageV10 request) {
 		((Parameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
 				.setValue(request.getNewValue());
+	}
+
+	/**
+	 * Set the minimum value of a parameter of a sound modifier associated to a channel.
+	 * 
+	 * @param request The request sent by the remote in order to update the minimum value of a parameter.
+	 */
+	private void setParameterMinValue(ParameterMinValueSetMessageV10 request) {
+		((RangeParameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
+				.setMin(request.getNewMinValue());
 	}
 }

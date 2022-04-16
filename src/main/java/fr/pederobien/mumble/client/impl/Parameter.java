@@ -208,20 +208,6 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 		return soundModifier != null && soundModifier.getChannel() != null;
 	}
 
-	/**
-	 * Update the parameter value without throwing a {@link ParameterValueChangePostEvent}.
-	 * 
-	 * @param value The new parameter value.
-	 * 
-	 * @throws IllegalArgumentException If the sound modifier associated to this parameter is attached to a channel. In that case,
-	 *                                  please use {@link #setValue(Object, Consumer)}.
-	 */
-	protected void update(Object value) {
-		if (isAttached())
-			throw new IllegalArgumentException(String.format("%s an attached parameter cannot be updated", getName()));
-		this.value = type.cast(value);
-	}
-
 	@EventHandler
 	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
 		if (!event.getOldSoundModifier().equals(soundModifier))
@@ -236,8 +222,12 @@ public class Parameter<T> implements IParameter<T>, IEventListener {
 	 * @param value The new parameter value.
 	 */
 	private void setValue0(Object value) {
-		T oldValue = this.value;
-		this.value = type.cast(value);
-		EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+		if (!isAttached())
+			this.value = getType().cast(value);
+		else {
+			T oldValue = this.value;
+			this.value = getType().cast(value);
+			EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+		}
 	}
 }

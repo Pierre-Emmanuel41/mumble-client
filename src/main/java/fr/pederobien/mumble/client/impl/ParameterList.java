@@ -12,8 +12,8 @@ import java.util.stream.Stream;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
+import fr.pederobien.mumble.client.interfaces.IRangeParameter;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
-import fr.pederobien.mumble.common.impl.model.ParameterInfo.LazyParameterInfo;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -111,16 +111,12 @@ public class ParameterList implements IParameterList, IEventListener {
 	 * @param info The description of the parameter to add.
 	 */
 	protected void add(FullParameterInfo info) {
-		parameters.put(info.getName(), Parameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue()));
-	}
-
-	/**
-	 * Creates a parameter based on the given parameter description.
-	 * 
-	 * @param info The description of the parameter to add.
-	 */
-	protected void add(LazyParameterInfo info) {
-		parameters.put(info.getName(), Parameter.fromType(info.getType(), info.getName(), info.getValue(), info.getValue()));
+		IParameter<?> parameter;
+		if (info.isRange())
+			parameter = RangeParameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue(), info.getMinValue(), info.getMaxValue());
+		else
+			parameter = Parameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue());
+		parameters.put(parameter.getName(), parameter);
 	}
 
 	/**
@@ -160,9 +156,15 @@ public class ParameterList implements IParameterList, IEventListener {
 				continue;
 
 			Parameter<?> parameter = (Parameter<?>) optParameter.get();
-			if (parameter == null)
-				continue;
-			((Parameter<?>) param).update(parameter.getValue());
+
+			if (optParameter.get() instanceof IRangeParameter<?> && param instanceof IRangeParameter<?>) {
+				RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
+				RangeParameter<?> rangeParam = (RangeParameter<?>) param;
+				rangeParam.setMin(rangeParameter.getMin());
+			}
+
+			((Parameter<?>) param).setValue(parameter.getValue());
+
 			if (consumer != null)
 				consumer.accept((Parameter<?>) param);
 		}

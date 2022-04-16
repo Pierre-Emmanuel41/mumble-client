@@ -12,6 +12,7 @@ import fr.pederobien.communication.interfaces.ITcpConnection;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
+import fr.pederobien.mumble.client.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Idc;
@@ -76,6 +77,20 @@ public class MumbleTcpClient {
 
 			// Parameter's value
 			informations.add(parameter.getValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
 		}
 
 		send(builder(Idc.CHANNELS, Oid.ADD, informations.toArray()).build(callback));
@@ -313,7 +328,7 @@ public class MumbleTcpClient {
 		// Number of parameters
 		informations.add(newSoundModifier.getParameters().size());
 		for (IParameter<?> parameter : newSoundModifier.getParameters()) {
-			// Parmaeter's name
+			// Parameter's name
 			informations.add(parameter.getName());
 
 			// Parameter's type
@@ -321,6 +336,20 @@ public class MumbleTcpClient {
 
 			// Parameter's value
 			informations.add(parameter.getValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
 		}
 
 		send(builder(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()).build(callback));
@@ -329,7 +358,6 @@ public class MumbleTcpClient {
 	/**
 	 * Send a message to the remote in order to update the value of the given parameter.
 	 * 
-	 * @param <T>       The underlying type of the parameter.
 	 * @param parameter The parameter whose the value has changed.
 	 * @param value     The new parameter value.
 	 * @param callback  The callback to run when an answer is received from the server.
@@ -350,6 +378,31 @@ public class MumbleTcpClient {
 		informations.add(value);
 
 		send(builder(Idc.PARAMETER_VALUE, Oid.SET, informations.toArray()).build(callback));
+	}
+
+	/**
+	 * Send a message to the remote in order to update the minimum value of the given parameter.
+	 * 
+	 * @param parameter The parameter whose the minimum value has changed.
+	 * @param minValue  The new minimum parameter value.
+	 * @param callback  The callback to run when an answer is received from the server.
+	 */
+	public void onParameterMinValueChange(IParameter<?> parameter, Object minValue, Consumer<ResponseCallbackArgs> callback) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's minimum value
+		informations.add(minValue);
+
+		send(builder(Idc.PARAMETER_MIN_VALUE, Oid.SET, informations.toArray()).build(callback));
 	}
 
 	/**

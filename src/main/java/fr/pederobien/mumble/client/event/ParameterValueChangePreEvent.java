@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.impl.Parameter;
+import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
@@ -19,7 +19,7 @@ public class ParameterValueChangePreEvent extends ParameterEvent implements ICan
 	 * @param newValue  The future parameter new value.
 	 * @param callback  The action to execute when an answer has been received from the server.
 	 */
-	public ParameterValueChangePreEvent(Parameter<?> parameter, Object newValue, Consumer<IResponse> callback) {
+	public ParameterValueChangePreEvent(IParameter<?> parameter, Object newValue, Consumer<IResponse> callback) {
 		super(parameter);
 		this.newValue = newValue;
 		this.callback = callback;

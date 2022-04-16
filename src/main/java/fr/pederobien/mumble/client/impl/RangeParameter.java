@@ -4,12 +4,15 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.event.ParameterMinValueChangePostEvent;
+import fr.pederobien.mumble.client.event.ParameterMinValueChangePreEvent;
+import fr.pederobien.mumble.client.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.model.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 
-public class RangeParameter<T> extends Parameter<T> {
+public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T> {
 	private T min, max;
 
 	/**
@@ -95,6 +98,32 @@ public class RangeParameter<T> extends Parameter<T> {
 	}
 
 	@Override
+	public T getMin() {
+		return min;
+	}
+
+	@Override
+	public void setMin(Object min, Consumer<IResponse> callback) {
+		if (this.min.equals(min))
+			return;
+
+		if (!isAttached())
+			this.min = getType().cast(min);
+		else
+			EventManager.callEvent(new ParameterMinValueChangePreEvent(this, min, callback));
+	}
+
+	@Override
+	public T getMax() {
+		return max;
+	}
+
+	@Override
+	public void setMax(Object max, Consumer<IResponse> callback) {
+
+	}
+
+	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("name=" + getName());
@@ -110,33 +139,46 @@ public class RangeParameter<T> extends Parameter<T> {
 		return new RangeParameter<T>(this);
 	}
 
-	/**
-	 * @return The minimum parameter value.
-	 */
-	public T getMin() {
-		return min;
-	}
-
-	/**
-	 * @return The maximum parameter value.
-	 */
-	public T getMax() {
-		return max;
-	}
-
-	@SuppressWarnings("unchecked")
-	public void checkRange(Object value) {
-		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
-		Comparable<? super Number> comparableValue = (Comparable<? super Number>) value;
-		if (!(comparableMin.compareTo((Number) comparableValue) <= 0 && comparableValue.compareTo((Number) max) <= 0))
-			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
-	}
-
 	@EventHandler
 	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
 		if (!event.getOldSoundModifier().equals(getSoundModifier()))
 			return;
 
 		EventManager.unregisterListener(this);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void checkRange(Object value) {
+		Comparable<? super Number> comparableMin = (Comparable<? super Number>) min;
+		Comparable<? super Number> comparableValue = (Comparable<? super Number>) value;
+		if (!(comparableMin.compareTo((Number) comparableValue) <= 0 && comparableValue.compareTo((Number) max) <= 0))
+			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
+	}
+
+	/**
+	 * Set the minimum value of this parameter. For internal use only.
+	 * 
+	 * @param min The new parameter minimum value.
+	 */
+	public void setMin(Object min) {
+		if (this.min.equals(min))
+			return;
+
+		setMin0(min);
+	}
+
+	/**
+	 * Set internally the minimum value of this parameter.
+	 * 
+	 * @param min The new parameter minimum value.
+	 */
+	private void setMin0(Object min) {
+		if (!isAttached())
+			this.min = getType().cast(min);
+		else {
+			T oldMin = this.min;
+			this.min = getType().cast(min);
+			EventManager.callEvent(new ParameterMinValueChangePostEvent(this, oldMin));
+		}
 	}
 }

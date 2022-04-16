@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.impl.Parameter;
+import fr.pederobien.mumble.client.interfaces.IParameter;
 
 public class ParameterValueChangePostEvent extends ParameterEvent {
 	private Object oldValue;
@@ -13,7 +13,7 @@ public class ParameterValueChangePostEvent extends ParameterEvent {
 	 * @param parameter The parameter whose the value has changed.
 	 * @param oldValue  The old parameter value.
 	 */
-	public ParameterValueChangePostEvent(Parameter<?> parameter, Object oldValue) {
+	public ParameterValueChangePostEvent(IParameter<?> parameter, Object oldValue) {
 		super(parameter);
 		this.oldValue = oldValue;
 	}

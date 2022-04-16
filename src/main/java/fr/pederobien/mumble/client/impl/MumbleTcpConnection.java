@@ -11,6 +11,7 @@ import fr.pederobien.mumble.client.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
+import fr.pederobien.mumble.client.event.ParameterMinValueChangePreEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerDeafenStatusChangePreEvent;
@@ -29,7 +30,7 @@ import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
-import fr.pederobien.mumble.common.impl.model.ChannelInfo.SimpleChannelInfo;
+import fr.pederobien.mumble.common.impl.model.ChannelInfo.SemiFullChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.mumble.common.impl.model.SoundModifierInfo.FullSoundModifierInfo;
@@ -73,19 +74,19 @@ public class MumbleTcpConnection implements IEventListener {
 				return false;
 
 			ServerInfoGetMessageV10 serverInfoMessage = (ServerInfoGetMessageV10) message;
-			for (FullPlayerInfo playerInfo : serverInfoMessage.getServerInfo().getPlayerInfo())
+			for (FullPlayerInfo playerInfo : serverInfoMessage.getServerInfo().getPlayerInfo().values())
 				((ServerPlayerList) server.getPlayers()).add(playerInfo);
 
-			for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo()) {
+			for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
 				ParameterList parameterList = new ParameterList(server);
-				for (FullParameterInfo parameterInfo : modifierInfo.getParameterInfo())
+				for (FullParameterInfo parameterInfo : modifierInfo.getParameterInfo().values())
 					parameterList.add(parameterInfo);
 
 				ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), parameterList);
 				((SoundModifierList) server.getSoundModifierList()).register(soundModifier);
 			}
 
-			for (SimpleChannelInfo channelInfo : serverInfoMessage.getServerInfo().getChannelInfo())
+			for (SemiFullChannelInfo channelInfo : serverInfoMessage.getServerInfo().getChannelInfo().values())
 				((ChannelList) server.getChannels()).add(channelInfo);
 
 			return true;
@@ -182,6 +183,11 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
 		tcpClient.onParameterValueChange(event.getParameter(), event.getNewValue(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onParameterMinValueChange(ParameterMinValueChangePreEvent event) {
+		tcpClient.onParameterMinValueChange(event.getParameter(), event.getNewMinValue(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
