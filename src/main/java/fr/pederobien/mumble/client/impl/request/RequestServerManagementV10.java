@@ -25,6 +25,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.ChannelsPlayerRemoveMessage
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.ParameterMaxValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ParameterMinValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.ParameterValueSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerAddMessageV10;
@@ -130,10 +131,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		parameterValueMap.put(Oid.SET, request -> setParameterValue((ParameterValueSetMessageV10) request));
 		getRequests().put(Idc.PARAMETER_VALUE, parameterValueMap);
 
-		// Parameter min value map
+		// Parameter minimum value map
 		Map<Oid, Consumer<IMumbleMessage>> parameterMinValueMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
 		parameterMinValueMap.put(Oid.SET, request -> setParameterMinValue((ParameterMinValueSetMessageV10) request));
 		getRequests().put(Idc.PARAMETER_MIN_VALUE, parameterMinValueMap);
+
+		// Parameter maximum value map
+		Map<Oid, Consumer<IMumbleMessage>> parameterMaxValueMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
+		parameterMaxValueMap.put(Oid.SET, request -> setParameterMaxValue((ParameterMaxValueSetMessageV10) request));
+		getRequests().put(Idc.PARAMETER_MAX_VALUE, parameterMaxValueMap);
 
 		// Sound modifier map
 		Map<Oid, Consumer<IMumbleMessage>> soundModifierMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
@@ -415,5 +421,15 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private void setParameterMinValue(ParameterMinValueSetMessageV10 request) {
 		((RangeParameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
 				.setMin(request.getNewMinValue());
+	}
+
+	/**
+	 * Set the maximum value of a parameter of a sound modifier associated to a channel.
+	 * 
+	 * @param request The request sent by the remote in order to update the maximum value of a parameter.
+	 */
+	private void setParameterMaxValue(ParameterMaxValueSetMessageV10 request) {
+		((RangeParameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
+				.setMax(request.getNewMaxValue());
 	}
 }

@@ -406,6 +406,31 @@ public class MumbleTcpClient {
 	}
 
 	/**
+	 * Send a message to the remote in order to update the maximum value of the given parameter.
+	 * 
+	 * @param parameter The parameter whose the maximum value has changed.
+	 * @param maxValue  The new maximum parameter value.
+	 * @param callback  The callback to run when an answer is received from the server.
+	 */
+	public void onParameterMaxValueChange(IParameter<?> parameter, Object maxValue, Consumer<ResponseCallbackArgs> callback) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(parameter.getSoundModifier().getChannel().getName());
+
+		// Parameter's name
+		informations.add(parameter.getName());
+
+		// Parameter's type
+		informations.add(parameter.getType());
+
+		// Parameter's maximum value
+		informations.add(maxValue);
+
+		send(builder(Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray()).build(callback));
+	}
+
+	/**
 	 * Send a message to the remote in order to set if a port is used on client side.
 	 * 
 	 * @param request The request sent by the remote in order to check if a specific port is used.

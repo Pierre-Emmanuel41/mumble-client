@@ -11,6 +11,7 @@ import fr.pederobien.mumble.client.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
+import fr.pederobien.mumble.client.event.ParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.client.event.ParameterMinValueChangePreEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerAdminChangePreEvent;
@@ -188,6 +189,11 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMinValueChange(ParameterMinValueChangePreEvent event) {
 		tcpClient.onParameterMinValueChange(event.getParameter(), event.getNewMinValue(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onParameterMaxValueChange(ParameterMaxValueChangePreEvent event) {
+		tcpClient.onParameterMaxValueChange(event.getParameter(), event.getNewMaxValue(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

@@ -4,6 +4,8 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.event.ParameterMaxValueChangePostEvent;
+import fr.pederobien.mumble.client.event.ParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.client.event.ParameterMinValueChangePostEvent;
 import fr.pederobien.mumble.client.event.ParameterMinValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IRangeParameter;
@@ -120,7 +122,13 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 
 	@Override
 	public void setMax(Object max, Consumer<IResponse> callback) {
+		if (this.max.equals(max))
+			return;
 
+		if (!isAttached())
+			this.max = getType().cast(max);
+		else
+			EventManager.callEvent(new ParameterMaxValueChangePreEvent(this, max, callback));
 	}
 
 	@Override
@@ -168,6 +176,18 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 	}
 
 	/**
+	 * Set the maximum value of this parameter. For internal use only.
+	 * 
+	 * @param max The new parameter maximum value.
+	 */
+	public void setMax(Object max) {
+		if (this.max.equals(max))
+			return;
+
+		setMax0(max);
+	}
+
+	/**
 	 * Set internally the minimum value of this parameter.
 	 * 
 	 * @param min The new parameter minimum value.
@@ -179,6 +199,21 @@ public class RangeParameter<T> extends Parameter<T> implements IRangeParameter<T
 			T oldMin = this.min;
 			this.min = getType().cast(min);
 			EventManager.callEvent(new ParameterMinValueChangePostEvent(this, oldMin));
+		}
+	}
+
+	/**
+	 * Set internally the maximum value of this parameter.
+	 * 
+	 * @param max The new parameter maximum value.
+	 */
+	private void setMax0(Object max) {
+		if (!isAttached())
+			this.max = getType().cast(max);
+		else {
+			T oldMax = this.max;
+			this.max = getType().cast(max);
+			EventManager.callEvent(new ParameterMaxValueChangePostEvent(this, oldMax));
 		}
 	}
 }

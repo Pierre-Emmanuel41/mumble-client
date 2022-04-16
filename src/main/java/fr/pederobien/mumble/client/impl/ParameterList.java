@@ -161,6 +161,7 @@ public class ParameterList implements IParameterList, IEventListener {
 				RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter;
 				RangeParameter<?> rangeParam = (RangeParameter<?>) param;
 				rangeParam.setMin(rangeParameter.getMin());
+				rangeParam.setMax(rangeParameter.getMax());
 			}
 
 			((Parameter<?>) param).setValue(parameter.getValue());
