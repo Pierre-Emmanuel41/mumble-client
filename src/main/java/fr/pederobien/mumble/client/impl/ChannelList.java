@@ -165,7 +165,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	private IChannel addChannel(String name, ISoundModifier soundModifier) {
 		lock.lock();
 		try {
-			Channel channel = new Channel(server, name, new ArrayList<IPlayer>(), (SoundModifier) soundModifier);
+			Channel channel = new Channel(server, name, new ArrayList<IPlayer>(), soundModifier);
 			channels.put(channel.getName(), channel);
 
 			EventManager.callEvent(new ChannelListChannelAddPostEvent(this, channel));

@@ -19,7 +19,7 @@ public class Channel implements IChannel {
 	private MumbleServer server;
 	private String name;
 	private IPlayerList players;
-	private SoundModifier soundModifier;
+	private ISoundModifier soundModifier;
 
 	/**
 	 * Creates a channel based on the given parameters.
@@ -29,13 +29,13 @@ public class Channel implements IChannel {
 	 * @param players       The list of players registered in the channel.
 	 * @param soundModifier The channel's sound modifier.
 	 */
-	public Channel(MumbleServer server, String name, List<IPlayer> players, SoundModifier soundModifier) {
+	public Channel(MumbleServer server, String name, List<IPlayer> players, ISoundModifier soundModifier) {
 		this.server = server;
 		this.name = name;
 		this.players = new PlayerList(this);
 
 		this.soundModifier = soundModifier;
-		this.soundModifier.setChannel(this);
+		((SoundModifier) soundModifier).setChannel(this);
 
 		for (IPlayer player : players)
 			players.add(player);
@@ -75,13 +75,7 @@ public class Channel implements IChannel {
 			return;
 
 		checkSoundModifier(soundModifier);
-
-		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				setSoundModifier0(soundModifier);
-			callback.accept(response);
-		};
-		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier, update));
+		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier, callback));
 	}
 
 	@Override
@@ -93,8 +87,10 @@ public class Channel implements IChannel {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
+
 		if (!(obj instanceof IChannel))
 			return false;
+
 		IChannel other = (IChannel) obj;
 		return name.equals(other.getName());
 	}
@@ -112,11 +108,11 @@ public class Channel implements IChannel {
 	}
 
 	/**
-	 * Set the sound modifier of this channel.
+	 * Set the sound modifier of this channel. For internal use only.
 	 * 
 	 * @param soundModifier The new channel's sound modifier.
 	 */
-	protected void setSoundModifier(ISoundModifier soundModifier) {
+	public void setSoundModifier(ISoundModifier soundModifier) {
 		if (this.soundModifier.equals(soundModifier))
 			return;
 
@@ -141,11 +137,9 @@ public class Channel implements IChannel {
 	 * @param soundModifier The new channel's sound modifier.
 	 */
 	private void setSoundModifier0(ISoundModifier soundModifier) {
-		SoundModifier oldSoundModifier = (SoundModifier) soundModifier;
-		oldSoundModifier.setChannel(null);
+		ISoundModifier oldSoundModifier = this.soundModifier;
 
-		this.soundModifier = (SoundModifier) soundModifier;
-		this.soundModifier.setChannel(this);
+		this.soundModifier = soundModifier;
 		EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 	}
 
@@ -156,7 +150,7 @@ public class Channel implements IChannel {
 	 */
 	private void checkSoundModifier(ISoundModifier soundModifier) {
 		Optional<ISoundModifier> optSoundModifier = getMumbleServer().getSoundModifierList().get(soundModifier.getName());
-		if (!optSoundModifier.isPresent() || soundModifier != optSoundModifier.get())
+		if (!optSoundModifier.isPresent() || !soundModifier.equals(optSoundModifier.get()))
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 	}
 }

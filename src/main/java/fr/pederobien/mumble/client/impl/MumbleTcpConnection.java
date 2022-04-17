@@ -177,11 +177,6 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
-		tcpClient.onSoundModifierChange(event.getChannel(), event.getNewSoundModifier(), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
 		tcpClient.onParameterValueChange(event.getParameter(), event.getNewValue(), args -> parse(args, event.getCallback(), null));
 	}
@@ -194,6 +189,11 @@ public class MumbleTcpConnection implements IEventListener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMaxValueChange(ParameterMaxValueChangePreEvent event) {
 		tcpClient.onParameterMaxValueChange(event.getParameter(), event.getNewMaxValue(), args -> parse(args, event.getCallback(), null));
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
+		tcpClient.onSoundModifierChange(event.getChannel(), event.getNewSoundModifier(), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

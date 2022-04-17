@@ -8,9 +8,6 @@ import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public abstract class RequestServerManagement {
@@ -65,25 +62,4 @@ public abstract class RequestServerManagement {
 	 * @param request The request sent by the remote.
 	 */
 	protected abstract void playerInfoSet(PlayerSetMessageV10 request);
-
-	/**
-	 * Get or update the sound modifier of a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void soundModifierGet(SoundModifierGetMessageV10 request);
-
-	/**
-	 * Set the sound modifier of a channel.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void soundModifierSet(SoundModifierSetMessageV10 request);
-
-	/**
-	 * Get a description of each sound modifier registered in the {@link SoundManager}.
-	 * 
-	 * @param request The request sent by the remote.
-	 */
-	protected abstract void soundModifierInfo(SoundModifierInfoMessageV10 request);
 }

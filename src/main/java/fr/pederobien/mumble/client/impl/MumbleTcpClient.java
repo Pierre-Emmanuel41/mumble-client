@@ -310,52 +310,6 @@ public class MumbleTcpClient {
 	}
 
 	/**
-	 * Send a message to the remote in order to update the sound modifier associated to the given channel.
-	 * 
-	 * @param channel          The channel whose the sound modifier has changed.
-	 * @param newSoundModifier The new channel's sound modifier.
-	 * @param callback         The callback to run when an answer is received from the server.
-	 */
-	public void onSoundModifierChange(IChannel channel, ISoundModifier newSoundModifier, Consumer<ResponseCallbackArgs> callback) {
-		List<Object> informations = new ArrayList<Object>();
-
-		// Channel's name
-		informations.add(channel.getName());
-
-		// Modifier's name
-		informations.add(newSoundModifier.getName());
-
-		// Number of parameters
-		informations.add(newSoundModifier.getParameters().size());
-		for (IParameter<?> parameter : newSoundModifier.getParameters()) {
-			// Parameter's name
-			informations.add(parameter.getName());
-
-			// Parameter's type
-			informations.add(parameter.getType());
-
-			// Parameter's value
-			informations.add(parameter.getValue());
-
-			// Parameter's range
-			boolean isRange = parameter instanceof IRangeParameter<?>;
-			informations.add(isRange);
-
-			if (isRange) {
-				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
-
-				// Parameter's minimum value
-				informations.add(rangeParameter.getMin());
-
-				// Parameter's maximum value
-				informations.add(rangeParameter.getMax());
-			}
-		}
-
-		send(builder(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()).build(callback));
-	}
-
-	/**
 	 * Send a message to the remote in order to update the value of the given parameter.
 	 * 
 	 * @param parameter The parameter whose the value has changed.
@@ -428,6 +382,55 @@ public class MumbleTcpClient {
 		informations.add(maxValue);
 
 		send(builder(Idc.PARAMETER_MAX_VALUE, Oid.SET, informations.toArray()).build(callback));
+	}
+
+	/**
+	 * Send a message to the remote in order to update the sound modifier associated to the given channel.
+	 * 
+	 * @param channel          The channel whose the sound modifier has changed.
+	 * @param newSoundModifier The new channel's sound modifier.
+	 * @param callback         The callback to run when an answer is received from the server.
+	 */
+	public void onSoundModifierChange(IChannel channel, ISoundModifier newSoundModifier, Consumer<ResponseCallbackArgs> callback) {
+		List<Object> informations = new ArrayList<Object>();
+
+		// Channel's name
+		informations.add(channel.getName());
+
+		// Modifier's name
+		informations.add(newSoundModifier.getName());
+
+		// Number of parameters
+		informations.add(newSoundModifier.getParameters().size());
+		for (IParameter<?> parameter : newSoundModifier.getParameters()) {
+			// Parameter's name
+			informations.add(parameter.getName());
+
+			// Parameter's type
+			informations.add(parameter.getType());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
+
+			// Parameter's default value
+			informations.add(parameter.getDefaultValue());
+
+			// Parameter's range
+			boolean isRange = parameter instanceof IRangeParameter<?>;
+			informations.add(isRange);
+
+			if (isRange) {
+				IRangeParameter<?> rangeParameter = (IRangeParameter<?>) parameter;
+
+				// Parameter's minimum value
+				informations.add(rangeParameter.getMin());
+
+				// Parameter's maximum value
+				informations.add(rangeParameter.getMax());
+			}
+		}
+
+		send(builder(Idc.SOUND_MODIFIER, Oid.SET, informations.toArray()).build(callback));
 	}
 
 	/**

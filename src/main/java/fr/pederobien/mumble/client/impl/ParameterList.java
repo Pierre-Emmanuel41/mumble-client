@@ -106,11 +106,11 @@ public class ParameterList implements IParameterList, IEventListener {
 	}
 
 	/**
-	 * Creates a parameter based on the given parameter description.
+	 * Creates a parameter based on the given parameter description. For internal use only.
 	 * 
 	 * @param info The description of the parameter to add.
 	 */
-	protected void add(FullParameterInfo info) {
+	public void add(FullParameterInfo info) {
 		IParameter<?> parameter;
 		if (info.isRange())
 			parameter = RangeParameter.fromType(info.getType(), info.getName(), info.getDefaultValue(), info.getValue(), info.getMinValue(), info.getMaxValue());

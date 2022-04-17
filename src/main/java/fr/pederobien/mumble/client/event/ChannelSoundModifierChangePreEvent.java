@@ -52,7 +52,7 @@ public class ChannelSoundModifierChangePreEvent extends ChannelEvent implements 
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("channel=" + getChannel().getName());
 		joiner.add("currentSoundModifier=" + getChannel().getSoundModifier().getName());
 		joiner.add("newSoundModifier=" + getNewSoundModifier().getName());

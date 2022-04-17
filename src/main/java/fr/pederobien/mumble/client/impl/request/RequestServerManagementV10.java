@@ -9,7 +9,9 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
 import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
+import fr.pederobien.mumble.client.impl.MumbleServer;
 import fr.pederobien.mumble.client.impl.Parameter;
+import fr.pederobien.mumble.client.impl.ParameterList;
 import fr.pederobien.mumble.client.impl.Player;
 import fr.pederobien.mumble.client.impl.PlayerList;
 import fr.pederobien.mumble.client.impl.Position;
@@ -17,6 +19,7 @@ import fr.pederobien.mumble.client.impl.RangeParameter;
 import fr.pederobien.mumble.client.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
+import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.Idc;
 import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.common.impl.messages.v10.ChannelsAddMessageV10;
@@ -40,9 +43,8 @@ import fr.pederobien.mumble.common.impl.messages.v10.PlayerOnlineSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerPositionSetMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerRemoveMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierGetMessageV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierInfoMessageV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SoundModifierSetMessageV10;
+import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventManager;
 
@@ -143,9 +145,7 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 
 		// Sound modifier map
 		Map<Oid, Consumer<IMumbleMessage>> soundModifierMap = new HashMap<Oid, Consumer<IMumbleMessage>>();
-		soundModifierMap.put(Oid.GET, request -> soundModifierGet((SoundModifierGetMessageV10) request));
-		soundModifierMap.put(Oid.SET, request -> soundModifierSet((SoundModifierSetMessageV10) request));
-		soundModifierMap.put(Oid.INFO, request -> soundModifierInfo((SoundModifierInfoMessageV10) request));
+		soundModifierMap.put(Oid.SET, request -> setChannelSoundModifier((SoundModifierSetMessageV10) request));
 		getRequests().put(Idc.SOUND_MODIFIER, soundModifierMap);
 	}
 
@@ -159,82 +159,6 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 		 * MumbleServerMessageFactory.answer(request, ErrorCode.UNEXPECTED_ERROR); } } else
 		 * getServer().getClients().removePlayer(request.getPlayerInfo().getName()); return MumbleServerMessageFactory.answer(request,
 		 * request.getProperties());
-		 */
-	}
-
-	@Override
-	protected void soundModifierGet(SoundModifierGetMessageV10 request) {
-		/*
-		 * List<Object> informations = new ArrayList<Object>();
-		 * 
-		 * // channel's name Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName()); if
-		 * (!optChannel.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
-		 * 
-		 * // channel's name informations.add(optChannel.get().getName());
-		 * 
-		 * // Modifier's name informations.add(optChannel.get().getSoundModifier().getName());
-		 * 
-		 * // Number of parameters informations.add(optChannel.get().getSoundModifier().getParameters().size());
-		 * 
-		 * for (IParameter<?> parameter : optChannel.get().getSoundModifier().getParameters()) { // Parameter's name
-		 * informations.add(parameter.getName());
-		 * 
-		 * // Parameter's type informations.add(parameter.getType());
-		 * 
-		 * // Parameter's value informations.add(parameter.getValue()); } return MumbleServerMessageFactory.answer(request,
-		 * informations.toArray());
-		 */
-	}
-
-	@Override
-	protected void soundModifierSet(SoundModifierSetMessageV10 request) {
-		/*
-		 * // Channel's name Optional<IChannel> optChannel = getServer().getChannels().getChannel(request.getChannelName()); if
-		 * (!optChannel.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.CHANNEL_DOES_NOT_EXISTS);
-		 * 
-		 * // Modifier's name Optional<ISoundModifier> optModifier = SoundManager.getByName(request.getSoundModifierInfo().getName()); if
-		 * (!optModifier.isPresent()) return MumbleServerMessageFactory.answer(request, ErrorCode.SOUND_MODIFIER_DOES_NOT_EXIST);
-		 * 
-		 * ParameterList parameterList = new ParameterList(); for (LazyParameterInfo parameterInfo :
-		 * request.getSoundModifierInfo().getParameterInfo()) parameterList.add(Parameter.fromType(parameterInfo.getType(),
-		 * parameterInfo.getName(), parameterInfo.getValue(), parameterInfo.getValue()));
-		 * 
-		 * if (optChannel.get().getSoundModifier().equals(optModifier.get()))
-		 * optChannel.get().getSoundModifier().getParameters().update(parameterList); else {
-		 * optModifier.get().getParameters().update(parameterList); optChannel.get().setSoundModifier(optModifier.get()); }
-		 * 
-		 * return MumbleServerMessageFactory.answer(request, request.getProperties());
-		 */
-	}
-
-	@Override
-	protected void soundModifierInfo(SoundModifierInfoMessageV10 request) {
-		/*
-		 * List<Object> informations = new ArrayList<Object>();
-		 * 
-		 * // Number of modifiers Map<String, ISoundModifier> modifiers = SoundManager.getSoundModifiers();
-		 * informations.add(modifiers.size());
-		 * 
-		 * // Modifier informations for (ISoundModifier modifier : modifiers.values()) { // Modifier's name
-		 * informations.add(modifier.getName());
-		 * 
-		 * // Number of parameter informations.add(modifier.getParameters().size());
-		 * 
-		 * // Modifier's parameter for (IParameter<?> parameter : modifier.getParameters()) { // Parameter's name
-		 * informations.add(parameter.getName());
-		 * 
-		 * // Parameter's type informations.add(parameter.getType());
-		 * 
-		 * // isRangeParameter boolean isRange = parameter instanceof RangeParameter; informations.add(isRange);
-		 * 
-		 * // Parameter's default value informations.add(parameter.getDefaultValue());
-		 * 
-		 * // Parameter's value informations.add(parameter.getValue());
-		 * 
-		 * // Parameter's range value if (isRange) { RangeParameter<?> rangeParameter = (RangeParameter<?>) parameter.getValue();
-		 * informations.add(rangeParameter.getMin()); informations.add(rangeParameter.getMax()); } } }
-		 * 
-		 * return MumbleServerMessageFactory.answer(request, informations.toArray());
 		 */
 	}
 
@@ -431,5 +355,22 @@ public class RequestServerManagementV10 extends RequestServerManagement {
 	private void setParameterMaxValue(ParameterMaxValueSetMessageV10 request) {
 		((RangeParameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
 				.setMax(request.getNewMaxValue());
+	}
+
+	/**
+	 * Set the sound modifier of a channel.
+	 * 
+	 * @param request The request sent by the remote in order to set the sound modifier of a channel.
+	 */
+	private void setChannelSoundModifier(SoundModifierSetMessageV10 request) {
+		Channel channel = (Channel) getServer().getChannels().get(request.getChannelInfo().getName()).get();
+		ISoundModifier soundModifier = getServer().getSoundModifierList().get(request.getChannelInfo().getSoundModifierInfo().getName()).get();
+
+		ParameterList parameterList = new ParameterList((MumbleServer) getServer());
+		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
+			parameterList.add(parameterInfo);
+
+		soundModifier.getParameters().update(parameterList);
+		channel.setSoundModifier(soundModifier);
 	}
 }

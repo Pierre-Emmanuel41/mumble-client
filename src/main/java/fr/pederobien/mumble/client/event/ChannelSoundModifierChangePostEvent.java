@@ -28,10 +28,10 @@ public class ChannelSoundModifierChangePostEvent extends ChannelEvent {
 
 	@Override
 	public String toString() {
-		StringJoiner joiner = new StringJoiner(",", "{", "}");
+		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("channel=" + getChannel().getName());
+		joiner.add("currentSoundModifier=" + getChannel().getSoundModifier().getName());
 		joiner.add("oldSoundModifier=" + getOldSoundModifier().getName());
-		joiner.add("newSoundModifier=" + getChannel().getSoundModifier().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

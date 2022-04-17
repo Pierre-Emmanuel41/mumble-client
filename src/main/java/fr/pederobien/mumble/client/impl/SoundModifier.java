@@ -1,12 +1,17 @@
 package fr.pederobien.mumble.client.impl;
 
+import fr.pederobien.mumble.client.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
+import fr.pederobien.utils.event.EventHandler;
+import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class SoundModifier implements ISoundModifier {
+public class SoundModifier implements ISoundModifier, IEventListener {
 	private String name;
 	private ParameterList parameterList;
-	private Channel channel;
+	private IChannel channel;
 
 	/**
 	 * Creates a sound modifier.
@@ -20,6 +25,8 @@ public class SoundModifier implements ISoundModifier {
 
 		for (IParameter<?> parameter : parameterList)
 			((Parameter<?>) parameter).setSoundModifier(this);
+
+		EventManager.registerListener(this);
 	}
 
 	/**
@@ -52,12 +59,8 @@ public class SoundModifier implements ISoundModifier {
 	}
 
 	@Override
-	public Channel getChannel() {
+	public IChannel getChannel() {
 		return channel;
-	}
-
-	public void setChannel(Channel channel) {
-		this.channel = channel;
 	}
 
 	@Override
@@ -78,5 +81,24 @@ public class SoundModifier implements ISoundModifier {
 			return false;
 
 		return parameterList.equals(other.getParameters());
+	}
+
+	/**
+	 * Set the channel associated to this sound modifier.
+	 * 
+	 * @param channel The new channel associated to this modifier.
+	 */
+	protected void setChannel(IChannel channel) {
+		this.channel = channel;
+	}
+
+	@EventHandler
+	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
+		if (event.getChannel().getSoundModifier() == this)
+			channel = event.getChannel();
+		else if (event.getOldSoundModifier() == this) {
+			channel = null;
+			EventManager.unregisterListener(this);
+		}
 	}
 }
