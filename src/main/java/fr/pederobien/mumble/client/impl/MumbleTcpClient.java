@@ -78,6 +78,9 @@ public class MumbleTcpClient {
 			// Parameter's value
 			informations.add(parameter.getValue());
 
+			// Parameter's default value
+			informations.add(parameter.getDefaultValue());
+
 			// Parameter's range
 			boolean isRange = parameter instanceof IRangeParameter<?>;
 			informations.add(isRange);
