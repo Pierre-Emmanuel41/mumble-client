@@ -70,4 +70,9 @@ public interface IMumbleServer {
 	 * @return The list of sound modifiers.
 	 */
 	ISoundModifierList getSoundModifierList();
+
+	/**
+	 * @return The manager responsible to create messages to send to the remote.
+	 */
+	IServerRequestManager getRequestManager();
 }

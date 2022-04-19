@@ -10,12 +10,13 @@ import fr.pederobien.mumble.client.event.ServerAddressChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.event.ServerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerReachableChangeEvent;
-import fr.pederobien.mumble.client.impl.request.RequestManager;
+import fr.pederobien.mumble.client.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IServerPlayerList;
+import fr.pederobien.mumble.client.interfaces.IServerRequestManager;
 import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventManager;
 
@@ -27,7 +28,7 @@ public abstract class MumbleServer implements IMumbleServer {
 	private IServerPlayerList players;
 	private IChannelList channels;
 	private ISoundModifierList soundModifierList;
-	private RequestManager requestManager;
+	private IServerRequestManager serverRequestManager;
 
 	protected AtomicBoolean isOpened;
 
@@ -47,7 +48,7 @@ public abstract class MumbleServer implements IMumbleServer {
 		isDisposed = new AtomicBoolean(false);
 		isReachable = new AtomicBoolean(false);
 		isOpened = new AtomicBoolean(false);
-		requestManager = new RequestManager(this);
+		serverRequestManager = new ServerRequestManager(this);
 	}
 
 	@Override
@@ -128,6 +129,11 @@ public abstract class MumbleServer implements IMumbleServer {
 	}
 
 	@Override
+	public IServerRequestManager getRequestManager() {
+		return serverRequestManager;
+	}
+
+	@Override
 	public String toString() {
 		return String.format("Server={Name=%s, address=%s, tcpPort=%s}", name, address.getAddress().getHostAddress(), address.getPort());
 	}
@@ -144,16 +150,9 @@ public abstract class MumbleServer implements IMumbleServer {
 	}
 
 	/**
-	 * @return The request manager in order to perform a specific action according the remote request.
-	 */
-	public RequestManager getRequestManager() {
-		return requestManager;
-	}
-
-	/**
 	 * @return The mumble connection in order to send messages to the remote.
 	 */
-	protected MumbleTcpConnection getConnection() {
+	protected MumbleTcpConnection getMumbleConnection() {
 		return connection;
 	}
 
@@ -194,7 +193,7 @@ public abstract class MumbleServer implements IMumbleServer {
 	}
 
 	private void reinitialize() {
-		if (connection != null && !connection.getTcpClient().getConnection().isDisposed())
+		if (connection != null && !connection.getTcpConnection().isDisposed())
 			closeConnection();
 		openConnection();
 	}
@@ -204,13 +203,13 @@ public abstract class MumbleServer implements IMumbleServer {
 			return;
 
 		connection = new MumbleTcpConnection(this);
-		connection.getTcpClient().getConnection().connect();
+		connection.getTcpConnection().connect();
 	}
 
 	private void closeConnection() {
 		if (!isOpened.compareAndSet(true, false))
 			return;
-		connection.getTcpClient().getConnection().dispose();
+		connection.getTcpConnection().dispose();
 		setIsReachable(false);
 	}
 }

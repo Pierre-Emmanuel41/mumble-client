@@ -115,7 +115,7 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(server.getConnection().getTcpClient().getConnection()))
+		if (!event.getConnection().equals(server.getMumbleConnection().getTcpConnection()))
 			return;
 
 		EventManager.unregisterListener(this);

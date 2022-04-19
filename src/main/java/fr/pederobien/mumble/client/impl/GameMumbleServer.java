@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.ConnectionLostEvent;
+import fr.pederobien.mumble.client.event.CommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -47,11 +48,11 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 		lock.lock();
 		try {
 			if (!joined.await(5000, TimeUnit.MILLISECONDS)) {
-				getConnection().getTcpClient().getConnection().dispose();
+				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Time out on server configuration request.");
 			}
 			if (joinFailed) {
-				getConnection().getTcpClient().getConnection().dispose();
+				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Technical error: Fail to retrieve the server configuration");
 			}
 
@@ -71,7 +72,15 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 
 	@EventHandler
 	private void onConnectionComplete(ConnectionCompleteEvent event) {
-		if (!event.getConnection().equals(getConnection().getTcpClient().getConnection()))
+		if (!event.getConnection().equals(getMumbleConnection().getTcpConnection()))
+			return;
+
+		setIsReachable(true);
+	}
+
+	@EventHandler
+	private void onSetCommunicationProtocolVersion(CommunicationProtocolVersionSetPostEvent event) {
+		if (!event.getConnection().equals(getMumbleConnection()))
 			return;
 
 		Consumer<IResponse> callback = response -> {
@@ -85,13 +94,12 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 			}
 		};
 
-		setIsReachable(true);
-		getConnection().getServerInfo(callback);
+		getMumbleConnection().getServerInfo(callback);
 	}
 
 	@EventHandler
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(getConnection().getTcpClient().getConnection()))
+		if (!event.getConnection().equals(getMumbleConnection().getTcpConnection()))
 			return;
 
 		setIsReachable(false);
@@ -100,7 +108,7 @@ public class GameMumbleServer extends MumbleServer implements IEventListener {
 
 	@EventHandler
 	private void onConnectionLost(ConnectionLostEvent event) {
-		if (!event.getConnection().equals(getConnection().getTcpClient().getConnection()))
+		if (!event.getConnection().equals(getMumbleConnection().getTcpConnection()))
 			return;
 
 		setIsReachable(false);
