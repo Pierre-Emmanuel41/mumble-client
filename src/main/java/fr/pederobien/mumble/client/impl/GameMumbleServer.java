@@ -18,8 +18,8 @@ import fr.pederobien.utils.event.IEventListener;
 
 public class GameMumbleServer extends AbstractMumbleServer implements IEventListener {
 	private Lock lock;
-	private Condition joined;
-	private boolean joinFailed;
+	private Condition serverConfiguration, communicationProtocolVersion;
+	private boolean serverConfigurationRequestSuccess;
 
 	/**
 	 * Creates a server that represents a game server.
@@ -31,7 +31,8 @@ public class GameMumbleServer extends AbstractMumbleServer implements IEventList
 		super(name, address);
 
 		lock = new ReentrantLock(true);
-		joined = lock.newCondition();
+		serverConfiguration = lock.newCondition();
+		communicationProtocolVersion = lock.newCondition();
 
 		EventManager.registerListener(this);
 	}
@@ -44,21 +45,26 @@ public class GameMumbleServer extends AbstractMumbleServer implements IEventList
 
 		super.open();
 
-		joinFailed = false;
 		lock.lock();
 		try {
-			if (!joined.await(5000, TimeUnit.MILLISECONDS)) {
+			if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
+				getMumbleConnection().getTcpConnection().dispose();
+				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+			}
+
+			serverConfigurationRequestSuccess = false;
+			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
 				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Time out on server configuration request.");
 			}
-			if (joinFailed) {
+			if (serverConfigurationRequestSuccess) {
 				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Technical error: Fail to retrieve the server configuration");
 			}
 
 			setIsReachable(true);
 		} catch (InterruptedException e) {
-			// do nothing
+			// Do nothing
 		} finally {
 			lock.unlock();
 		}
@@ -83,12 +89,18 @@ public class GameMumbleServer extends AbstractMumbleServer implements IEventList
 		if (!event.getConnection().equals(getMumbleConnection()))
 			return;
 
+		lock.lock();
+		try {
+			communicationProtocolVersion.signal();
+		} finally {
+			lock.unlock();
+		}
+
 		Consumer<IResponse> callback = response -> {
-			if (response.hasFailed())
-				joinFailed = true;
+			serverConfigurationRequestSuccess = response.hasFailed();
 			lock.lock();
 			try {
-				joined.signal();
+				serverConfiguration.signal();
 			} finally {
 				lock.unlock();
 			}

@@ -66,6 +66,11 @@ public class ServerRequestManager implements IServerRequestManager {
 	}
 
 	@Override
+	public IMumbleMessage onServerJoin(float version) {
+		return findManagerAndApply(1.0f, manager -> manager.onServerJoin());
+	}
+
+	@Override
 	public IMumbleMessage onChannelAdd(float version, String name, ISoundModifier soundModifier) {
 		return findManagerAndApply(version, manager -> manager.onChannelAdd(name, soundModifier));
 	}

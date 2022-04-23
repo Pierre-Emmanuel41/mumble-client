@@ -29,6 +29,7 @@ import fr.pederobien.mumble.client.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerPositionChangePreEvent;
+import fr.pederobien.mumble.client.event.ServerJoinPreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
@@ -120,6 +121,14 @@ public class MumbleTcpConnection implements IEventListener {
 
 		version = server.getRequestManager().getVersions().contains(event.getVersion()) ? event.getVersion() : 1.0f;
 		send(getRequestManager().onSetCommunicationProtocolVersion(event.getRequest(), event.getVersion()), null);
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	private void onServerJoin(ServerJoinPreEvent event) {
+		if (!event.getServer().equals(server))
+			return;
+
+		send(getRequestManager().onServerJoin(version), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

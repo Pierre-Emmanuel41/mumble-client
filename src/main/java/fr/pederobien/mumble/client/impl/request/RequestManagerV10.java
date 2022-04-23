@@ -179,6 +179,11 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
+	public IMumbleMessage onServerJoin() {
+		return create(getVersion(), Idc.SERVER_JOIN, Oid.SET);
+	}
+
+	@Override
 	public IMumbleMessage onChannelAdd(String name, ISoundModifier soundModifier) {
 		List<Object> informations = new ArrayList<Object>();
 

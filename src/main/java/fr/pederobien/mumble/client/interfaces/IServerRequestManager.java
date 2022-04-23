@@ -55,6 +55,15 @@ public interface IServerRequestManager {
 	IMumbleMessage onSetCommunicationProtocolVersion(IMumbleMessage request, float version);
 
 	/**
+	 * Creates a message in order to join a mumble server.
+	 * 
+	 * @param version The protocol version to use to create a mumble message.
+	 * 
+	 * @return The message to send to the remote in order to join a mumble server.
+	 */
+	IMumbleMessage onServerJoin(float version);
+
+	/**
 	 * Creates a message in order to add a channel to the server.
 	 * 
 	 * @param version       The protocol version to use to create a mumble message.

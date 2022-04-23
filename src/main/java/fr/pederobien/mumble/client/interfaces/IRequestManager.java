@@ -48,6 +48,13 @@ public interface IRequestManager {
 	IMumbleMessage onSetCommunicationProtocolVersion(IMumbleMessage request, float version);
 
 	/**
+	 * Creates a message in order to join a mumble server.
+	 * 
+	 * @return The message to send to the remote in order to join a mumble server.
+	 */
+	IMumbleMessage onServerJoin();
+
+	/**
 	 * Creates a message in order to add a channel to the server.
 	 * 
 	 * @param name          The name of the channel to add.
