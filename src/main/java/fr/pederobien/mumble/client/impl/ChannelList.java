@@ -50,7 +50,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	}
 
 	@Override
-	public IMumbleServer getMumbleServer() {
+	public IMumbleServer getServer() {
 		return server;
 	}
 
@@ -65,7 +65,7 @@ public class ChannelList implements IChannelList, IEventListener {
 		if (registered != null)
 			throw new ChannelAlreadyRegisteredException(this, registered);
 
-		Optional<ISoundModifier> optSoundModifier = getMumbleServer().getSoundModifierList().get(soundModifier.getName());
+		Optional<ISoundModifier> optSoundModifier = getServer().getSoundModifierList().get(soundModifier.getName());
 		if (!optSoundModifier.isPresent())
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 
@@ -132,7 +132,7 @@ public class ChannelList implements IChannelList, IEventListener {
 		if (registered != null)
 			throw new ChannelAlreadyRegisteredException(this, registered);
 
-		ISoundModifier soundModifier = getMumbleServer().getSoundModifierList().get(info.getSoundModifierInfo().getName()).get();
+		ISoundModifier soundModifier = getServer().getSoundModifierList().get(info.getSoundModifierInfo().getName()).get();
 		ParameterList parameters = new ParameterList(server);
 		for (FullParameterInfo parameterInfo : info.getSoundModifierInfo().getParameterInfo().values())
 			parameters.add(parameterInfo);

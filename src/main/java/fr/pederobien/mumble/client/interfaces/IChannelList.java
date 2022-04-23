@@ -10,7 +10,7 @@ public interface IChannelList extends Iterable<IChannel> {
 	/**
 	 * @return The server to which this channel list is associated.
 	 */
-	IMumbleServer getMumbleServer();
+	IMumbleServer getServer();
 
 	/**
 	 * @return The name of this channel list.

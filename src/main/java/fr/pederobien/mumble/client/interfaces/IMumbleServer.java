@@ -37,7 +37,7 @@ public interface IMumbleServer {
 	boolean isReachable();
 
 	/**
-	 * Attempt a connection to the remove.
+	 * Attempt a connection to the remote.
 	 */
 	void open();
 

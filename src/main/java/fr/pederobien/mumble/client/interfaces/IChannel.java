@@ -7,7 +7,7 @@ public interface IChannel {
 	/**
 	 * @return The server to which this channel is associated.
 	 */
-	IMumbleServer getMumbleServer();
+	IMumbleServer getServer();
 
 	/**
 	 * @return The channel's name.

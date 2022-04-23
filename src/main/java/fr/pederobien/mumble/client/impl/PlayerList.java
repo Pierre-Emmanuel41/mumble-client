@@ -127,7 +127,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(((AbstractMumbleServer) channel.getMumbleServer()).getMumbleConnection().getTcpConnection()))
+		if (!event.getConnection().equals(((AbstractMumbleServer) channel.getServer()).getMumbleConnection().getTcpConnection()))
 			return;
 
 		EventManager.unregisterListener(this);
@@ -139,7 +139,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 	 * @param name The name of the player to add.
 	 */
 	public void add(String name) {
-		addPlayer(getChannel().getMumbleServer().getPlayers().get(name).get());
+		addPlayer(getChannel().getServer().getPlayers().get(name).get());
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 	 * @param name The name of the player to remove.
 	 */
 	public void remove(String name) {
-		removePlayer(getChannel().getMumbleServer().getPlayers().get(name).get());
+		removePlayer(getChannel().getServer().getPlayers().get(name).get());
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 	 * @param player The player to check.
 	 */
 	private void checkPlayerRegistered(IPlayer player) {
-		Optional<IPlayer> optPlayer = getChannel().getMumbleServer().getPlayers().get(player.getName());
+		Optional<IPlayer> optPlayer = getChannel().getServer().getPlayers().get(player.getName());
 		if (!optPlayer.isPresent() || player != optPlayer.get())
 			throw new IllegalArgumentException("The player " + player.getName() + " is not registered on the server");
 	}

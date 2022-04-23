@@ -43,7 +43,7 @@ public class Channel implements IChannel {
 	}
 
 	@Override
-	public IMumbleServer getMumbleServer() {
+	public IMumbleServer getServer() {
 		return server;
 	}
 
@@ -150,7 +150,7 @@ public class Channel implements IChannel {
 	 * @param soundModifier The sound modifier to check.
 	 */
 	private void checkSoundModifier(ISoundModifier soundModifier) {
-		Optional<ISoundModifier> optSoundModifier = getMumbleServer().getSoundModifierList().get(soundModifier.getName());
+		Optional<ISoundModifier> optSoundModifier = getServer().getSoundModifierList().get(soundModifier.getName());
 		if (!optSoundModifier.isPresent() || !soundModifier.equals(optSoundModifier.get()))
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 	}

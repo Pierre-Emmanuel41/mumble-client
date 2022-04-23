@@ -202,7 +202,7 @@ public class Player implements IPlayer, IEventListener {
 
 	@Override
 	public void kick(IPlayer kickingPlayer, Consumer<IResponse> callback) {
-		Optional<IPlayer> optPlayer = getChannel().getMumbleServer().getPlayers().get(kickingPlayer.getName());
+		Optional<IPlayer> optPlayer = getChannel().getServer().getPlayers().get(kickingPlayer.getName());
 		if (!optPlayer.isPresent() || kickingPlayer != optPlayer.get())
 			throw new IllegalArgumentException("The player " + kickingPlayer.getName() + " is not registered on the server");
 

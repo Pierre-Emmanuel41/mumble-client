@@ -52,7 +52,7 @@ import fr.pederobien.utils.event.LogEvent;
 
 public class MumbleTcpConnection implements IEventListener {
 	private IMumbleServer server;
-	private ITcpConnection tcpConnection;
+	private ITcpConnection connection;
 	private float version;
 
 	/**
@@ -62,7 +62,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 */
 	public MumbleTcpConnection(IMumbleServer server) {
 		this.server = server;
-		this.tcpConnection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MessageExtractor());
+		this.connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MessageExtractor());
 
 		version = -1;
 		EventManager.registerListener(this);
@@ -72,7 +72,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 * @return The connection with the remote.
 	 */
 	public ITcpConnection getTcpConnection() {
-		return tcpConnection;
+		return connection;
 	}
 
 	/**
@@ -107,6 +107,9 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	private void onCommunicationProtocolVersionGet(CommunicationProtocolVersionGetPostEvent event) {
+		if (!event.getServer().equals(server))
+			return;
+
 		send(getRequestManager().onGetCommunicationProtocolVersions(event.getRequest(), event.getVersions()), null);
 	}
 
@@ -121,115 +124,178 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelAdd(ChannelListChannelAddPreEvent event) {
+		if (!event.getList().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onChannelAdd(version, event.getChannelName(), event.getSoundModifier()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelRemove(ChannelListChannelRemovePreEvent event) {
+		if (!event.getList().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onChannelRemove(version, event.getChannelName()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelNameChange(ChannelNameChangePreEvent event) {
+		if (!event.getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onChannelNameChange(version, event.getChannel(), event.getNewName()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerAdd(PlayerListPlayerAddPreEvent event) {
+		if (!event.getList().getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onChannelPlayerAdd(version, event.getList().getChannel(), event.getPlayer()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onChannelPlayerRemove(PlayerListPlayerRemovePreEvent event) {
+		if (!event.getList().getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onChannelPlayerRemove(version, event.getList().getChannel(), event.getPlayer()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerAdd(ServerPlayerListPlayerAddPreEvent event) {
+		if (!event.getList().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onServerPlayerAdd(version, event.getPlayerName(), event.getGameAddress(), event.isAdmin(), event.isMute(), event.isDeafen(),
 				event.getX(), event.getY(), event.getZ(), event.getYaw(), event.getPitch()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onServerPlayerRemove(ServerPlayerListPlayerRemovePreEvent event) {
+		if (!event.getList().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onServerPlayerRemove(version, event.getPlayerName()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerOnlineChange(PlayerOnlineChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerOnlineChange(version, event.getPlayer(), event.getNewOnline()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerNameChange(PlayerNameChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerNameChange(version, event.getPlayer(), event.getNewName()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerGameAddressChange(PlayerGameAddressChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerGameAddressChange(version, event.getPlayer(), event.getNewGameAddress()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerAdminChange(PlayerAdminChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerAdminChange(version, event.getPlayer(), event.getNewAdmin()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteStatusChange(PlayerMuteStatusChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerMuteChange(version, event.getPlayer(), event.getNewMute()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerMuteByChange(PlayerMuteByChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerMuteByChange(version, event.getPlayer(), event.getMutingPlayer(), event.getNewMute()),
 				args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerDeafenStatusChange(PlayerDeafenStatusChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerDeafenChange(version, event.getPlayer(), event.getNewDeafen()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerKick(PlayerKickPreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerKick(version, event.getPlayer(), event.getKickingPlayer()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onPlayerPositionChange(PlayerPositionChangePreEvent event) {
+		if (!event.getPlayer().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onPlayerPositionChange(version, event.getPlayer(), event.getX(), event.getY(), event.getZ(), event.getYaw(), event.getPitch()),
 				args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterValueChange(ParameterValueChangePreEvent event) {
+		if (!event.getParameter().getSoundModifier().getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onParameterValueChange(version, event.getParameter(), event.getNewValue()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMinValueChange(ParameterMinValueChangePreEvent event) {
+		if (!event.getParameter().getSoundModifier().getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onParameterMinValueChange(version, event.getParameter(), event.getNewMinValue()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onParameterMaxValueChange(ParameterMaxValueChangePreEvent event) {
+		if (!event.getParameter().getSoundModifier().getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onParameterMaxValueChange(version, event.getParameter(), event.getNewMaxValue()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
+		if (!event.getChannel().getServer().equals(server))
+			return;
+
 		send(getRequestManager().onSoundModifierChange(version, event.getChannel(), event.getNewSoundModifier()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	private void onGamePortCheck(GamePortCheckPostEvent event) {
+		if (!event.getServer().equals(server))
+			return;
+
 		send(getRequestManager().onGamePortCheck(version, event.getRequest(), event.getPort(), event.isUsed()), null);
 	}
 
 	@EventHandler
 	private void onUnexpectedDataReceive(UnexpectedDataReceivedEvent event) {
-		if (!event.getConnection().equals(tcpConnection))
+		if (!event.getConnection().equals(connection))
 			return;
 
 		IMumbleMessage request = MumbleClientMessageFactory.parse(event.getAnswer());
@@ -242,7 +308,7 @@ public class MumbleTcpConnection implements IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(tcpConnection))
+		if (!event.getConnection().equals(connection))
 			return;
 
 		EventManager.unregisterListener(this);
@@ -278,9 +344,9 @@ public class MumbleTcpConnection implements IEventListener {
 	 * @param callback The callback to run when a response has been received before the timeout.
 	 */
 	private void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback) {
-		if (tcpConnection == null || tcpConnection.isDisposed())
+		if (connection == null || connection.isDisposed())
 			return;
 
-		tcpConnection.send(new MumbleCallbackMessage(message, callback));
+		connection.send(new MumbleCallbackMessage(message, callback));
 	}
 }

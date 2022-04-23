@@ -2,20 +2,23 @@ package fr.pederobien.mumble.client.event;
 
 import java.util.StringJoiner;
 
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
 
-public class GamePortCheckPostEvent extends MumbleEvent {
+public class GamePortCheckPostEvent extends ServerEvent {
 	private GamePortGetMessageV10 request;
 	private boolean isUsed;
 
 	/**
 	 * Creates an event thrown when a port has been checked for use.
 	 * 
+	 * @param server  The server source involved in this event.
 	 * @param request The request sent by the remote in order to check if a port is currently used.
 	 * @param port    The port number that has been checked.
 	 * @param isUsed  True if the port is currently used, false otherwise.
 	 */
-	public GamePortCheckPostEvent(GamePortGetMessageV10 request, boolean isUsed) {
+	public GamePortCheckPostEvent(IMumbleServer server, GamePortGetMessageV10 request, boolean isUsed) {
+		super(server);
 		this.request = request;
 		this.isUsed = isUsed;
 	}
