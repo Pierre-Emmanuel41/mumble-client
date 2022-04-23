@@ -20,7 +20,7 @@ import fr.pederobien.mumble.client.interfaces.IServerRequestManager;
 import fr.pederobien.mumble.client.interfaces.ISoundModifierList;
 import fr.pederobien.utils.event.EventManager;
 
-public abstract class MumbleServer implements IMumbleServer {
+public abstract class AbstractMumbleServer implements IMumbleServer {
 	private String name;
 	private InetSocketAddress address;
 	private AtomicBoolean isDisposed, isReachable;
@@ -38,7 +38,7 @@ public abstract class MumbleServer implements IMumbleServer {
 	 * @param name    The server name.
 	 * @param address The server address.
 	 */
-	public MumbleServer(String name, InetSocketAddress address) {
+	public AbstractMumbleServer(String name, InetSocketAddress address) {
 		this.name = name;
 		this.address = address;
 
@@ -143,9 +143,9 @@ public abstract class MumbleServer implements IMumbleServer {
 		if (this == obj)
 			return true;
 
-		if (!(obj instanceof MumbleServer))
+		if (!(obj instanceof AbstractMumbleServer))
 			return false;
-		MumbleServer other = (MumbleServer) obj;
+		AbstractMumbleServer other = (AbstractMumbleServer) obj;
 		return name.equals(other.getName()) && address.equals(other.getAddress());
 	}
 

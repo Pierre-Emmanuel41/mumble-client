@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.interfaces.IMumbleServerPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 
-public class PlayerMumbleServer extends MumbleServer implements IMumbleServerPlayer {
+public class PlayerMumbleServer extends AbstractMumbleServer implements IMumbleServerPlayer {
 
 	/**
 	 * Creates a client associated to a specific player.

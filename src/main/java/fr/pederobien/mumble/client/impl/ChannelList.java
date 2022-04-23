@@ -20,6 +20,7 @@ import fr.pederobien.mumble.client.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.interfaces.IChannel;
 import fr.pederobien.mumble.client.interfaces.IChannelList;
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
@@ -31,11 +32,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ChannelList implements IChannelList, IEventListener {
-	private MumbleServer server;
+	private IMumbleServer server;
 	private Map<String, IChannel> channels;
 	private Lock lock;
 
-	public ChannelList(MumbleServer server) {
+	public ChannelList(IMumbleServer server) {
 		this.server = server;
 		channels = new LinkedHashMap<String, IChannel>();
 		lock = new ReentrantLock(true);
@@ -49,7 +50,7 @@ public class ChannelList implements IChannelList, IEventListener {
 	}
 
 	@Override
-	public MumbleServer getMumbleServer() {
+	public IMumbleServer getMumbleServer() {
 		return server;
 	}
 
@@ -115,7 +116,7 @@ public class ChannelList implements IChannelList, IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(server.getMumbleConnection().getTcpConnection()))
+		if (!event.getConnection().equals(((AbstractMumbleServer) server).getMumbleConnection().getTcpConnection()))
 			return;
 
 		EventManager.unregisterListener(this);

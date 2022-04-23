@@ -14,7 +14,6 @@ import fr.pederobien.mumble.client.event.CommunicationProtocolVersionSetPostEven
 import fr.pederobien.mumble.client.event.GamePortCheckPostEvent;
 import fr.pederobien.mumble.client.impl.Channel;
 import fr.pederobien.mumble.client.impl.ChannelList;
-import fr.pederobien.mumble.client.impl.MumbleServer;
 import fr.pederobien.mumble.client.impl.Parameter;
 import fr.pederobien.mumble.client.impl.ParameterList;
 import fr.pederobien.mumble.client.impl.Player;
@@ -663,7 +662,7 @@ public class RequestManagerV10 extends RequestManager {
 		Channel channel = (Channel) getServer().getChannels().get(request.getChannelInfo().getName()).get();
 		ISoundModifier soundModifier = getServer().getSoundModifierList().get(request.getChannelInfo().getSoundModifierInfo().getName()).get();
 
-		ParameterList parameterList = new ParameterList((MumbleServer) getServer());
+		ParameterList parameterList = new ParameterList(getServer());
 		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
 			parameterList.add(parameterInfo);
 

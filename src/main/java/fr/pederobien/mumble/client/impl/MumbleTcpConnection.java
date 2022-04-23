@@ -31,6 +31,7 @@ import fr.pederobien.mumble.client.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.client.event.PlayerPositionChangePreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.event.ServerPlayerListPlayerRemovePreEvent;
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.IServerRequestManager;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
@@ -50,7 +51,7 @@ import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 
 public class MumbleTcpConnection implements IEventListener {
-	private MumbleServer server;
+	private IMumbleServer server;
 	private ITcpConnection tcpConnection;
 	private float version;
 
@@ -59,7 +60,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 * 
 	 * @param server The server that contains the IP address and the TCP port number.
 	 */
-	public MumbleTcpConnection(MumbleServer server) {
+	public MumbleTcpConnection(IMumbleServer server) {
 		this.server = server;
 		this.tcpConnection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MessageExtractor());
 

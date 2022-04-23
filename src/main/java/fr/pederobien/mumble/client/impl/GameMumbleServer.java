@@ -16,7 +16,7 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
-public class GameMumbleServer extends MumbleServer implements IEventListener {
+public class GameMumbleServer extends AbstractMumbleServer implements IEventListener {
 	private Lock lock;
 	private Condition joined;
 	private boolean joinFailed;

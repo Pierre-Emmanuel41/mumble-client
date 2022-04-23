@@ -127,7 +127,7 @@ public class PlayerList implements IPlayerList, IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(channel.getMumbleServer().getMumbleConnection().getTcpConnection()))
+		if (!event.getConnection().equals(((AbstractMumbleServer) channel.getMumbleServer()).getMumbleConnection().getTcpConnection()))
 			return;
 
 		EventManager.unregisterListener(this);

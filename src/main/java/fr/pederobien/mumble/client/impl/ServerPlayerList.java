@@ -31,11 +31,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ServerPlayerList implements IServerPlayerList, IEventListener {
-	private MumbleServer server;
+	private IMumbleServer server;
 	private Map<String, IPlayer> players;
 	private Lock lock;
 
-	public ServerPlayerList(MumbleServer server) {
+	public ServerPlayerList(IMumbleServer server) {
 		this.server = server;
 
 		players = new HashMap<String, IPlayer>();
@@ -136,7 +136,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(server.getMumbleConnection().getTcpConnection()))
+		if (!event.getConnection().equals(((AbstractMumbleServer) server).getMumbleConnection().getTcpConnection()))
 			return;
 
 		EventManager.unregisterListener(this);

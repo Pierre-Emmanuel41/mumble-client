@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IParameterList;
 import fr.pederobien.mumble.client.interfaces.IRangeParameter;
@@ -19,7 +20,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ParameterList implements IParameterList, IEventListener {
-	private MumbleServer server;
+	private IMumbleServer server;
 	private Map<String, IParameter<?>> parameters;
 
 	/**
@@ -27,7 +28,7 @@ public class ParameterList implements IParameterList, IEventListener {
 	 * 
 	 * @param server The server associated to this parameters list.
 	 */
-	public ParameterList(MumbleServer server) {
+	public ParameterList(IMumbleServer server) {
 		this.server = server;
 		parameters = new LinkedHashMap<String, IParameter<?>>();
 
@@ -140,7 +141,7 @@ public class ParameterList implements IParameterList, IEventListener {
 
 	@EventHandler
 	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(server.getMumbleConnection().getTcpConnection()))
+		if (!event.getConnection().equals(((AbstractMumbleServer) server).getMumbleConnection().getTcpConnection()))
 			return;
 
 		for (IParameter<?> parameter : this)
