@@ -14,6 +14,8 @@ import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.event.CommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.mumble.client.event.ServerJoinPostEvent;
 import fr.pederobien.mumble.client.event.ServerJoinPreEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePostEvent;
+import fr.pederobien.mumble.client.event.ServerLeavePreEvent;
 import fr.pederobien.mumble.client.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.utils.event.EventHandler;
@@ -67,7 +69,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer implements IPlayerM
 
 	@Override
 	public void join(Consumer<IResponse> callback) {
-		if (isJoined.get())
+		if (!isJoined.compareAndSet(false, true))
 			return;
 
 		Consumer<IResponse> update = response -> {
@@ -81,10 +83,12 @@ public class PlayerMumbleServer extends AbstractMumbleServer implements IPlayerM
 		try {
 			serverConfigurationRequestSuccess = false;
 			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
+				isJoined.set(false);
 				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Time out on server configuration request.");
 			}
 			if (serverConfigurationRequestSuccess) {
+				isJoined.set(false);
 				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Technical error: Fail to retrieve the server configuration");
 			}
@@ -99,7 +103,15 @@ public class PlayerMumbleServer extends AbstractMumbleServer implements IPlayerM
 
 	@Override
 	public void leave(Consumer<IResponse> callback) {
+		if (!isJoined.compareAndSet(true, false))
+			return;
 
+		Consumer<IResponse> update = response -> {
+			if (!response.hasFailed())
+				EventManager.callEvent(new ServerLeavePostEvent(this));
+			callback.accept(response);
+		};
+		EventManager.callEvent(new ServerLeavePreEvent(this, update));
 	}
 
 	@Override
@@ -144,6 +156,15 @@ public class PlayerMumbleServer extends AbstractMumbleServer implements IPlayerM
 		};
 
 		getMumbleConnection().getServerInfo(callback);
+	}
+
+	@EventHandler
+	private void onServerLeave(ServerLeavePostEvent event) {
+		if (!event.getServer().equals(this))
+			return;
+
+		isJoined.set(false);
+		clear();
 	}
 
 	@EventHandler

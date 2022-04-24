@@ -67,7 +67,12 @@ public class ServerRequestManager implements IServerRequestManager {
 
 	@Override
 	public IMumbleMessage onServerJoin(float version) {
-		return findManagerAndApply(1.0f, manager -> manager.onServerJoin());
+		return findManagerAndApply(version, manager -> manager.onServerJoin());
+	}
+
+	@Override
+	public IMumbleMessage onServerLeave(float version) {
+		return findManagerAndApply(version, manager -> manager.onServerLeave());
 	}
 
 	@Override

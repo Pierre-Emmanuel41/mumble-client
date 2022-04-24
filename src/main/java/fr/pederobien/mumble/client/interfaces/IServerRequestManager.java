@@ -64,6 +64,15 @@ public interface IServerRequestManager {
 	IMumbleMessage onServerJoin(float version);
 
 	/**
+	 * Creates a message in order to leave a mumble server.
+	 * 
+	 * @param version The protocol version to use to create a mumble message.
+	 * 
+	 * @return The message to send to the remote in order to leave a mumble server.
+	 */
+	IMumbleMessage onServerLeave(float version);
+
+	/**
 	 * Creates a message in order to add a channel to the server.
 	 * 
 	 * @param version       The protocol version to use to create a mumble message.

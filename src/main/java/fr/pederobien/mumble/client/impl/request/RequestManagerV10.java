@@ -184,6 +184,11 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
+	public IMumbleMessage onServerLeave() {
+		return create(getVersion(), Idc.SERVER_LEAVE, Oid.SET);
+	}
+
+	@Override
 	public IMumbleMessage onChannelAdd(String name, ISoundModifier soundModifier) {
 		List<Object> informations = new ArrayList<Object>();
 

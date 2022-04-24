@@ -55,6 +55,13 @@ public interface IRequestManager {
 	IMumbleMessage onServerJoin();
 
 	/**
+	 * Creates a message in order to leave a mumble server.
+	 * 
+	 * @return The message to send to the remote in order to leave a mumble server.
+	 */
+	IMumbleMessage onServerLeave();
+
+	/**
 	 * Creates a message in order to add a channel to the server.
 	 * 
 	 * @param name          The name of the channel to add.

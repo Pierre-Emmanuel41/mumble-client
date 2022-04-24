@@ -4,14 +4,14 @@ import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 
-public class ServerJoinPostEvent extends ServerEvent {
+public class ServerLeavePostEvent extends ServerEvent {
 
 	/**
-	 * Creates an event thrown when a server has been joined by a player.
+	 * Creates an event thrown when a server has been left by a player.
 	 * 
-	 * @param server The server the player has joined.
+	 * @param server The server the player has left.
 	 */
-	public ServerJoinPostEvent(IMumbleServer server) {
+	public ServerLeavePostEvent(IMumbleServer server) {
 		super(server);
 	}
 
