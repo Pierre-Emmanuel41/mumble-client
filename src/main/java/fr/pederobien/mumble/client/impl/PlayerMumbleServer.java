@@ -67,6 +67,9 @@ public class PlayerMumbleServer extends AbstractMumbleServer implements IPlayerM
 
 	@Override
 	public void join(Consumer<IResponse> callback) {
+		if (isJoined.get())
+			return;
+
 		Consumer<IResponse> update = response -> {
 			if (!response.hasFailed())
 				EventManager.callEvent(new ServerJoinPostEvent(this));
