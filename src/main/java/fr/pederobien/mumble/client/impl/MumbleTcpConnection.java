@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientImpl;
 import fr.pederobien.communication.interfaces.ITcpConnection;
@@ -321,6 +322,14 @@ public class MumbleTcpConnection implements IEventListener {
 			return;
 
 		EventManager.unregisterListener(this);
+	}
+
+	@EventHandler
+	private void onConnectionLost(ConnectionLostEvent event) {
+		if (!event.getConnection().equals(connection))
+			return;
+
+		version = -1;
 	}
 
 	private IServerRequestManager getRequestManager() {
