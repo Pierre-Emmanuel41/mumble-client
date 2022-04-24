@@ -58,8 +58,6 @@ public class PlayerMumbleServer extends AbstractMumbleServer implements IPlayerM
 				getMumbleConnection().getTcpConnection().dispose();
 				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
 			}
-
-			setIsReachable(true);
 		} catch (InterruptedException e) {
 			// Do nothing
 		} finally {
