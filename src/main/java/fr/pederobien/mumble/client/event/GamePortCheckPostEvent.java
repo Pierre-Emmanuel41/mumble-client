@@ -3,10 +3,10 @@ package fr.pederobien.mumble.client.event;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
-import fr.pederobien.mumble.common.impl.messages.v10.GamePortGetMessageV10;
+import fr.pederobien.mumble.common.impl.messages.v10.IsGamePortUsedV10;
 
 public class GamePortCheckPostEvent extends ServerEvent {
-	private GamePortGetMessageV10 request;
+	private IsGamePortUsedV10 request;
 	private boolean isUsed;
 
 	/**
@@ -17,7 +17,7 @@ public class GamePortCheckPostEvent extends ServerEvent {
 	 * @param port    The port number that has been checked.
 	 * @param isUsed  True if the port is currently used, false otherwise.
 	 */
-	public GamePortCheckPostEvent(IMumbleServer server, GamePortGetMessageV10 request, boolean isUsed) {
+	public GamePortCheckPostEvent(IMumbleServer server, IsGamePortUsedV10 request, boolean isUsed) {
 		super(server);
 		this.request = request;
 		this.isUsed = isUsed;
@@ -26,7 +26,7 @@ public class GamePortCheckPostEvent extends ServerEvent {
 	/**
 	 * @return The request sent by the remote.
 	 */
-	public GamePortGetMessageV10 getRequest() {
+	public IsGamePortUsedV10 getRequest() {
 		return request;
 	}
 

@@ -39,9 +39,9 @@ import fr.pederobien.mumble.client.interfaces.IResponse;
 import fr.pederobien.mumble.client.interfaces.IServerRequestManager;
 import fr.pederobien.mumble.client.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.MessageExtractor;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
-import fr.pederobien.mumble.common.impl.messages.v10.ServerInfoGetMessageV10;
+import fr.pederobien.mumble.common.impl.MumbleMessageExtractor;
+import fr.pederobien.mumble.common.impl.messages.v10.GetFullServerConfigurationV10;
 import fr.pederobien.mumble.common.impl.model.ChannelInfo.SemiFullChannelInfo;
 import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.model.PlayerInfo.FullPlayerInfo;
@@ -65,7 +65,7 @@ public class MumbleTcpConnection implements IEventListener {
 	 */
 	public MumbleTcpConnection(IMumbleServer server) {
 		this.server = server;
-		this.connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MessageExtractor());
+		this.connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MumbleMessageExtractor());
 
 		version = -1;
 		EventManager.registerListener(this);
@@ -85,10 +85,10 @@ public class MumbleTcpConnection implements IEventListener {
 	 */
 	public void getServerInfo(Consumer<IResponse> callback) {
 		send(getRequestManager().getServerInfo(version), args -> parse(args, callback, message -> {
-			if (!(message instanceof ServerInfoGetMessageV10))
+			if (!(message instanceof GetFullServerConfigurationV10))
 				return false;
 
-			ServerInfoGetMessageV10 serverInfoMessage = (ServerInfoGetMessageV10) message;
+			GetFullServerConfigurationV10 serverInfoMessage = (GetFullServerConfigurationV10) message;
 			for (FullPlayerInfo playerInfo : serverInfoMessage.getServerInfo().getPlayerInfo().values())
 				((ServerPlayerList) server.getPlayers()).add(playerInfo);
 

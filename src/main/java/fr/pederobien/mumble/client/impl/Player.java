@@ -34,7 +34,6 @@ import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IPlayer;
 import fr.pederobien.mumble.client.interfaces.IPosition;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.common.impl.messages.v10.PlayerSetMessageV10;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
@@ -328,25 +327,6 @@ public class Player implements IPlayer, IEventListener {
 			return;
 
 		kick0(player);
-	}
-
-	/**
-	 * Update player properties according to the given message.
-	 * 
-	 * @param message The message that contains an update of player properties.
-	 */
-	protected void update(PlayerSetMessageV10 message) {
-		setOnline(message.getPlayerInfo().isOnline());
-
-		if (message.getPlayerInfo().isOnline()) {
-			identifier = message.getPlayerInfo().getIdentifier();
-			gameAddress = message.getPlayerInfo().getGameAddress();
-			setName(message.getPlayerInfo().getName());
-			setOnline(message.getPlayerInfo().isOnline());
-			setAdmin(message.getPlayerInfo().isAdmin());
-			setMute(message.getPlayerInfo().isMute());
-			setDeafen(message.getPlayerInfo().isDeafen());
-		}
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)

@@ -1,9 +1,8 @@
 package fr.pederobien.mumble.client.impl;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
-import fr.pederobien.mumble.common.impl.Idc;
+import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
-import fr.pederobien.mumble.common.impl.Oid;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public class MumbleClientMessageFactory {
@@ -16,14 +15,14 @@ public class MumbleClientMessageFactory {
 	/**
 	 * Creates a message based on the given parameters associated to a specific version of the communication protocol.
 	 * 
-	 * @param version The protocol version to use for the returned message.
-	 * @param idc     The message idc.
-	 * @param payload The message payload.
+	 * @param version    The protocol version to use for the returned message.
+	 * @param identifier The identifier of the request to create.
+	 * @param properties The message properties.
 	 * 
 	 * @return The created message.
 	 */
-	public static IMumbleMessage create(float version, Idc idc, Oid oid, Object... payload) {
-		return FACTORY.create(version, idc, oid, ErrorCode.NONE, payload);
+	public static IMumbleMessage create(float version, Identifier identifier, Object... properties) {
+		return FACTORY.create(version, identifier, ErrorCode.NONE, properties);
 	}
 
 	/**
@@ -43,14 +42,13 @@ public class MumbleClientMessageFactory {
 	 * 
 	 * @param version    The protocol version to use for the returned message.
 	 * @param message    The message to answer.
-	 * @param idc        The response IDC.
-	 * @param oid        The response OID.
+	 * @param identifier The identifier of the answer request.
 	 * @param properties The response properties.
 	 * 
 	 * @return The message associated to the answer.
 	 */
-	public static IMumbleMessage answer(float version, IMumbleMessage message, Idc idc, Oid oid, Object... properties) {
-		return FACTORY.answer(version, message, idc, oid, ErrorCode.NONE, properties);
+	public static IMumbleMessage answer(float version, IMumbleMessage message, Identifier identifier, Object... properties) {
+		return FACTORY.answer(version, message, identifier, ErrorCode.NONE, properties);
 	}
 
 }

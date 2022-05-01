@@ -8,14 +8,13 @@ import fr.pederobien.mumble.client.impl.MumbleClientMessageFactory;
 import fr.pederobien.mumble.client.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.client.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.interfaces.IRequestManager;
-import fr.pederobien.mumble.common.impl.Idc;
-import fr.pederobien.mumble.common.impl.Oid;
+import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public abstract class RequestManager implements IRequestManager {
 	private float version;
 	private IMumbleServer server;
-	private Map<Idc, Map<Oid, Consumer<RequestReceivedHolder>>> requests;
+	private Map<Identifier, Consumer<RequestReceivedHolder>> requests;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
@@ -26,7 +25,7 @@ public abstract class RequestManager implements IRequestManager {
 	public RequestManager(IMumbleServer server, float version) {
 		this.server = server;
 		this.version = version;
-		requests = new HashMap<Idc, Map<Oid, Consumer<RequestReceivedHolder>>>();
+		requests = new HashMap<Identifier, Consumer<RequestReceivedHolder>>();
 	}
 
 	@Override
@@ -36,12 +35,8 @@ public abstract class RequestManager implements IRequestManager {
 
 	@Override
 	public void apply(RequestReceivedHolder holder) {
-		Map<Oid, Consumer<RequestReceivedHolder>> map = requests.get(holder.getRequest().getHeader().getIdc());
+		Consumer<RequestReceivedHolder> answer = requests.get(holder.getRequest().getHeader().getIdentifier());
 
-		if (map == null)
-			return;
-
-		Consumer<RequestReceivedHolder> answer = map.get(holder.getRequest().getHeader().getOid());
 		if (answer == null)
 			return;
 
@@ -51,7 +46,7 @@ public abstract class RequestManager implements IRequestManager {
 	/**
 	 * @return The map that stores requests.
 	 */
-	public Map<Idc, Map<Oid, Consumer<RequestReceivedHolder>>> getRequests() {
+	public Map<Identifier, Consumer<RequestReceivedHolder>> getRequests() {
 		return requests;
 	}
 
@@ -65,24 +60,22 @@ public abstract class RequestManager implements IRequestManager {
 	/**
 	 * Send a message based on the given parameter to the remote.
 	 * 
-	 * @param idc     The message idc.
-	 * @param oid     The message oid.
-	 * @param payload The message payload.
+	 * @param identifier The identifier of the request to create.
+	 * @param properties The message properties.
 	 */
-	protected IMumbleMessage create(float version, Idc idc, Oid oid, Object... payload) {
-		return MumbleClientMessageFactory.create(version, idc, oid, payload);
+	protected IMumbleMessage create(float version, Identifier identifier, Object... properties) {
+		return MumbleClientMessageFactory.create(version, identifier, properties);
 	}
 
 	/**
 	 * Send a message based on the given parameter to the remote.
 	 * 
-	 * @param version The version of the communication protocol to use.
-	 * @param request The request received by the remote.
-	 * @param idc     The message idc.
-	 * @param oid     The message oid.
-	 * @param payload The message payload.
+	 * @param version    The version of the communication protocol to use.
+	 * @param request    The request received by the remote.
+	 * @param identifier The identifier of the answer request.
+	 * @param properties The message properties.
 	 */
-	protected IMumbleMessage answer(float version, IMumbleMessage request, Idc idc, Oid oid, Object... payload) {
-		return MumbleClientMessageFactory.answer(version, request, idc, oid, payload);
+	protected IMumbleMessage answer(float version, IMumbleMessage request, Identifier identifier, Object... properties) {
+		return MumbleClientMessageFactory.answer(version, request, identifier, properties);
 	}
 }
