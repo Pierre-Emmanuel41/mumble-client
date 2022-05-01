@@ -49,7 +49,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerOnlineStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerPositionV10;
 import fr.pederobien.mumble.common.impl.messages.v10.UnregisterChannelFromServerV10;
 import fr.pederobien.mumble.common.impl.messages.v10.UnregisterPlayerFromServerV10;
-import fr.pederobien.mumble.common.impl.model.ParameterInfo.FullParameterInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventManager;
 

@@ -10,7 +10,7 @@ import fr.pederobien.mumble.client.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.client.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.interfaces.IParameter;
 import fr.pederobien.mumble.client.interfaces.IResponse;
-import fr.pederobien.mumble.common.impl.model.ParameterType;
+import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;

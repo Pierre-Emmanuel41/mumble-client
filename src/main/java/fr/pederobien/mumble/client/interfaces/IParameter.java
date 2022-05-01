@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.interfaces;
 
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.common.impl.model.ParameterType;
+import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
 
 public interface IParameter<T> extends Cloneable {
 
