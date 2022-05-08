@@ -1,6 +1,8 @@
 package fr.pederobien.mumble.client.common.impl;
 
 import java.text.DecimalFormat;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.client.common.interfaces.ICommonPlayer;
 import fr.pederobien.mumble.client.common.interfaces.ICommonPosition;
@@ -9,6 +11,7 @@ public abstract class AbstractPosition<T extends ICommonPlayer> implements IComm
 	private static final DecimalFormat FORMAT = new DecimalFormat("#.####");
 	private T player;
 	private double x, y, z, yaw, pitch;
+	private Lock lock;
 
 	/**
 	 * Creates a position associated to a player.
@@ -20,13 +23,15 @@ public abstract class AbstractPosition<T extends ICommonPlayer> implements IComm
 	 * @param yaw    The yaw angle.
 	 * @param pitch  The pitch angle.
 	 */
-	public AbstractPosition(T player, double x, double y, double z, double yaw, double pitch) {
+	protected AbstractPosition(T player, double x, double y, double z, double yaw, double pitch) {
 		this.player = player;
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.yaw = yaw;
 		this.pitch = pitch;
+
+		lock = new ReentrantLock(true);
 	}
 
 	@Override
@@ -77,6 +82,13 @@ public abstract class AbstractPosition<T extends ICommonPlayer> implements IComm
 	}
 
 	/**
+	 * @return The lock associated to this position.
+	 */
+	protected Lock getLock() {
+		return lock;
+	}
+
+	/**
 	 * Set the new coordinates of this position. For internal use only.
 	 * 
 	 * @param x     The new x position.
@@ -85,16 +97,12 @@ public abstract class AbstractPosition<T extends ICommonPlayer> implements IComm
 	 * @param yaw   The new yaw angle.
 	 * @param pitch The new pitch angle.
 	 */
-	protected boolean update(double x, double y, double z, double yaw, double pitch) {
-		if (this.x == x && this.y == y && this.z == z && this.yaw == yaw && this.pitch == pitch)
-			return false;
-
+	protected void update0(double x, double y, double z, double yaw, double pitch) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.yaw = yaw;
 		this.pitch = pitch;
-		return true;
 	}
 
 	private String format(double number) {
