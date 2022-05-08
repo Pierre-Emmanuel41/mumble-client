@@ -1,8 +1,9 @@
 package fr.pederobien.mumble.client.external.event;
 
+import fr.pederobien.mumble.client.common.event.ProjectMumbleClientEvent;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 
-public class ChannelEvent extends MumbleEvent {
+public class ChannelEvent extends ProjectMumbleClientEvent {
 	private IChannel channel;
 
 	/**

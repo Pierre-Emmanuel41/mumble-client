@@ -1,8 +1,9 @@
 package fr.pederobien.mumble.client.external.event;
 
+import fr.pederobien.mumble.client.common.event.ProjectMumbleClientEvent;
 import fr.pederobien.mumble.client.external.interfaces.IParameter;
 
-public class ParameterEvent extends MumbleEvent {
+public class ParameterEvent extends ProjectMumbleClientEvent {
 	private IParameter<?> parameter;
 
 	/**

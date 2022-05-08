@@ -1,8 +1,9 @@
 package fr.pederobien.mumble.client.external.event;
 
+import fr.pederobien.mumble.client.common.event.ProjectMumbleClientEvent;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 
-public class SoundModifierEvent extends MumbleEvent {
+public class SoundModifierEvent extends ProjectMumbleClientEvent {
 	private ISoundModifier soundModifier;
 
 	/**
