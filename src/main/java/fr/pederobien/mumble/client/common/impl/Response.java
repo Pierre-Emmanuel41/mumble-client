@@ -1,6 +1,6 @@
-package fr.pederobien.mumble.client.external.impl;
+package fr.pederobien.mumble.client.common.impl;
 
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 
 public class Response implements IResponse {

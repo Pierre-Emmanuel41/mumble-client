@@ -1,16 +1,16 @@
 package fr.pederobien.mumble.client.external.impl;
 
+import fr.pederobien.mumble.client.common.impl.AbstractSoundModifier;
 import fr.pederobien.mumble.client.external.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IParameter;
+import fr.pederobien.mumble.client.external.interfaces.IParameterList;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
-public class SoundModifier implements ISoundModifier, IEventListener {
-	private String name;
-	private ParameterList parameterList;
+public class SoundModifier extends AbstractSoundModifier<IParameterList> implements ISoundModifier, IEventListener {
 	private IChannel channel;
 
 	/**
@@ -19,13 +19,19 @@ public class SoundModifier implements ISoundModifier, IEventListener {
 	 * @param name       The sound modifier name.
 	 * @param parameters The default sound modifier parameters.
 	 */
-	public SoundModifier(String name, ParameterList parameterList) {
-		this.name = name;
-		this.parameterList = parameterList;
+	public SoundModifier(String name, IParameterList parameterList) {
+		super(name, parameterList);
 
 		for (IParameter<?> parameter : parameterList)
-			((Parameter<?>) parameter).setSoundModifier(this);
-
+			if (parameter instanceof Parameter<?>)
+				((Parameter<?>) parameter).setSoundModifier(this);
+			else if (parameter instanceof RangeParameter<?>)
+				((RangeParameter<?>) parameter).setSoundModifier(this);
+			else {
+				String found = parameter.getClass().getName();
+				String format = "Expected either %s or %s as parameter class, but found %s";
+				throw new IllegalArgumentException(String.format(format, Parameter.class.getName(), RangeParameter.class.getName(), found));
+			}
 		EventManager.registerListener(this);
 	}
 
@@ -34,28 +40,9 @@ public class SoundModifier implements ISoundModifier, IEventListener {
 	 * 
 	 * @param original The original sound modifier to clone.
 	 */
-	private SoundModifier(SoundModifier original) {
-		this.name = original.getName();
-		this.parameterList = original.getParameters().clone();
+	private SoundModifier(ISoundModifier original) {
+		this(original.getName(), original.getParameters().clone());
 		this.channel = original.getChannel();
-
-		for (IParameter<?> entry : parameterList)
-			((Parameter<?>) entry).setSoundModifier(this);
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public ParameterList getParameters() {
-		return parameterList;
-	}
-
-	@Override
-	public String toString() {
-		return name;
 	}
 
 	@Override
@@ -66,21 +53,6 @@ public class SoundModifier implements ISoundModifier, IEventListener {
 	@Override
 	public ISoundModifier clone() {
 		return new SoundModifier(this);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-
-		if (obj == null || !(obj instanceof ISoundModifier))
-			return false;
-
-		ISoundModifier other = (ISoundModifier) obj;
-		if (!name.equals(other.getName()))
-			return false;
-
-		return parameterList.equals(other.getParameters());
 	}
 
 	/**

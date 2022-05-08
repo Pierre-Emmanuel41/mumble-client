@@ -1,7 +1,6 @@
 package fr.pederobien.mumble.client.external.impl;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
@@ -9,6 +8,9 @@ import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
 import fr.pederobien.communication.impl.TcpClientImpl;
 import fr.pederobien.communication.interfaces.ITcpConnection;
+import fr.pederobien.mumble.client.common.impl.RequestReceivedHolder;
+import fr.pederobien.mumble.client.common.impl.Response;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelNameChangePreEvent;
@@ -23,8 +25,8 @@ import fr.pederobien.mumble.client.external.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerKickPreEvent;
-import fr.pederobien.mumble.client.external.event.PlayerListPlayerAddPreEvent;
-import fr.pederobien.mumble.client.external.event.PlayerListPlayerRemovePreEvent;
+import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerAddPreEvent;
+import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePreEvent;
@@ -35,17 +37,10 @@ import fr.pederobien.mumble.client.external.event.ServerLeavePreEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IServerRequestManager;
-import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.MumbleCallbackMessage;
 import fr.pederobien.mumble.common.impl.MumbleMessageExtractor;
-import fr.pederobien.mumble.common.impl.messages.v10.GetFullServerConfigurationV10;
-import fr.pederobien.mumble.common.impl.messages.v10.model.ChannelInfo.SemiFullChannelInfo;
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
-import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayerInfo;
-import fr.pederobien.mumble.common.impl.messages.v10.model.SoundModifierInfo.FullSoundModifierInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -84,28 +79,8 @@ public class MumbleTcpConnection implements IEventListener {
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	public void getServerInfo(Consumer<IResponse> callback) {
-		send(getRequestManager().getServerInfo(version), args -> parse(args, callback, message -> {
-			if (!(message instanceof GetFullServerConfigurationV10))
-				return false;
-
-			GetFullServerConfigurationV10 serverInfoMessage = (GetFullServerConfigurationV10) message;
-			for (FullPlayerInfo playerInfo : serverInfoMessage.getServerInfo().getPlayerInfo().values())
-				((ServerPlayerList) server.getPlayers()).add(playerInfo);
-
-			for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
-				ParameterList parameterList = new ParameterList(server);
-				for (FullParameterInfo parameterInfo : modifierInfo.getParameterInfo().values())
-					parameterList.add(parameterInfo);
-
-				ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), parameterList);
-				((SoundModifierList) server.getSoundModifierList()).register(soundModifier);
-			}
-
-			for (SemiFullChannelInfo channelInfo : serverInfoMessage.getServerInfo().getChannelInfo().values())
-				((ChannelList) server.getChannels()).add(channelInfo);
-
-			return true;
-		}));
+		IMumbleMessage request = getRequestManager().getFullServerConfiguration(version);
+		send(request, args -> parse(args, callback, message -> getRequestManager().onGetFullServerConfiguration(message)));
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
@@ -166,7 +141,7 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerAdd(PlayerListPlayerAddPreEvent event) {
+	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPreEvent event) {
 		if (!event.getList().getChannel().getServer().equals(server))
 			return;
 
@@ -174,7 +149,7 @@ public class MumbleTcpConnection implements IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerRemove(PlayerListPlayerRemovePreEvent event) {
+	private void onChannelPlayerRemove(ChannelPlayerListPlayerRemovePreEvent event) {
 		if (!event.getList().getChannel().getServer().equals(server))
 			return;
 
@@ -352,15 +327,17 @@ public class MumbleTcpConnection implements IEventListener {
 	 * @param callback The callback to run when a response has been received.
 	 * @param consumer The consumer to run in order to update the server.
 	 */
-	private void parse(ResponseCallbackArgs args, Consumer<IResponse> callback, Function<IMumbleMessage, Boolean> function) {
+	private void parse(ResponseCallbackArgs args, Consumer<IResponse> callback, Consumer<IMumbleMessage> consumer) {
 		if (args.isTimeout())
 			callback.accept(new Response(ErrorCode.TIMEOUT));
 		else {
 			IMumbleMessage response = MumbleClientMessageFactory.parse(args.getResponse().getBytes());
-			if (response.getHeader().isError() || function == null)
+			if (response.getHeader().isError() || consumer == null)
 				callback.accept(new Response(response.getHeader().getErrorCode()));
-			else
-				callback.accept(new Response(function.apply(response) ? ErrorCode.NONE : response.getHeader().getErrorCode()));
+			else {
+				consumer.accept(response);
+				callback.accept(new Response(ErrorCode.NONE));
+			}
 		}
 	}
 

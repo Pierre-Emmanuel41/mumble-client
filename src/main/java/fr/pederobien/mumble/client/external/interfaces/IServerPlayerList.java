@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.exceptions.ServerPlayerAlreadyRegisteredException;
 
 public interface IServerPlayerList extends Iterable<IPlayer> {

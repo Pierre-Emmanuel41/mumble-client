@@ -1,24 +1,20 @@
 package fr.pederobien.mumble.client.external.interfaces;
 
 import java.net.InetSocketAddress;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.mumble.client.common.interfaces.ICommonPlayer;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.client.external.exceptions.PlayerNotRegisteredInChannelException;
 
-public interface IPlayer {
+public interface IPlayer extends ICommonPlayer {
 
 	/**
 	 * @return The server on which this player is registered.
 	 */
 	IMumbleServer getServer();
-
-	/**
-	 * @return The player name.
-	 */
-	String getName();
 
 	/**
 	 * Set the player's name.
@@ -42,27 +38,12 @@ public interface IPlayer {
 	void setGameAddress(InetSocketAddress gameAddress, Consumer<IResponse> callback);
 
 	/**
-	 * @return True if this player is an administrator for this server.
-	 */
-	boolean isAdmin();
-
-	/**
 	 * Set the administrator status of this player.
 	 * 
 	 * @param isAdmin  true if the player is an administrator.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	void setAdmin(boolean isAdmin, Consumer<IResponse> callback);
-
-	/**
-	 * @return The unique identifier associated to this player.
-	 */
-	UUID getIdentifier();
-
-	/**
-	 * @return True if this player is currently logged in the server.
-	 */
-	boolean isOnline();
 
 	/**
 	 * Set the online status of this player.
@@ -78,14 +59,9 @@ public interface IPlayer {
 	IChannel getChannel();
 
 	/**
-	 * @return True if this player is mute, false otherwise.
-	 */
-	boolean isMute();
-
-	/**
-	 * Mute or unmute this player.
+	 * Set the mute status of this player.
 	 * 
-	 * @param isMute   The new player state.
+	 * @param isMute   The new player mute status.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	void setMute(boolean isMute, Consumer<IResponse> callback);
@@ -113,14 +89,9 @@ public interface IPlayer {
 	Stream<IPlayer> getMuteByPlayers();
 
 	/**
-	 * @return True is this player is deafen, false otherwise.
-	 */
-	boolean isDeafen();
-
-	/**
-	 * deafen or undeafen this player.
+	 * Set the deafen status of this player.
 	 * 
-	 * @param isDeafen The new player state.
+	 * @param isDeafen The new player deafen status.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	void setDeafen(boolean isDeafen, Consumer<IResponse> callback);

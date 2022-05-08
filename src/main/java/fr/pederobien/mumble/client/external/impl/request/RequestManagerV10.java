@@ -4,30 +4,36 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
+import fr.pederobien.mumble.client.common.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.client.external.event.CommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.mumble.client.external.event.CommunicationProtocolVersionSetPostEvent;
 import fr.pederobien.mumble.client.external.event.GamePortCheckPostEvent;
 import fr.pederobien.mumble.client.external.impl.Channel;
 import fr.pederobien.mumble.client.external.impl.ChannelList;
+import fr.pederobien.mumble.client.external.impl.ChannelPlayerList;
 import fr.pederobien.mumble.client.external.impl.Parameter;
 import fr.pederobien.mumble.client.external.impl.ParameterList;
 import fr.pederobien.mumble.client.external.impl.Player;
-import fr.pederobien.mumble.client.external.impl.PlayerList;
 import fr.pederobien.mumble.client.external.impl.Position;
 import fr.pederobien.mumble.client.external.impl.RangeParameter;
-import fr.pederobien.mumble.client.external.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.client.external.impl.ServerPlayerList;
+import fr.pederobien.mumble.client.external.impl.SoundModifier;
+import fr.pederobien.mumble.client.external.impl.SoundModifierList;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IParameter;
+import fr.pederobien.mumble.client.external.interfaces.IParameterList;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.mumble.client.external.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.impl.messages.v10.AddPlayerToChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetFullServerConfigurationV10;
 import fr.pederobien.mumble.common.impl.messages.v10.IsGamePortUsedV10;
 import fr.pederobien.mumble.common.impl.messages.v10.KickPlayerFromChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.RegisterChannelOnServerV10;
@@ -49,7 +55,11 @@ import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerOnlineStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerPositionV10;
 import fr.pederobien.mumble.common.impl.messages.v10.UnregisterChannelFromServerV10;
 import fr.pederobien.mumble.common.impl.messages.v10.UnregisterPlayerFromServerV10;
+import fr.pederobien.mumble.common.impl.messages.v10.model.ChannelInfo.SemiFullChannelInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayerInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.SimplePlayerInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.SoundModifierInfo.FullSoundModifierInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventManager;
 
@@ -100,8 +110,23 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
-	public IMumbleMessage getServerInfo() {
+	public IMumbleMessage getFullServerConfiguration() {
 		return create(getVersion(), Identifier.GET_FULL_SERVER_CONFIGURATION);
+	}
+
+	@Override
+	public void onGetFullServerConfiguration(IMumbleMessage request) {
+		GetFullServerConfigurationV10 serverInfoMessage = (GetFullServerConfigurationV10) request;
+		for (FullPlayerInfo playerInfo : serverInfoMessage.getServerInfo().getPlayerInfo().values())
+			((ServerPlayerList) getServer().getPlayers()).add(createPlayer(playerInfo));
+
+		for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
+			ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), createParameterList(modifierInfo.getParameterInfo().values()));
+			((SoundModifierList) getServer().getSoundModifiers()).add(soundModifier);
+		}
+
+		for (SemiFullChannelInfo channelInfo : serverInfoMessage.getServerInfo().getChannelInfo().values())
+			((ChannelList) getServer().getChannels()).add(createChannel(channelInfo));
 	}
 
 	@Override
@@ -410,7 +435,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a player.
 	 */
 	private void registerPlayerOnServer(RegisterPlayerOnServerV10 request) {
-		((ServerPlayerList) getServer().getPlayers()).add(request.getPlayerInfo());
+		((ServerPlayerList) getServer().getPlayers()).add(createPlayer(request.getPlayerInfo()));
 	}
 
 	/**
@@ -514,7 +539,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a channel.
 	 */
 	private void registerChannelOnServer(RegisterChannelOnServerV10 request) {
-		((ChannelList) getServer().getChannels()).add(request.getChannelInfo());
+		((ChannelList) getServer().getChannels()).add(createChannel(request.getChannelInfo()));
 	}
 
 	/**
@@ -542,7 +567,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a player to a channel.
 	 */
 	private void addPlayerToChannel(AddPlayerToChannelV10 request) {
-		((PlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
+		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
 	}
 
 	/**
@@ -551,7 +576,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to remove a player from a channel.
 	 */
 	private void removePlayerFromChannel(RemovePlayerFromChannelV10 request) {
-		((PlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).remove(request.getPlayerName());
+		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).remove(request.getPlayerName());
 	}
 
 	/**
@@ -560,8 +585,11 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to update the value of a parameter.
 	 */
 	private void setParameterValue(SetParameterValueV10 request) {
-		((Parameter<?>) getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get())
-				.setValue(request.getNewValue());
+		IParameter<?> parameter = getServer().getChannels().get(request.getChannelName()).get().getSoundModifier().getParameters().get(request.getParameterName()).get();
+		if (parameter instanceof Parameter<?>)
+			((Parameter<?>) parameter).setValue(request.getNewValue());
+		else if (parameter instanceof RangeParameter<?>)
+			((RangeParameter<?>) parameter).setValue(request.getNewValue());
 	}
 
 	/**
@@ -606,13 +634,95 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void setChannelSoundModifier(SetChannelSoundModifierV10 request) {
 		Channel channel = (Channel) getServer().getChannels().get(request.getChannelInfo().getName()).get();
-		ISoundModifier soundModifier = getServer().getSoundModifierList().get(request.getChannelInfo().getSoundModifierInfo().getName()).get();
-
-		ParameterList parameterList = new ParameterList(getServer());
-		for (FullParameterInfo parameterInfo : request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values())
-			parameterList.add(parameterInfo);
-
-		soundModifier.getParameters().update(parameterList);
+		ISoundModifier soundModifier = getServer().getSoundModifiers().get(request.getChannelInfo().getSoundModifierInfo().getName()).get();
+		soundModifier.getParameters().update(createParameterList(request.getChannelInfo().getSoundModifierInfo().getParameterInfo().values()));
 		channel.setSoundModifier(soundModifier);
+	}
+
+	/**
+	 * Creates a player.
+	 * 
+	 * @param info A description of the player to create.
+	 * 
+	 * @return The created player.
+	 */
+	private IPlayer createPlayer(FullPlayerInfo info) {
+		// Player's name
+		String name = info.getName();
+
+		// Player's identifier
+		UUID identifier = info.getIdentifier();
+
+		// Player' online status
+		boolean isOnline = info.isOnline();
+
+		// Player's game address
+		InetSocketAddress gameAddress = info.getGameAddress();
+
+		// Player's administrator status
+		boolean isAdmin = info.isAdmin();
+
+		// Player's mute status
+		boolean isMute = info.isMute();
+
+		// Player's deafen status
+		boolean isDeafen = info.isDeafen();
+
+		// Player's X coordinate
+		double x = info.getX();
+
+		// Player's Y coordinate
+		double y = info.getY();
+
+		// Player's Z coordinate
+		double z = info.getZ();
+
+		// Player's yaw angle
+		double yaw = info.getYaw();
+
+		// Player's pitch coordinate
+		double pitch = info.getPitch();
+
+		return new Player(getServer(), name, identifier, isOnline, gameAddress, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
+	}
+
+	/**
+	 * Creates a parameters list.
+	 * 
+	 * @param s A description of each parameter to create.
+	 * 
+	 * @return The created parameters list.
+	 */
+	private IParameterList createParameterList(Collection<FullParameterInfo> infos) {
+		ParameterList parameters = new ParameterList(getServer());
+		for (FullParameterInfo info : infos) {
+			IParameter<?> parameter;
+			if (info.isRange())
+				parameter = new RangeParameter<Object>(info.getName(), info.getDefaultValue(), info.getValue(), info.getMinValue(), info.getMaxValue());
+			else
+				parameter = new Parameter<Object>(info.getName(), info.getDefaultValue(), info.getValue());
+			parameters.add(parameter);
+		}
+
+		return parameters;
+	}
+
+	/**
+	 * Creates a channel.
+	 * 
+	 * @param info A description of the channel to create.
+	 * 
+	 * @return The created channel.
+	 */
+	private IChannel createChannel(SemiFullChannelInfo info) {
+		IParameterList parameters = createParameterList(info.getSoundModifierInfo().getParameterInfo().values());
+		ISoundModifier soundModifier = getServer().getSoundModifiers().get(info.getSoundModifierInfo().getName()).get();
+		soundModifier.getParameters().update(parameters);
+
+		List<String> playerNames = new ArrayList<String>();
+		for (SimplePlayerInfo playerInfo : info.getPlayerInfo().values())
+			playerNames.add(playerInfo.getName());
+
+		return new Channel(getServer(), info.getName(), playerNames, soundModifier);
 	}
 }

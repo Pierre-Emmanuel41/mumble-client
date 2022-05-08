@@ -1,5 +1,6 @@
-package fr.pederobien.mumble.client.external.impl;
+package fr.pederobien.mumble.client.common.impl;
 
+import fr.pederobien.mumble.client.external.impl.MumbleTcpConnection;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public class RequestReceivedHolder {

@@ -1,55 +1,41 @@
 package fr.pederobien.mumble.client.external.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
+import fr.pederobien.mumble.client.common.exceptions.SoundModifierAlreadyRegisteredException;
+import fr.pederobien.mumble.client.common.impl.AbstractSoundModifierList;
+import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifierList;
 
-public class SoundModifierList implements ISoundModifierList {
-	private static final String DEFAULT_SOUND_MODIFIER_NAME = "default";
-	private Map<String, ISoundModifier> soundModifiers;
+public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier, IMumbleServer> implements ISoundModifierList {
 
-	public SoundModifierList() {
-		soundModifiers = new HashMap<String, ISoundModifier>();
+	/**
+	 * Creates a list of sound modifiers associated to a mumble server.
+	 * 
+	 * @param server The server associated to this list.
+	 */
+	public SoundModifierList(IMumbleServer server) {
+		super(server);
 	}
 
-	@Override
-	public Iterator<ISoundModifier> iterator() {
-		return soundModifiers.values().iterator();
+	/**
+	 * Adds the given sound modifier to this list.
+	 * 
+	 * @param soundModifier The sound modifier to add.
+	 * 
+	 * @throws SoundModifierAlreadyRegisteredException if a sound modifier with the same name is already registered.
+	 */
+	public void add(ISoundModifier soundModifier) {
+		add0(soundModifier);
 	}
 
-	@Override
-	public Optional<ISoundModifier> get(String name) {
-		ISoundModifier modifier = soundModifiers.get(name);
-		return Optional.ofNullable(modifier == null ? null : modifier.clone());
-	}
-
-	@Override
-	public ISoundModifier getDefaultSoundModifier() {
-		return get(DEFAULT_SOUND_MODIFIER_NAME).get();
-	}
-
-	@Override
-	public Stream<ISoundModifier> stream() {
-		return toList().stream();
-	}
-
-	@Override
-	public List<ISoundModifier> toList() {
-		return new ArrayList<ISoundModifier>(soundModifiers.values());
-	}
-
-	protected void register(ISoundModifier soundModifier) {
-		soundModifiers.put(soundModifier.getName(), soundModifier);
-	}
-
-	protected void unregister(String name) {
-		soundModifiers.remove(name);
+	/**
+	 * Adds the given sound modifier to this list.
+	 * 
+	 * @param soundModifier The sound modifier to add.
+	 * 
+	 * @throws SoundModifierAlreadyRegisteredException if a sound modifier with the same name is already registered.
+	 */
+	public void remove(ISoundModifier soundModifier) {
+		remove0(soundModifier);
 	}
 }

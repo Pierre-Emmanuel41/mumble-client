@@ -7,25 +7,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import fr.pederobien.communication.event.ConnectionDisposedEvent;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.external.event.ServerClosePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePreEvent;
-import fr.pederobien.mumble.client.external.exceptions.PlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.external.exceptions.ServerPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IServerPlayerList;
-import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayerInfo;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
@@ -35,6 +32,11 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	private Map<String, IPlayer> players;
 	private Lock lock;
 
+	/**
+	 * Creates a list of players associated to a server.
+	 * 
+	 * @param server The server associated to this list.
+	 */
 	public ServerPlayerList(IMumbleServer server) {
 		this.server = server;
 
@@ -96,13 +98,19 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * 
 	 * @param info A description of the player to add.
 	 */
-	public IPlayer add(FullPlayerInfo info) {
-		IPlayer player = players.get(info.getName());
-		if (player != null)
-			throw new ServerPlayerAlreadyRegisteredException(this, player);
+	public void add(IPlayer player) {
+		lock.lock();
+		try {
+			Optional<IPlayer> optPlayer = get(player.getName());
+			if (optPlayer.isPresent())
+				throw new ServerPlayerAlreadyRegisteredException(this, player);
 
-		return addPlayer(info.getName(), info.getIdentifier(), info.isOnline(), info.getGameAddress(), info.isAdmin(), info.isMute(), info.isDeafen(), info.getX(),
-				info.getY(), info.getZ(), info.getYaw(), info.getPitch());
+			players.put(player.getName(), player);
+		} finally {
+			lock.unlock();
+		}
+
+		EventManager.callEvent(new ServerPlayerListPlayerAddPostEvent(this, player));
 	}
 
 	/**
@@ -127,53 +135,18 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 
 		lock.lock();
 		try {
-			players.remove(event.getOldName());
-			players.put(event.getPlayer().getName(), event.getPlayer());
+			players.put(event.getPlayer().getName(), players.remove(event.getOldName()));
 		} finally {
 			lock.unlock();
 		}
 	}
 
 	@EventHandler
-	private void onConnectionDispose(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(((AbstractMumbleServer) server).getMumbleConnection().getTcpConnection()))
+	private void onServerClose(ServerClosePostEvent event) {
+		if (!event.getServer().equals(getServer()))
 			return;
 
 		EventManager.unregisterListener(this);
-	}
-
-	/**
-	 * Thread safe operation that adds a player to the players list.
-	 * 
-	 * @param name        The player's name.
-	 * @param identifier  The player's identifier.
-	 * @param gameAddress The game address used to play to the game.
-	 * @param isAdmin     The player's administrator status.
-	 * @param isMute      The player's mute status.
-	 * @param isDeafen    The player's deafen status.
-	 * @param x           The player's x coordinate.
-	 * @param y           The player's y coordinate.
-	 * @param z           The player's z coordinate.
-	 * @param yaw         The player's yaw angle.
-	 * @param pitch       The player's pitch angle.
-	 * 
-	 * @return The created player.
-	 * 
-	 * @throws PlayerAlreadyRegisteredException if a player is already registered for the player name.
-	 */
-	private IPlayer addPlayer(String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen, double x,
-			double y, double z, double yaw, double pitch) {
-		lock.lock();
-		IPlayer player = null;
-		try {
-			player = new Player(getServer(), name, identifier, isOnline, gameAddress, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
-			players.put(player.getName(), player);
-		} finally {
-			lock.unlock();
-		}
-
-		EventManager.callEvent(new ServerPlayerListPlayerAddPostEvent(this, player));
-		return player;
 	}
 
 	/**

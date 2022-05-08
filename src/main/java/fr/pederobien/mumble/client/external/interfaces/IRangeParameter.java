@@ -1,32 +1,18 @@
 package fr.pederobien.mumble.client.external.interfaces;
 
-import java.util.function.Consumer;
+import fr.pederobien.mumble.client.common.interfaces.ICommonRangeParameter;
 
-public interface IRangeParameter<T> extends IParameter<T> {
+public interface IRangeParameter<T> extends ICommonRangeParameter<T>, IParameter<T> {
 
 	/**
-	 * @return The minimum parameter value.
+	 * @return The sound modifier associated to this parameter.
 	 */
-	T getMin();
+	ISoundModifier getSoundModifier();
 
 	/**
-	 * Set the minimum value of this parameter.
+	 * Clone this parameter. It creates a new parameter based on the properties of this parameter.
 	 * 
-	 * @param min      The new minimum value of this parameter.
-	 * @param callback the callback that is executed after reception of the answer from the remote.
+	 * @return A new parameter.
 	 */
-	void setMin(Object min, Consumer<IResponse> callback);
-
-	/**
-	 * @return The maximum parameter value.
-	 */
-	T getMax();
-
-	/**
-	 * Set the maximum value of this parameter.
-	 * 
-	 * @param max      The maximum value of this parameter.
-	 * @param callback the callback that is executed after reception of the answer from the remote.
-	 */
-	void setMax(Object max, Consumer<IResponse> callback);
+	IRangeParameter<T> clone();
 }

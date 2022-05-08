@@ -28,7 +28,7 @@ public class PlayerNameChangePostEvent extends PlayerEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentName=" + getPlayer().getName());
 		joiner.add("oldName=" + getOldName());
 		return String.format("%s_%s", getName(), joiner);
 	}

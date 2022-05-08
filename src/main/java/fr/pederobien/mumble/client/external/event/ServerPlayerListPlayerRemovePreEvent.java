@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IServerPlayerList;
 import fr.pederobien.utils.ICancellable;
 

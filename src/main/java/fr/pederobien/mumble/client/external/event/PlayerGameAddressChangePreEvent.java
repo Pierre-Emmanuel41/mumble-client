@@ -4,8 +4,8 @@ import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerGameAddressChangePreEvent extends PlayerEvent implements ICancellable {

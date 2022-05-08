@@ -3,8 +3,8 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.utils.ICancellable;
 
 public class PlayerNameChangePreEvent extends PlayerEvent implements ICancellable {
@@ -52,7 +52,7 @@ public class PlayerNameChangePreEvent extends PlayerEvent implements ICancellabl
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("player=" + getPlayer().getName());
+		joiner.add("currentName=" + getPlayer().getName());
 		joiner.add("newName=" + getNewName());
 		return String.format("%s_%s", getName(), joiner);
 	}

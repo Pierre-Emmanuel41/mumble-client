@@ -3,12 +3,12 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IPlayerList;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
+import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
 import fr.pederobien.utils.ICancellable;
 
-public class PlayerListPlayerAddPreEvent extends PlayerListEvent implements ICancellable {
+public class ChannelPlayerListPlayerAddPreEvent extends ChannelPlayerListEvent implements ICancellable {
 	private boolean isCancelled;
 	private IPlayer player;
 	private Consumer<IResponse> callback;
@@ -20,7 +20,7 @@ public class PlayerListPlayerAddPreEvent extends PlayerListEvent implements ICan
 	 * @param player   The added player.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
-	public PlayerListPlayerAddPreEvent(IPlayerList list, IPlayer player, Consumer<IResponse> callback) {
+	public ChannelPlayerListPlayerAddPreEvent(IChannelPlayerList list, IPlayer player, Consumer<IResponse> callback) {
 		super(list);
 		this.player = player;
 		this.callback = callback;

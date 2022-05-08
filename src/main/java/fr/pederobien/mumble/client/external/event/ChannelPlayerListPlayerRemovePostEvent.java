@@ -3,9 +3,9 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IPlayerList;
+import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
 
-public class PlayerListPlayerRemovePostEvent extends PlayerListEvent {
+public class ChannelPlayerListPlayerRemovePostEvent extends ChannelPlayerListEvent {
 	private IPlayer player;
 
 	/**
@@ -14,7 +14,7 @@ public class PlayerListPlayerRemovePostEvent extends PlayerListEvent {
 	 * @param list   The list from which a player has been removed.
 	 * @param player The removed player.
 	 */
-	public PlayerListPlayerRemovePostEvent(IPlayerList list, IPlayer player) {
+	public ChannelPlayerListPlayerRemovePostEvent(IChannelPlayerList list, IPlayer player) {
 		super(list);
 		this.player = player;
 	}

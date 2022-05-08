@@ -1,24 +1,8 @@
 package fr.pederobien.mumble.client.external.interfaces;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import fr.pederobien.mumble.client.common.interfaces.ICommonParameterList;
 
-public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
-
-	/**
-	 * Get the parameter associated to the given name.
-	 * 
-	 * @param name The parameter name.
-	 * 
-	 * @return An optional that contains the parameter if registered, an empty optional otherwise.
-	 */
-	Optional<IParameter<?>> get(String name);
-
-	/**
-	 * @return The number of registered parameters.
-	 */
-	int size();
+public interface IParameterList extends ICommonParameterList<IParameter<?>> {
 
 	/**
 	 * Update the value of each parameter in common between this parameter list and the specified parameter list.
@@ -33,14 +17,4 @@ public interface IParameterList extends Iterable<IParameter<?>>, Cloneable {
 	 * @return A new parameter list.
 	 */
 	IParameterList clone();
-
-	/**
-	 * @return a sequential {@code Stream} over the elements in this collection.
-	 */
-	Stream<IParameter<?>> stream();
-
-	/**
-	 * @return A copy of the underlying list.
-	 */
-	List<IParameter<?>> toList();
 }

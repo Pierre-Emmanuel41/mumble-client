@@ -4,42 +4,40 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.impl.AbstractChannel;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
+import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
-import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IPlayerList;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
 
-public class Channel implements IChannel {
+public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier> implements IChannel {
 	private IMumbleServer server;
-	private String name;
-	private IPlayerList players;
-	private ISoundModifier soundModifier;
 
 	/**
 	 * Creates a channel based on the given parameters.
 	 * 
 	 * @param server        The mumble server associated to the channel.
 	 * @param name          The channel's name.
-	 * @param players       The list of players registered in the channel.
+	 * @param playerNames   The list of name of the players registered in the channel.
 	 * @param soundModifier The channel's sound modifier.
 	 */
-	public Channel(IMumbleServer server, String name, List<IPlayer> players, ISoundModifier soundModifier) {
+	public Channel(IMumbleServer server, String name, List<String> playerNames, ISoundModifier soundModifier) {
+		super(name);
 		this.server = server;
-		this.name = name;
-		this.players = new PlayerList(this);
 
-		this.soundModifier = soundModifier;
-		((SoundModifier) soundModifier).setChannel(this);
-
-		for (IPlayer player : players)
+		ChannelPlayerList players = new ChannelPlayerList(this);
+		setPlayers(players);
+		for (String player : playerNames)
 			players.add(player);
+
+		setSoundModifier0(soundModifier);
+		((SoundModifier) getSoundModifier()).setChannel(this);
 	}
 
 	@Override
@@ -48,40 +46,20 @@ public class Channel implements IChannel {
 	}
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
 	public void setName(String name, Consumer<IResponse> callback) {
-		if (this.name.equals(name))
+		if (getName().equals(name))
 			return;
 
 		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, callback));
 	}
 
 	@Override
-	public IPlayerList getPlayers() {
-		return players;
-	}
-
-	@Override
-	public ISoundModifier getSoundModifier() {
-		return soundModifier;
-	}
-
-	@Override
 	public void setSoundModifier(ISoundModifier soundModifier, Consumer<IResponse> callback) {
-		if (this.soundModifier.equals(soundModifier))
+		if (getSoundModifier().equals(soundModifier))
 			return;
 
 		checkSoundModifier(soundModifier);
 		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier, callback));
-	}
-
-	@Override
-	public String toString() {
-		return name;
 	}
 
 	@Override
@@ -93,7 +71,7 @@ public class Channel implements IChannel {
 			return false;
 
 		IChannel other = (IChannel) obj;
-		return name.equals(other.getName());
+		return server.equals(other.getServer()) && getName().equals(other.getName());
 	}
 
 	/**
@@ -102,10 +80,17 @@ public class Channel implements IChannel {
 	 * @param name The new channel name.
 	 */
 	public void setName(String name) {
-		if (this.name.equals(name))
-			return;
+		getLock().lock();
+		try {
+			String oldName = getName();
+			if (oldName.equals(name))
+				return;
 
-		setName0(name);
+			setName0(name);
+			EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
+		} finally {
+			getLock().unlock();
+		}
 	}
 
 	/**
@@ -114,34 +99,19 @@ public class Channel implements IChannel {
 	 * @param soundModifier The new channel's sound modifier.
 	 */
 	public void setSoundModifier(ISoundModifier soundModifier) {
-		if (this.soundModifier.equals(soundModifier))
-			return;
+		getLock().lock();
+		try {
+			checkSoundModifier(soundModifier);
 
-		checkSoundModifier(soundModifier);
-		setSoundModifier0(soundModifier);
-	}
+			ISoundModifier oldSoundModifier = getSoundModifier();
+			if (oldSoundModifier.equals(soundModifier))
+				return;
 
-	/**
-	 * Set the name of this channel.
-	 * 
-	 * @param name The new channel name.
-	 */
-	private void setName0(String name) {
-		String oldName = this.name;
-		this.name = name;
-		EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
-	}
-
-	/**
-	 * Set the sound modifier of this channel.
-	 * 
-	 * @param soundModifier The new channel's sound modifier.
-	 */
-	private void setSoundModifier0(ISoundModifier soundModifier) {
-		ISoundModifier oldSoundModifier = this.soundModifier;
-
-		this.soundModifier = soundModifier;
-		EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
+			setSoundModifier0(soundModifier);
+			EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
+		} finally {
+			getLock().unlock();
+		}
 	}
 
 	/**
@@ -150,7 +120,7 @@ public class Channel implements IChannel {
 	 * @param soundModifier The sound modifier to check.
 	 */
 	private void checkSoundModifier(ISoundModifier soundModifier) {
-		Optional<ISoundModifier> optSoundModifier = getServer().getSoundModifierList().get(soundModifier.getName());
+		Optional<ISoundModifier> optSoundModifier = getServer().getSoundModifiers().get(soundModifier.getName());
 		if (!optSoundModifier.isPresent() || !soundModifier.equals(optSoundModifier.get()))
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 	}

@@ -1,6 +1,9 @@
-package fr.pederobien.mumble.client.external.interfaces;
+package fr.pederobien.mumble.client.player.interfaces;
 
 import java.util.function.Consumer;
+
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 
 public interface IPlayerMumbleServer extends IMumbleServer {
 

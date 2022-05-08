@@ -1,16 +1,8 @@
 package fr.pederobien.mumble.client.external.interfaces;
 
-public interface ISoundModifier extends Cloneable {
+import fr.pederobien.mumble.client.common.interfaces.ICommonSoundModifier;
 
-	/**
-	 * @return The name of the sound modifier.
-	 */
-	String getName();
-
-	/**
-	 * @return the list of parameters associated to this sound modifier.
-	 */
-	IParameterList getParameters();
+public interface ISoundModifier extends ICommonSoundModifier<IParameterList> {
 
 	/**
 	 * @return The channel associated to this sound modifier.

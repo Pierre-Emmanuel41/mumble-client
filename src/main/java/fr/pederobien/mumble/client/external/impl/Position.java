@@ -4,11 +4,11 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.PlayerPositionChangePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerPositionChangePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.mumble.client.external.interfaces.IPosition;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.utils.event.EventManager;
 
 public class Position implements IPosition {

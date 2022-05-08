@@ -8,6 +8,10 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.mumble.client.common.impl.AbstractPlayer;
+import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerDeafenStatusChangePostEvent;
@@ -16,8 +20,6 @@ import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePostEve
 import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerKickPreEvent;
-import fr.pederobien.mumble.client.external.event.PlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.client.external.event.PlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteStatusChangePostEvent;
@@ -33,19 +35,14 @@ import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.mumble.client.external.interfaces.IPosition;
-import fr.pederobien.mumble.client.external.interfaces.IResponse;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
-public class Player implements IPlayer, IEventListener {
+public class Player extends AbstractPlayer implements IPlayer, IEventListener {
 	private IMumbleServer server;
-	private String name;
-	private UUID identifier;
-	private boolean isOnline;
 	private InetSocketAddress gameAddress;
-	private boolean isAdmin, isMute, isDeafen;
 	private IPosition position;
 	private IChannel channel;
 	private Map<IPlayer, Boolean> isMuteBy;
@@ -60,17 +57,23 @@ public class Player implements IPlayer, IEventListener {
 	 * @param isAdmin     The player's administrator status.
 	 * @param isMute      The player's mute status.
 	 * @param isDeafen    The player's deafen status.
+	 * @param x           The player's X coordinate.
+	 * @param y           The player's Y coordinate.
+	 * @param z           The player's Z coordinate.
+	 * @param yaw         The player's yaw angle.
+	 * @param pitch       The player's pitch angle.
 	 */
 	public Player(IMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen,
 			double x, double y, double z, double yaw, double pitch) {
+		super(name, identifier);
+
 		this.server = server;
-		this.name = name;
-		this.isOnline = isOnline;
 		this.gameAddress = gameAddress;
-		this.identifier = identifier;
-		this.isAdmin = isAdmin;
-		this.isMute = isMute;
-		this.isDeafen = isDeafen;
+
+		setOnline0(isOnline);
+		setAdmin0(isAdmin);
+		setMute0(isMute);
+		setDeafen0(isDeafen);
 
 		position = new Position(this, x, y, z, yaw, pitch);
 		isMuteBy = new HashMap<IPlayer, Boolean>();
@@ -84,13 +87,8 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
 	public void setName(String name, Consumer<IResponse> callback) {
-		if (this.name.equals(name))
+		if (getName().equals(name))
 			return;
 
 		EventManager.callEvent(new PlayerNameChangePreEvent(this, name, callback));
@@ -110,31 +108,16 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@Override
-	public boolean isAdmin() {
-		return isAdmin;
-	}
-
-	@Override
 	public void setAdmin(boolean isAdmin, Consumer<IResponse> callback) {
-		if (this.isAdmin == isAdmin)
+		if (isAdmin() == isAdmin)
 			return;
 
 		EventManager.callEvent(new PlayerAdminChangePreEvent(this, isAdmin, callback));
 	}
 
 	@Override
-	public UUID getIdentifier() {
-		return identifier;
-	}
-
-	@Override
-	public boolean isOnline() {
-		return isOnline;
-	}
-
-	@Override
 	public void setOnline(boolean isOnline, Consumer<IResponse> callback) {
-		if (this.isOnline == isOnline)
+		if (isOnline() == isOnline)
 			return;
 
 		EventManager.callEvent(new PlayerOnlineChangePreEvent(this, isOnline, callback));
@@ -146,13 +129,8 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@Override
-	public boolean isMute() {
-		return isMute;
-	}
-
-	@Override
 	public void setMute(boolean isMute, Consumer<IResponse> callback) {
-		if (this.isMute == isMute)
+		if (isMute() == isMute)
 			return;
 
 		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, callback));
@@ -182,13 +160,8 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@Override
-	public boolean isDeafen() {
-		return isDeafen;
-	}
-
-	@Override
 	public void setDeafen(boolean isDeafen, Consumer<IResponse> callback) {
-		if (this.isDeafen == isDeafen)
+		if (isDeafen() == isDeafen)
 			return;
 
 		EventManager.callEvent(new PlayerDeafenStatusChangePreEvent(this, isDeafen, callback));
@@ -219,40 +192,33 @@ public class Player implements IPlayer, IEventListener {
 		return String.format("Player={name=%s,identifier=%s}", getName(), getIdentifier());
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-
-		if (!(obj instanceof IPlayer))
-			return false;
-
-		IPlayer other = (IPlayer) obj;
-		return identifier.equals(other.getIdentifier());
-	}
-
 	/**
 	 * Set the name of this player. For internal use only.
 	 * 
 	 * @param name The new player name.
 	 */
 	public void setName(String name) {
-		if (this.name.equals(name))
-			return;
+		getLock().lock();
+		try {
+			String oldName = getName();
+			if (oldName.equals(name))
+				return;
 
-		setName0(name);
+			setName0(name);
+			EventManager.callEvent(new PlayerNameChangePostEvent(this, oldName));
+		} finally {
+			getLock().unlock();
+		}
 	}
 
 	/**
 	 * Set the player online status. For internal use only.
 	 * 
-	 * @param isAdmin The new player online status.
+	 * @param isOnline The new player online status.
 	 */
 	public void setOnline(boolean isOnline) {
-		if (this.isOnline == isOnline)
-			return;
-
-		setOnline0(isOnline);
+		if (setOnline0(isOnline))
+			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, !isOnline));
 	}
 
 	/**
@@ -273,26 +239,22 @@ public class Player implements IPlayer, IEventListener {
 	 * @param isAdmin The new player administrator status.
 	 */
 	public void setAdmin(boolean isAdmin) {
-		if (this.isAdmin == isAdmin)
-			return;
-
-		setAdmin0(isAdmin);
+		if (setAdmin0(isAdmin))
+			EventManager.callEvent(new PlayerAdminChangePostEvent(this, !isAdmin));
 	}
 
 	/**
-	 * Set the player mute status. For internal use only.
+	 * Set the mute status of this player. For internal use only.
 	 * 
 	 * @param isMute The new player mute status.
 	 */
 	public void setMute(boolean isMute) {
-		if (this.isMute == isMute)
-			return;
-
-		setMute0(isMute);
+		if (setMute0(isMute))
+			EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, !isMute));
 	}
 
 	/**
-	 * Mute or unmute this player for another player. For internal use only.
+	 * Set the mute status of this player for another player. For internal use only.
 	 * 
 	 * @param player The player for which this player is mute or unmute.
 	 * @param isMute The new player mute status for the other player.
@@ -306,15 +268,13 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
-	 * Set the player deafen status. For internal use only.
+	 * Set the deafen status of this player. For internal use only.
 	 * 
 	 * @param isDeafen The new player deafen status.
 	 */
 	public void setDeafen(boolean isDeafen) {
-		if (this.isDeafen == isDeafen)
-			return;
-
-		setDeafen0(isDeafen);
+		if (setDeafen0(isDeafen))
+			EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, !isDeafen));
 	}
 
 	/**
@@ -330,7 +290,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onChannelsPlayerAdd(PlayerListPlayerAddPostEvent event) {
+	private void onChannelsPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -338,7 +298,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onChannelsPlayerRemove(PlayerListPlayerRemovePostEvent event) {
+	private void onChannelsPlayerRemove(ChannelPlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -354,28 +314,6 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
-	 * Set the name of this player.
-	 * 
-	 * @param name The new player name.
-	 */
-	private void setName0(String name) {
-		String oldName = this.name;
-		this.name = name;
-		EventManager.callEvent(new PlayerNameChangePostEvent(this, oldName));
-	}
-
-	/**
-	 * Set the player online status.
-	 * 
-	 * @param isAdmin The new player online status.
-	 */
-	private void setOnline0(boolean isOnline) {
-		boolean oldOnline = this.isOnline;
-		this.isOnline = isOnline;
-		EventManager.callEvent(new PlayerOnlineChangePostEvent(this, oldOnline));
-	}
-
-	/**
 	 * Set the player game address.
 	 * 
 	 * @param gameAddress The new player's game address.
@@ -387,29 +325,7 @@ public class Player implements IPlayer, IEventListener {
 	}
 
 	/**
-	 * Set the player administrator status.
-	 * 
-	 * @param isAdmin The new player administrator status.
-	 */
-	private void setAdmin0(boolean isAdmin) {
-		boolean oldAdmin = this.isAdmin;
-		this.isAdmin = isAdmin;
-		EventManager.callEvent(new PlayerAdminChangePostEvent(this, oldAdmin));
-	}
-
-	/**
-	 * Set the player mute status.
-	 * 
-	 * @param isMute The new player mute status.
-	 */
-	private void setMute0(boolean isMute) {
-		boolean oldMute = this.isMute;
-		this.isMute = isMute;
-		EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, oldMute));
-	}
-
-	/**
-	 * Mute or unmute this player for another player.
+	 * Set the mute status of this player for another player.
 	 * 
 	 * @param player The player for which this player is mute or unmute.
 	 * @param isMute The new player mute status for the other player.
@@ -419,17 +335,6 @@ public class Player implements IPlayer, IEventListener {
 		boolean oldMute = value == null ? false : value;
 		isMuteBy.put(player, isMute);
 		EventManager.callEvent(new PlayerMuteByChangePostEvent(this, player, oldMute));
-	}
-
-	/**
-	 * Set the player deafen status.
-	 * 
-	 * @param isDeafen The new player deafen status.
-	 */
-	private void setDeafen0(boolean isDeafen) {
-		boolean oldDeafen = this.isDeafen;
-		this.isDeafen = isDeafen;
-		EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, oldDeafen));
 	}
 
 	/**

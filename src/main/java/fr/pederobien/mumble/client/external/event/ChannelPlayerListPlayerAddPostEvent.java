@@ -3,9 +3,9 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IPlayerList;
+import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
 
-public class PlayerListPlayerAddPostEvent extends PlayerListEvent {
+public class ChannelPlayerListPlayerAddPostEvent extends ChannelPlayerListEvent {
 	private IPlayer player;
 
 	/**
@@ -14,7 +14,7 @@ public class PlayerListPlayerAddPostEvent extends PlayerListEvent {
 	 * @param list   The list to which the player has been added.
 	 * @param player The added player.
 	 */
-	public PlayerListPlayerAddPostEvent(IPlayerList list, IPlayer player) {
+	public ChannelPlayerListPlayerAddPostEvent(IChannelPlayerList list, IPlayer player) {
 		super(list);
 		this.player = player;
 	}
