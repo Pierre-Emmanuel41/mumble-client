@@ -3,9 +3,8 @@ package fr.pederobien.mumble.client.player.interfaces;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 
-public interface IPlayerMumbleServer extends IMumbleServer {
+public interface IPlayerMumbleServer {
 
 	/**
 	 * Join the server associated to this client. Once this client has successfully joined the remote, then it can send requests to
@@ -27,4 +26,9 @@ public interface IPlayerMumbleServer extends IMumbleServer {
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	void leave(Consumer<IResponse> callback);
+
+	/**
+	 * @return The player associated to this mumble server.
+	 */
+	IMainPlayer getMainPlayer();
 }

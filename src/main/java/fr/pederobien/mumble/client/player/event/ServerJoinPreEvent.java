@@ -1,9 +1,10 @@
-package fr.pederobien.mumble.client.external.event;
+package fr.pederobien.mumble.client.player.event;
 
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.mumble.client.external.event.ServerEvent;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 import fr.pederobien.utils.ICancellable;
 

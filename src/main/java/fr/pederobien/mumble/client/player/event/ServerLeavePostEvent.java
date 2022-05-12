@@ -1,7 +1,8 @@
-package fr.pederobien.mumble.client.external.event;
+package fr.pederobien.mumble.client.player.event;
 
 import java.util.StringJoiner;
 
+import fr.pederobien.mumble.client.external.event.ServerEvent;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 
 public class ServerLeavePostEvent extends ServerEvent {

@@ -14,6 +14,8 @@ import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelNameChangePreEvent;
+import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerAddPreEvent;
+import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.external.event.CommunicationProtocolVersionGetPostEvent;
 import fr.pederobien.mumble.client.external.event.CommunicationProtocolVersionSetPostEvent;
@@ -25,15 +27,11 @@ import fr.pederobien.mumble.client.external.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerKickPreEvent;
-import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerAddPreEvent;
-import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerPositionChangePreEvent;
-import fr.pederobien.mumble.client.external.event.ServerJoinPreEvent;
-import fr.pederobien.mumble.client.external.event.ServerLeavePreEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
@@ -98,22 +96,6 @@ public class MumbleTcpConnection implements IEventListener {
 
 		version = server.getRequestManager().getVersions().contains(event.getVersion()) ? event.getVersion() : 1.0f;
 		send(getRequestManager().onSetCommunicationProtocolVersion(event.getRequest(), event.getVersion()), null);
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerJoin(ServerJoinPreEvent event) {
-		if (!event.getServer().equals(server))
-			return;
-
-		send(getRequestManager().onServerJoin(version), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerLeave(ServerLeavePreEvent event) {
-		if (!event.getServer().equals(server))
-			return;
-
-		send(getRequestManager().onServerLeave(version), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
