@@ -3,6 +3,7 @@ package fr.pederobien.mumble.client.external.impl;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.exceptions.ChannelPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractChannelPlayerList;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePostEvent;
@@ -13,7 +14,6 @@ import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemoveP
 import fr.pederobien.mumble.client.external.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerReachableChangeEvent;
-import fr.pederobien.mumble.client.external.exceptions.ChannelPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
