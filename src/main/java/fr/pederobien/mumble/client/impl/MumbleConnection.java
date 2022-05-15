@@ -43,7 +43,7 @@ public class MumbleConnection implements IEventListener {
 	protected MumbleConnection(MumbleServer mumbleServer) {
 		this.mumbleServer = mumbleServer;
 
-		tcpConnection = new TcpClientImpl(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor());
+		tcpConnection = new TcpClientImpl(mumbleServer.getAddress(), mumbleServer.getPort(), new MessageExtractor(), true);
 		isDisposed = new AtomicBoolean(false);
 
 		EventManager.registerListener(this);
