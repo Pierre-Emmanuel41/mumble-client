@@ -22,7 +22,7 @@ public abstract class AbstractMumbleTcpConnection<T extends ICommonMumbleServer<
 	 */
 	public AbstractMumbleTcpConnection(T server) {
 		this.server = server;
-		connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MumbleMessageExtractor());
+		connection = new TcpClientImpl(server.getAddress().getAddress().getHostAddress(), server.getAddress().getPort(), new MumbleMessageExtractor(), true);
 		version = -1;
 	}
 
