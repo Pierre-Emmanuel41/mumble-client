@@ -1,4 +1,4 @@
-package fr.pederobien.mumble.client.external.impl;
+package fr.pederobien.mumble.client.common;
 
 import fr.pederobien.mumble.common.impl.ErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;

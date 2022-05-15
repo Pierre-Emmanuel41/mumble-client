@@ -10,7 +10,6 @@ import fr.pederobien.utils.ICancellable;
 
 public class PlayerKickPreEvent extends PlayerEvent implements ICancellable {
 	private boolean isCancelled;
-	private IChannel channel;
 	private IPlayer kickingPlayer;
 	private Consumer<IResponse> callback;
 
@@ -22,9 +21,8 @@ public class PlayerKickPreEvent extends PlayerEvent implements ICancellable {
 	 * @param kickingPlayer The player that is about to kick another player.
 	 * @param callback      The callback to run when an answer is received from the server.
 	 */
-	public PlayerKickPreEvent(IPlayer kickedPlayer, IChannel channel, IPlayer kickingPlayer, Consumer<IResponse> callback) {
+	public PlayerKickPreEvent(IPlayer kickedPlayer, IPlayer kickingPlayer, Consumer<IResponse> callback) {
 		super(kickedPlayer);
-		this.channel = channel;
 		this.kickingPlayer = kickingPlayer;
 		this.callback = callback;
 	}
@@ -51,7 +49,7 @@ public class PlayerKickPreEvent extends PlayerEvent implements ICancellable {
 	 * @return The channel from which the player is about to be kicked.
 	 */
 	public IChannel getChannel() {
-		return channel;
+		return getPlayer().getChannel();
 	}
 
 	/**

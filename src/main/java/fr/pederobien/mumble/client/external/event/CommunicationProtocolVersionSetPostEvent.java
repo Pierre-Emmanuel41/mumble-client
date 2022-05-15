@@ -2,14 +2,14 @@ package fr.pederobien.mumble.client.external.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.impl.MumbleTcpConnection;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.common.impl.AbstractMumbleTcpConnection;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public class CommunicationProtocolVersionSetPostEvent extends ServerEvent {
 	private IMumbleMessage request;
 	private float version;
-	private MumbleTcpConnection connection;
+	private AbstractMumbleTcpConnection<?> connection;
 
 	/**
 	 * Creates an event throw when a request has been received from the remote in order to set a specific version of the communication
@@ -20,7 +20,7 @@ public class CommunicationProtocolVersionSetPostEvent extends ServerEvent {
 	 * @param version    The version to use.
 	 * @param connection The connection that has received the request.
 	 */
-	public CommunicationProtocolVersionSetPostEvent(IMumbleServer server, IMumbleMessage request, float version, MumbleTcpConnection connection) {
+	public CommunicationProtocolVersionSetPostEvent(IExternalMumbleServer server, IMumbleMessage request, float version, AbstractMumbleTcpConnection<?> connection) {
 		super(server);
 		this.request = request;
 		this.version = version;
@@ -44,7 +44,7 @@ public class CommunicationProtocolVersionSetPostEvent extends ServerEvent {
 	/**
 	 * @return The connection that received the request.
 	 */
-	public MumbleTcpConnection getConnection() {
+	public AbstractMumbleTcpConnection<?> getConnection() {
 		return connection;
 	}
 

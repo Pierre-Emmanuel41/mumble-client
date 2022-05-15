@@ -1,28 +1,23 @@
 package fr.pederobien.mumble.client.common.impl;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.client.common.interfaces.ICommonPlayer;
-import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 
 public abstract class AbstractPlayer implements ICommonPlayer {
 	private String name;
-	private UUID identifier;
 	private AtomicBoolean isAdmin, isOnline, isMute, isDeafen;
 	private Lock lock;
 
 	/**
-	 * Creates a player associated to a name and a unique identifier.
+	 * Creates a player associated to a name.
 	 * 
-	 * @param name       The player name.
-	 * @param identifier The player identifier.
+	 * @param name The player name.
 	 */
-	protected AbstractPlayer(String name, UUID identifier) {
+	protected AbstractPlayer(String name) {
 		this.name = name;
-		this.identifier = identifier;
 
 		isAdmin = new AtomicBoolean(false);
 		isOnline = new AtomicBoolean(false);
@@ -34,11 +29,6 @@ public abstract class AbstractPlayer implements ICommonPlayer {
 	@Override
 	public String getName() {
 		return name;
-	}
-
-	@Override
-	public UUID getIdentifier() {
-		return identifier;
 	}
 
 	@Override
@@ -59,18 +49,6 @@ public abstract class AbstractPlayer implements ICommonPlayer {
 	@Override
 	public boolean isDeafen() {
 		return isDeafen.get();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-
-		if (!(obj instanceof IPlayer))
-			return false;
-
-		IPlayer other = (IPlayer) obj;
-		return identifier.equals(other.getIdentifier());
 	}
 
 	/**

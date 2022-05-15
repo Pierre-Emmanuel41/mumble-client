@@ -9,14 +9,6 @@ import fr.pederobien.mumble.client.player.exceptions.PlayerNotRegisteredInChanne
 public interface ISecondaryPlayer extends IPlayer {
 
 	/**
-	 * Set if this player is mute for the main player.
-	 * 
-	 * @param isMute   True to mute, false to unmute.
-	 * @param callback The callback to run when an answer is received from the server.
-	 */
-	void setMute(boolean isMute, Consumer<IResponse> callback);
-
-	/**
 	 * Kick this player by the main player.
 	 * 
 	 * @param callback The callback to run when an answer is received from the server.

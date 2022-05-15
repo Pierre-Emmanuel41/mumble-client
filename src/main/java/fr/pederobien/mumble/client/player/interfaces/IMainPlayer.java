@@ -1,10 +1,22 @@
 package fr.pederobien.mumble.client.player.interfaces;
 
+import java.net.InetSocketAddress;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 
 public interface IMainPlayer extends IPlayer {
+
+	/**
+	 * @return The unique identifier associated to this player.
+	 */
+	UUID getIdentifier();
+
+	/**
+	 * @return The address used by the player to play to the game.
+	 */
+	InetSocketAddress getGameAddress();
 
 	/**
 	 * Set the deafen status of this player.

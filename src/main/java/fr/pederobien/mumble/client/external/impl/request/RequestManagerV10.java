@@ -24,7 +24,7 @@ import fr.pederobien.mumble.client.external.impl.ServerPlayerList;
 import fr.pederobien.mumble.client.external.impl.SoundModifier;
 import fr.pederobien.mumble.client.external.impl.SoundModifierList;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IParameter;
 import fr.pederobien.mumble.client.external.interfaces.IParameterList;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
@@ -70,7 +70,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @param server The server to update.
 	 */
-	public RequestManagerV10(IMumbleServer server) {
+	public RequestManagerV10(IExternalMumbleServer server) {
 		super(server, 1.0f);
 
 		// Server messages
@@ -137,16 +137,6 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public IMumbleMessage onSetCommunicationProtocolVersion(IMumbleMessage request, float version) {
 		return answer(getVersion(), request, Identifier.SET_CP_VERSION, version);
-	}
-
-	@Override
-	public IMumbleMessage onServerJoin() {
-		return create(getVersion(), Identifier.SET_SERVER_JOIN);
-	}
-
-	@Override
-	public IMumbleMessage onServerLeave() {
-		return create(getVersion(), Identifier.SET_SERVER_LEAVE);
 	}
 
 	@Override

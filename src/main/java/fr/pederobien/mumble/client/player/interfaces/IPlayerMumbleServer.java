@@ -2,9 +2,10 @@ package fr.pederobien.mumble.client.player.interfaces;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.interfaces.ICommonMumbleServer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 
-public interface IPlayerMumbleServer {
+public interface IPlayerMumbleServer extends ICommonMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> {
 
 	/**
 	 * Join the server associated to this client. Once this client has successfully joined the remote, then it can send requests to

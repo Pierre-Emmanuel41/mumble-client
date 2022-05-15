@@ -1,11 +1,7 @@
 package fr.pederobien.mumble.client.player.impl;
 
-import java.util.function.Consumer;
-
 import fr.pederobien.mumble.client.common.impl.AbstractPosition;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.PlayerPositionChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerPositionChangePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
@@ -24,14 +20,6 @@ public class Position extends AbstractPosition<IMainPlayer> implements IPosition
 	 */
 	public Position(IMainPlayer player, double x, double y, double z, double yaw, double pitch) {
 		super(player, x, y, z, yaw, pitch);
-	}
-
-	@Override
-	public void update(double x, double y, double z, double yaw, double pitch, Consumer<IResponse> callback) {
-		if (getX() == x && getY() == y && getZ() == z && getYaw() == yaw && getPitch() == pitch)
-			return;
-
-		EventManager.callEvent(new PlayerPositionChangePreEvent(getPlayer(), x, y, z, yaw, pitch, callback));
 	}
 
 	/**

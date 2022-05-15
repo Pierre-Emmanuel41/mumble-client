@@ -12,12 +12,12 @@ import fr.pederobien.mumble.client.external.event.ChannelSoundModifierChangePost
 import fr.pederobien.mumble.client.external.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
 
 public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier> implements IChannel {
-	private IMumbleServer server;
+	private IExternalMumbleServer server;
 
 	/**
 	 * Creates a channel based on the given parameters.
@@ -27,7 +27,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 	 * @param playerNames   The list of name of the players registered in the channel.
 	 * @param soundModifier The channel's sound modifier.
 	 */
-	public Channel(IMumbleServer server, String name, List<String> playerNames, ISoundModifier soundModifier) {
+	public Channel(IExternalMumbleServer server, String name, List<String> playerNames, ISoundModifier soundModifier) {
 		super(name);
 		this.server = server;
 
@@ -41,7 +41,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 	}
 
 	@Override
-	public IMumbleServer getServer() {
+	public IExternalMumbleServer getServer() {
 		return server;
 	}
 

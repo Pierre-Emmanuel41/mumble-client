@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.external.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
 public class ServerClosePreEvent extends ServerEvent implements ICancellable {
@@ -13,7 +13,7 @@ public class ServerClosePreEvent extends ServerEvent implements ICancellable {
 	 * 
 	 * @param server The server that is about to be closed.
 	 */
-	public ServerClosePreEvent(IMumbleServer server) {
+	public ServerClosePreEvent(IExternalMumbleServer server) {
 		super(server);
 	}
 

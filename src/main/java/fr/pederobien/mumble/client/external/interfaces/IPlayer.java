@@ -1,6 +1,7 @@
 package fr.pederobien.mumble.client.external.interfaces;
 
 import java.net.InetSocketAddress;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -14,7 +15,12 @@ public interface IPlayer extends ICommonPlayer {
 	/**
 	 * @return The server on which this player is registered.
 	 */
-	IMumbleServer getServer();
+	IExternalMumbleServer getServer();
+
+	/**
+	 * @return The unique identifier associated to this player.
+	 */
+	UUID getIdentifier();
 
 	/**
 	 * Set the player's name.

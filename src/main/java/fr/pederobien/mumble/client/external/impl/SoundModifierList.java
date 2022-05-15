@@ -2,18 +2,18 @@ package fr.pederobien.mumble.client.external.impl;
 
 import fr.pederobien.mumble.client.common.exceptions.SoundModifierAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractSoundModifierList;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifierList;
 
-public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier, IMumbleServer> implements ISoundModifierList {
+public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier, IExternalMumbleServer> implements ISoundModifierList {
 
 	/**
 	 * Creates a list of sound modifiers associated to a mumble server.
 	 * 
 	 * @param server The server associated to this list.
 	 */
-	public SoundModifierList(IMumbleServer server) {
+	public SoundModifierList(IExternalMumbleServer server) {
 		super(server);
 	}
 

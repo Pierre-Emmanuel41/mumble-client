@@ -20,7 +20,7 @@ import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPreEv
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.exceptions.ServerPlayerAlreadyRegisteredException;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.mumble.client.external.interfaces.IServerPlayerList;
 import fr.pederobien.utils.event.EventHandler;
@@ -28,7 +28,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
 public class ServerPlayerList implements IServerPlayerList, IEventListener {
-	private IMumbleServer server;
+	private IExternalMumbleServer server;
 	private Map<String, IPlayer> players;
 	private Lock lock;
 
@@ -37,7 +37,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	 * 
 	 * @param server The server associated to this list.
 	 */
-	public ServerPlayerList(IMumbleServer server) {
+	public ServerPlayerList(IExternalMumbleServer server) {
 		this.server = server;
 
 		players = new HashMap<String, IPlayer>();
@@ -52,7 +52,7 @@ public class ServerPlayerList implements IServerPlayerList, IEventListener {
 	}
 
 	@Override
-	public IMumbleServer getServer() {
+	public IExternalMumbleServer getServer() {
 		return server;
 	}
 

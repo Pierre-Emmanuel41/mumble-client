@@ -4,8 +4,7 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.external.event.ServerEvent;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
 public class ServerJoinPreEvent extends ServerEvent implements ICancellable {
@@ -18,7 +17,7 @@ public class ServerJoinPreEvent extends ServerEvent implements ICancellable {
 	 * @param server   The server the player is about to join.
 	 * @param callback The action to execute when an answer has been received from the server.
 	 */
-	public ServerJoinPreEvent(IMumbleServer server, Consumer<IResponse> callback) {
+	public ServerJoinPreEvent(IPlayerMumbleServer server, Consumer<IResponse> callback) {
 		super(server);
 		this.callback = callback;
 	}
@@ -43,7 +42,7 @@ public class ServerJoinPreEvent extends ServerEvent implements ICancellable {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("server=" + getServer());
+		joiner.add("server=" + getServer().getName());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

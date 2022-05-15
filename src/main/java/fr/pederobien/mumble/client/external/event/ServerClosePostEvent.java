@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.external.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 
 public class ServerClosePostEvent extends ServerEvent {
 
@@ -11,7 +11,7 @@ public class ServerClosePostEvent extends ServerEvent {
 	 * 
 	 * @param server The closed server.
 	 */
-	public ServerClosePostEvent(IMumbleServer server) {
+	public ServerClosePostEvent(IExternalMumbleServer server) {
 		super(server);
 	}
 

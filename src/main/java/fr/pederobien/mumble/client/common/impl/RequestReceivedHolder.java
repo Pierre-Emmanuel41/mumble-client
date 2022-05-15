@@ -1,11 +1,10 @@
 package fr.pederobien.mumble.client.common.impl;
 
-import fr.pederobien.mumble.client.external.impl.MumbleTcpConnection;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public class RequestReceivedHolder {
 	private IMumbleMessage request;
-	private MumbleTcpConnection connection;
+	private AbstractMumbleTcpConnection<?> connection;
 
 	/**
 	 * Creates a holder to gather the request received from the remote and the connection that received the request.
@@ -13,7 +12,7 @@ public class RequestReceivedHolder {
 	 * @param request    The request sent by the remote.
 	 * @param connection The connection that has received the request.
 	 */
-	public RequestReceivedHolder(IMumbleMessage request, MumbleTcpConnection connection) {
+	public RequestReceivedHolder(IMumbleMessage request, AbstractMumbleTcpConnection<?> connection) {
 		this.request = request;
 		this.connection = connection;
 	}
@@ -28,7 +27,7 @@ public class RequestReceivedHolder {
 	/**
 	 * @return The connection that has received the request.
 	 */
-	public MumbleTcpConnection getConnection() {
+	public AbstractMumbleTcpConnection<?> getConnection() {
 		return connection;
 	}
 }

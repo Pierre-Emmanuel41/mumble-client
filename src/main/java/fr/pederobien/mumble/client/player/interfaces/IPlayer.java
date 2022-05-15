@@ -10,12 +10,12 @@ public interface IPlayer extends ICommonPlayer {
 	/**
 	 * @return The server on which this player is registered.
 	 */
-	String getServer();
+	IPlayerMumbleServer getServer();
 
 	/**
 	 * @return The channel in which the player is registered, or null if the player is not registered in any channel.
 	 */
-	String getChannel();
+	IChannel getChannel();
 
 	/**
 	 * Set the administrator status of this player.

@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.external.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 
 public class ServerNameChangePostEvent extends ServerEvent {
 	private String oldName;
@@ -13,7 +13,7 @@ public class ServerNameChangePostEvent extends ServerEvent {
 	 * @param server  The server whose the name has changed.
 	 * @param oldName The old server name.
 	 */
-	public ServerNameChangePostEvent(IMumbleServer server, String oldName) {
+	public ServerNameChangePostEvent(IExternalMumbleServer server, String oldName) {
 		super(server);
 		this.oldName = oldName;
 	}

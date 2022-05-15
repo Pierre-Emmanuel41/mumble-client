@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.external.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.utils.ICancellable;
 
 public class ServerNameChangePreEvent extends ServerEvent implements ICancellable {
@@ -15,7 +15,7 @@ public class ServerNameChangePreEvent extends ServerEvent implements ICancellabl
 	 * @param server  The server that is about to be renamed.
 	 * @param newName The future new server name.
 	 */
-	public ServerNameChangePreEvent(IMumbleServer server, String newName) {
+	public ServerNameChangePreEvent(IExternalMumbleServer server, String newName) {
 		super(server);
 		this.newName = newName;
 	}

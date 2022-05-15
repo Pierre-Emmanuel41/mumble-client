@@ -1,34 +1,61 @@
 package fr.pederobien.mumble.client.player.impl;
 
+import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
+import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
 
 public class MainPlayer extends AbstractPlayer implements IMainPlayer {
+	private UUID identifier;
+	private InetSocketAddress gameAddress;
 	private IPosition position;
 
 	/**
-	 * Creates a player associated to a name, a unique identifier and a server.
+	 * Creates a player based on the given parameters.
 	 * 
-	 * @param server     The server on which this player is registered.
-	 * @param name       The player name.
-	 * @param identifier The player identifier.
-	 * @param x          The player's X coordinate.
-	 * @param y          The player's Y coordinate.
-	 * @param z          The player's Z coordinate.
-	 * @param yaw        The player's yaw angle.
-	 * @param pitch      The player's pitch angle.
+	 * @param name        The player's name.
+	 * @param identifier  The player's identifier.
+	 * @param isOnline    The player's online status.
+	 * @param gameAddress The address used to play to the game.
+	 * @param isAdmin     The player's administrator status.
+	 * @param isMute      The player's mute status.
+	 * @param isDeafen    The player's deafen status.
+	 * @param x           The player's X coordinate.
+	 * @param y           The player's Y coordinate.
+	 * @param z           The player's Z coordinate.
+	 * @param yaw         The player's yaw angle.
+	 * @param pitch       The player's pitch angle.
 	 */
-	protected MainPlayer(String server, String name, UUID identifier, double x, double y, double z, double yaw, double pitch) {
-		super(server, name, identifier);
+	public MainPlayer(IPlayerMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute,
+			boolean isDeafen, double x, double y, double z, double yaw, double pitch) {
+		super(server, name);
+
+		this.identifier = identifier;
+		this.gameAddress = gameAddress;
+
+		setOnline0(isOnline);
+		setAdmin0(isAdmin);
+		setMute0(isMute);
+		setDeafen0(isDeafen);
 
 		position = new Position(this, x, y, z, yaw, pitch);
+	}
+
+	@Override
+	public UUID getIdentifier() {
+		return identifier;
+	}
+
+	@Override
+	public InetSocketAddress getGameAddress() {
+		return gameAddress;
 	}
 
 	@Override
@@ -45,12 +72,12 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer {
 	}
 
 	/**
-	 * Set the deafen status of this player. For internal use only.
+	 * Set the player administrator status. For internal use only.
 	 * 
-	 * @param isDeafen The new player deafen status.
+	 * @param isAdmin The new player administrator status.
 	 */
-	public void setDeafen(boolean isDeafen) {
-		if (setDeafen0(isDeafen))
-			EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, !isDeafen));
+	public void setAdmin(boolean isAdmin) {
+		if (setAdmin0(isAdmin))
+			EventManager.callEvent(new PlayerAdminChangePostEvent(this, !isAdmin));
 	}
 }

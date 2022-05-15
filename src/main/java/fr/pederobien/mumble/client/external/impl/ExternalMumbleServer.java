@@ -24,7 +24,7 @@ import fr.pederobien.mumble.client.external.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.external.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IChannelList;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.mumble.client.external.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.client.external.interfaces.IServerRequestManager;
@@ -35,12 +35,11 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
 
-public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> implements IMumbleServer, IEventListener {
+public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> implements IExternalMumbleServer, IEventListener {
 	private IServerPlayerList players;
 	private MumbleTcpConnection connection;
 	private AtomicBoolean tryOpening;
 	private Condition serverConfiguration, communicationProtocolVersion;
-	private boolean serverConfigurationRequestSuccess;
 
 	/**
 	 * Creates a server that represents a game server.
@@ -120,14 +119,9 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
 			}
 
-			serverConfigurationRequestSuccess = false;
 			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
 				connection.getTcpConnection().dispose();
 				throw new IllegalStateException("Time out on server configuration request.");
-			}
-			if (serverConfigurationRequestSuccess) {
-				connection.getTcpConnection().dispose();
-				throw new IllegalStateException("Technical error: Fail to retrieve the server configuration");
 			}
 
 			setReachable(true);
@@ -150,7 +144,7 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 
 	@EventHandler
 	private void onConnectionComplete(ConnectionCompleteEvent event) {
-		if (!event.getConnection().equals(connection.getTcpConnection()))
+		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
 		setReachable(true);
@@ -158,7 +152,7 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 
 	@EventHandler
 	private void onSetCommunicationProtocolVersion(CommunicationProtocolVersionSetPostEvent event) {
-		if (!event.getConnection().equals(connection))
+		if (connection == null || !event.getConnection().equals(connection))
 			return;
 
 		getLock().lock();
@@ -171,7 +165,6 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 		// Asynchronous request to send because of the delay
 		new Thread(() -> {
 			Consumer<IResponse> callback = response -> {
-				serverConfigurationRequestSuccess = response.hasFailed();
 				if (response.hasFailed())
 					EventManager.callEvent(new LogEvent("Error while retrieving server configuration, reason: %s", response.getErrorCode().getMessage()));
 				else {
@@ -187,7 +180,7 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 			try {
 				// Adding delay in order to let the server register event listeners
 				Thread.sleep(500);
-				connection.getServerInfo(callback);
+				connection.getFullServerConfigration(callback);
 			} catch (InterruptedException e) {
 				// Do nothing
 			}
@@ -196,7 +189,7 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 
 	@EventHandler
 	private void onConnectionDisposed(ConnectionDisposedEvent event) {
-		if (!event.getConnection().equals(connection.getTcpConnection()))
+		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
 		setReachable(false);
@@ -205,7 +198,7 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 
 	@EventHandler
 	private void onConnectionLost(ConnectionLostEvent event) {
-		if (!event.getConnection().equals(connection.getTcpConnection()))
+		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
 		setReachable(false);
@@ -247,7 +240,6 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 		List<IPlayer> players = new ArrayList<IPlayer>(getPlayers().toList());
 		for (IPlayer player : players)
 			((ServerPlayerList) getPlayers()).remove(player.getName());
-
 	}
 
 	private void openConnection() {

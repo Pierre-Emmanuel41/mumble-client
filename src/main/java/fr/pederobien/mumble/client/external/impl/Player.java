@@ -32,7 +32,7 @@ import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePo
 import fr.pederobien.mumble.client.external.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.client.external.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.mumble.client.external.interfaces.IPosition;
 import fr.pederobien.utils.event.EventHandler;
@@ -41,7 +41,8 @@ import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 
 public class Player extends AbstractPlayer implements IPlayer, IEventListener {
-	private IMumbleServer server;
+	private IExternalMumbleServer server;
+	private UUID identifier;
 	private InetSocketAddress gameAddress;
 	private IPosition position;
 	private IChannel channel;
@@ -63,11 +64,12 @@ public class Player extends AbstractPlayer implements IPlayer, IEventListener {
 	 * @param yaw         The player's yaw angle.
 	 * @param pitch       The player's pitch angle.
 	 */
-	public Player(IMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen,
+	public Player(IExternalMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen,
 			double x, double y, double z, double yaw, double pitch) {
-		super(name, identifier);
+		super(name);
 
 		this.server = server;
+		this.identifier = identifier;
 		this.gameAddress = gameAddress;
 
 		setOnline0(isOnline);
@@ -82,8 +84,13 @@ public class Player extends AbstractPlayer implements IPlayer, IEventListener {
 	}
 
 	@Override
-	public IMumbleServer getServer() {
+	public IExternalMumbleServer getServer() {
 		return server;
+	}
+
+	@Override
+	public UUID getIdentifier() {
+		return identifier;
 	}
 
 	@Override
@@ -184,12 +191,24 @@ public class Player extends AbstractPlayer implements IPlayer, IEventListener {
 		if (channel == null)
 			throw new PlayerNotRegisteredInChannelException(this);
 
-		EventManager.callEvent(new PlayerKickPreEvent(this, channel, kickingPlayer, callback));
+		EventManager.callEvent(new PlayerKickPreEvent(this, kickingPlayer, callback));
 	}
 
 	@Override
 	public String toString() {
 		return String.format("Player={name=%s,identifier=%s}", getName(), getIdentifier());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof IPlayer))
+			return false;
+
+		IPlayer other = (IPlayer) obj;
+		return identifier.equals(other.getIdentifier());
 	}
 
 	/**

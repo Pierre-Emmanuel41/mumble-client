@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.List;
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public class CommunicationProtocolVersionGetPostEvent extends ServerEvent {
@@ -16,7 +16,7 @@ public class CommunicationProtocolVersionGetPostEvent extends ServerEvent {
 	 * @param server  The server that received the request.
 	 * @param request The request sent by the remote in order to get the supported versions.
 	 */
-	public CommunicationProtocolVersionGetPostEvent(IMumbleServer server, IMumbleMessage request) {
+	public CommunicationProtocolVersionGetPostEvent(IExternalMumbleServer server, IMumbleMessage request) {
 		super(server);
 		this.request = request;
 	}

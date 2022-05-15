@@ -2,7 +2,7 @@ package fr.pederobien.mumble.client.external.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.common.impl.messages.v10.IsGamePortUsedV10;
 
 public class GamePortCheckPostEvent extends ServerEvent {
@@ -17,7 +17,7 @@ public class GamePortCheckPostEvent extends ServerEvent {
 	 * @param port    The port number that has been checked.
 	 * @param isUsed  True if the port is currently used, false otherwise.
 	 */
-	public GamePortCheckPostEvent(IMumbleServer server, IsGamePortUsedV10 request, boolean isUsed) {
+	public GamePortCheckPostEvent(IExternalMumbleServer server, IsGamePortUsedV10 request, boolean isUsed) {
 		super(server);
 		this.request = request;
 		this.isUsed = isUsed;

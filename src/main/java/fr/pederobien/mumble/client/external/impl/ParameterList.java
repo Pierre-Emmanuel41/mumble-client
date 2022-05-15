@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import fr.pederobien.mumble.client.common.exceptions.ParameterAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractParameterList;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IParameter;
 import fr.pederobien.mumble.client.external.interfaces.IParameterList;
 import fr.pederobien.mumble.client.external.interfaces.IRangeParameter;
@@ -16,7 +16,7 @@ public class ParameterList extends AbstractParameterList<IParameter<?>> implemen
 	 * 
 	 * @param server The server associated to this parameters list.
 	 */
-	public ParameterList(IMumbleServer server) {
+	public ParameterList(IExternalMumbleServer server) {
 		super(server.getName());
 	}
 

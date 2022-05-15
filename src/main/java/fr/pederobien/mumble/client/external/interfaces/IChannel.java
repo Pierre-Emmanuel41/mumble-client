@@ -7,5 +7,5 @@ public interface IChannel extends ICommonChannel<IChannelPlayerList, ISoundModif
 	/**
 	 * @return The server associated to this channel.
 	 */
-	IMumbleServer getServer();
+	IExternalMumbleServer getServer();
 }

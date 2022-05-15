@@ -3,6 +3,7 @@ package fr.pederobien.mumble.client.external.impl;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import fr.pederobien.mumble.client.common.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractChannelList;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelAddPostEvent;
@@ -11,23 +12,22 @@ import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePostEv
 import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerClosePostEvent;
-import fr.pederobien.mumble.client.external.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IChannelList;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 
-public class ChannelList extends AbstractChannelList<IChannel, ISoundModifier, IMumbleServer> implements IChannelList, IEventListener {
+public class ChannelList extends AbstractChannelList<IChannel, ISoundModifier, IExternalMumbleServer> implements IChannelList, IEventListener {
 
 	/**
 	 * Creates a list of channels associated to a mumble server.
 	 * 
 	 * @param server The server associated to this list.
 	 */
-	public ChannelList(IMumbleServer server) {
+	public ChannelList(IExternalMumbleServer server) {
 		super(server);
 
 		EventManager.registerListener(this);

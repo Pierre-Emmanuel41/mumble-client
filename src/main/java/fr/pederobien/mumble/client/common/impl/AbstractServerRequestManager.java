@@ -1,6 +1,5 @@
 package fr.pederobien.mumble.client.common.impl;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
@@ -14,20 +13,19 @@ import fr.pederobien.mumble.client.common.interfaces.ICommonPlayer;
 import fr.pederobien.mumble.client.common.interfaces.ICommonRequestManager;
 import fr.pederobien.mumble.client.common.interfaces.ICommonServerRequestManager;
 import fr.pederobien.mumble.client.common.interfaces.ICommonSoundModifier;
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
-public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?>, U extends ICommonSoundModifier<?>, V extends ICommonPlayer, W extends ICommonParameter<?>>
+public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?>, U extends ICommonSoundModifier<?>, V extends ICommonPlayer, W extends ICommonParameter<?>, X extends ICommonRequestManager<T, U, V, W>>
 		implements ICommonServerRequestManager<T, U, V, W> {
-	private NavigableMap<Float, ICommonRequestManager<T, U, V, W>> managers;
+	private NavigableMap<Float, X> managers;
 
 	/**
 	 * Creates a request management in order to modify the given server and answer to remote requests.
 	 * 
 	 * @param server The server to update.
 	 */
-	public AbstractServerRequestManager(IMumbleServer server) {
-		managers = new TreeMap<Float, ICommonRequestManager<T, U, V, W>>();
+	public AbstractServerRequestManager() {
+		managers = new TreeMap<Float, X>();
 	}
 
 	@Override
@@ -42,22 +40,12 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 
 	@Override
 	public void apply(RequestReceivedHolder holder) {
-		ICommonRequestManager<T, U, V, W> manager = managers.get(holder.getRequest().getHeader().getVersion());
+		X manager = managers.get(holder.getRequest().getHeader().getVersion());
 
 		if (manager == null)
 			return;
 
 		manager.apply(holder);
-	}
-
-	@Override
-	public IMumbleMessage getFullServerConfiguration(float version) {
-		return findManagerAndReturn(version, manager -> manager.getFullServerConfiguration());
-	}
-
-	@Override
-	public void onGetFullServerConfiguration(IMumbleMessage request) {
-		findManagerAndAccept(request.getHeader().getVersion(), manager -> manager.onGetFullServerConfiguration(request));
 	}
 
 	@Override
@@ -68,16 +56,6 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	@Override
 	public IMumbleMessage onSetCommunicationProtocolVersion(IMumbleMessage request, float version) {
 		return findManagerAndReturn(1.0f, manager -> manager.onSetCommunicationProtocolVersion(request, version));
-	}
-
-	@Override
-	public IMumbleMessage onServerJoin(float version) {
-		return findManagerAndReturn(version, manager -> manager.onServerJoin());
-	}
-
-	@Override
-	public IMumbleMessage onServerLeave(float version) {
-		return findManagerAndReturn(version, manager -> manager.onServerLeave());
 	}
 
 	@Override
@@ -106,37 +84,6 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	}
 
 	@Override
-	public IMumbleMessage onServerPlayerAdd(float version, String name, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen, double x,
-			double y, double z, double yaw, double pitch) {
-		return findManagerAndReturn(version, manager -> manager.onServerPlayerAdd(name, gameAddress, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch));
-	}
-
-	@Override
-	public IMumbleMessage onServerPlayerRemove(float version, String name) {
-		return findManagerAndReturn(version, manager -> manager.onServerPlayerRemove(name));
-	}
-
-	@Override
-	public IMumbleMessage onPlayerOnlineChange(float version, V player, boolean newOnline) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerOnlineChange(player, newOnline));
-	}
-
-	@Override
-	public IMumbleMessage onPlayerNameChange(float version, V player, String newName) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerNameChange(player, newName));
-	}
-
-	@Override
-	public IMumbleMessage onPlayerGameAddressChange(float version, V player, InetSocketAddress newGameAddress) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerGameAddressChange(player, newGameAddress));
-	}
-
-	@Override
-	public IMumbleMessage onPlayerAdminChange(float version, V player, boolean newAdmin) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerAdminChange(player, newAdmin));
-	}
-
-	@Override
 	public IMumbleMessage onPlayerMuteChange(float version, V player, boolean newMute) {
 		return findManagerAndReturn(version, manager -> manager.onPlayerMuteChange(player, newMute));
 	}
@@ -154,11 +101,6 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	@Override
 	public IMumbleMessage onPlayerKick(float version, V kickedPlayer, V KickingPlayer) {
 		return findManagerAndReturn(version, manager -> manager.onPlayerKick(kickedPlayer, KickingPlayer));
-	}
-
-	@Override
-	public IMumbleMessage onPlayerPositionChange(float version, V player, double x, double y, double z, double yaw, double pitch) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerPositionChange(player, x, y, z, yaw, pitch));
 	}
 
 	@Override
@@ -191,7 +133,7 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	 * 
 	 * @param manager The manager to request.
 	 */
-	protected void register(ICommonRequestManager<T, U, V, W> manager) {
+	protected void register(X manager) {
 		managers.put(manager.getVersion(), manager);
 	}
 
@@ -203,8 +145,8 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	 * 
 	 * @return The created message.
 	 */
-	private IMumbleMessage findManagerAndReturn(float version, Function<ICommonRequestManager<T, U, V, W>, IMumbleMessage> function) {
-		ICommonRequestManager<T, U, V, W> manager = managers.get(version);
+	protected IMumbleMessage findManagerAndReturn(float version, Function<X, IMumbleMessage> function) {
+		X manager = managers.get(version);
 		if (manager == null)
 			return null;
 
@@ -217,8 +159,8 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	 * @param version  The version of the manager.
 	 * @param function The function to apply.
 	 */
-	private void findManagerAndAccept(float version, Consumer<ICommonRequestManager<T, U, V, W>> consumer) {
-		ICommonRequestManager<T, U, V, W> manager = managers.get(version);
+	protected void findManagerAndAccept(float version, Consumer<X> consumer) {
+		X manager = managers.get(version);
 		if (manager == null)
 			return;
 

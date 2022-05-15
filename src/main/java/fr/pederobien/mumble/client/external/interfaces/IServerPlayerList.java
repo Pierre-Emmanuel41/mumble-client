@@ -14,7 +14,7 @@ public interface IServerPlayerList extends Iterable<IPlayer> {
 	/**
 	 * @return The server to which this list is attached.
 	 */
-	IMumbleServer getServer();
+	IExternalMumbleServer getServer();
 
 	/**
 	 * @return The name of this player list.

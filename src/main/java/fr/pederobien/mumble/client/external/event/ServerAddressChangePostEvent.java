@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.external.event;
 import java.net.InetSocketAddress;
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IMumbleServer;
+import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 
 public class ServerAddressChangePostEvent extends ServerEvent {
 	private InetSocketAddress oldAddress;
@@ -14,7 +14,7 @@ public class ServerAddressChangePostEvent extends ServerEvent {
 	 * @param server     The server whose address has changed.
 	 * @param oldAddress The old server address.
 	 */
-	public ServerAddressChangePostEvent(IMumbleServer server, InetSocketAddress oldAddress) {
+	public ServerAddressChangePostEvent(IExternalMumbleServer server, InetSocketAddress oldAddress) {
 		super(server);
 		this.oldAddress = oldAddress;
 	}

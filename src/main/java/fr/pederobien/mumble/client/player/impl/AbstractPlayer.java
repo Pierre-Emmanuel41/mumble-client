@@ -1,39 +1,41 @@
 package fr.pederobien.mumble.client.player.impl;
 
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerAdminChangePreEvent;
+import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
+import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.utils.event.EventManager;
 
 public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.impl.AbstractPlayer implements IPlayer {
-	private String server;
-	private String channel;
+	private IPlayerMumbleServer server;
+	private IChannel channel;
 
 	/**
-	 * Creates a player associated to a name, a unique identifier and a server.
+	 * Creates a player associated to a name and a server.
 	 * 
-	 * @param server     The server on which this player is registered.
-	 * @param name       The player name.
-	 * @param identifier The player identifier.
+	 * @param server The server on which this player is registered.
+	 * @param name   The player name.
 	 */
-	protected AbstractPlayer(String server, String name, UUID identifier) {
-		super(name, identifier);
+	protected AbstractPlayer(IPlayerMumbleServer server, String name) {
+		super(name);
 		this.server = server;
 	}
 
 	@Override
-	public String getServer() {
+	public IPlayerMumbleServer getServer() {
 		return server;
 	}
 
 	@Override
-	public String getChannel() {
+	public IChannel getChannel() {
 		return channel;
 	}
 
@@ -53,14 +55,35 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, callback));
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+
+		if (!(obj instanceof IPlayer))
+			return false;
+
+		IPlayer other = (IPlayer) obj;
+		return getName().equals(other.getName());
+	}
+
 	/**
-	 * Set the player administrator status. For internal use only.
+	 * Set the name of this player. For internal use only.
 	 * 
-	 * @param isAdmin The new player administrator status.
+	 * @param name The new player name.
 	 */
-	public void setAdmin(boolean isAdmin) {
-		if (setAdmin0(isAdmin))
-			EventManager.callEvent(new PlayerAdminChangePostEvent(this, !isAdmin));
+	public void setName(String name) {
+		getLock().lock();
+		try {
+			String oldName = getName();
+			if (oldName.equals(name))
+				return;
+
+			setName0(name);
+			EventManager.callEvent(new PlayerNameChangePostEvent(this, oldName));
+		} finally {
+			getLock().unlock();
+		}
 	}
 
 	/**
@@ -74,11 +97,44 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 	}
 
 	/**
+	 * Set the deafen status of this player. For internal use only.
+	 * 
+	 * @param isDeafen The new player deafen status.
+	 */
+	public void setDeafen(boolean isDeafen) {
+		if (setDeafen0(isDeafen))
+			EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, !isDeafen));
+	}
+
+	/**
+	 * Kick this player from its channel. For internal use only.
+	 * 
+	 * @param player The player that has kicked this player.
+	 */
+	public void kick(IPlayer player) {
+		if (getChannel() == null)
+			return;
+
+		kick0(player);
+	}
+
+	/**
 	 * Set the channel associated to this player.
 	 * 
 	 * @param channel The new channel in which the player is registered.
 	 */
-	protected void setChannel0(String channel) {
+	protected void setChannel0(IChannel channel) {
 		this.channel = channel;
+	}
+
+	/**
+	 * Kick this player by another player.
+	 * 
+	 * @param player The player that has kicked this player.
+	 */
+	private void kick0(IPlayer player) {
+		IChannel oldChannel = getChannel();
+		setChannel0(null);
+		EventManager.callEvent(new PlayerKickPostEvent(this, oldChannel, player));
 	}
 }
