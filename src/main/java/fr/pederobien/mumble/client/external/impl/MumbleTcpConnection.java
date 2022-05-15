@@ -252,7 +252,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IExternalMu
 		if (!event.getServer().equals(getServer()))
 			return;
 
-		send(getRequestManager().onGamePortCheck(getVersion(), event.getRequest(), event.getPort(), event.isUsed()), null);
+		send(getRequestManager().onGamePortCheck(1.0f, event.getRequest(), event.getPort(), event.isUsed()), null);
 	}
 
 	@EventHandler
