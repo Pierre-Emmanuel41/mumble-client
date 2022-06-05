@@ -76,7 +76,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 		getLock().lock();
 		try {
 			String oldName = getName();
-			if (oldName.equals(name))
+			if (oldName != null && oldName.equals(name))
 				return;
 
 			setName0(name);

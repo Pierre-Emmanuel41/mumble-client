@@ -260,7 +260,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 
 		if (!event.getPlayer().isOnline()) {
 			clear(false);
-		} else {
+		} else if (getChannels().toList().isEmpty() && getSoundModifiers().toList().isEmpty()) {
 			Consumer<IResponse> callback = response -> {
 				if (response.hasFailed())
 					EventManager.callEvent(new LogEvent("Fail to join automatically the server... (reason: %s)", response.getErrorCode().getMessage()));

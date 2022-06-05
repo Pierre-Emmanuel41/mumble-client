@@ -38,6 +38,7 @@ import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.impl.messages.v10.AddPlayerToChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
+import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerInfoV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetServerConfigurationV10;
 import fr.pederobien.mumble.common.impl.messages.v10.IsGamePortUsedV10;
 import fr.pederobien.mumble.common.impl.messages.v10.KickPlayerFromChannelV10;
@@ -81,6 +82,7 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.SET_CP_VERSION, holder -> onSetCommunicationProtocolVersion(holder));
 
 		// Player messages
+		getRequests().put(Identifier.GET_PLAYER_INFO, holder -> onPlayerInfoChanged((GetPlayerInfoV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_NAME, holder -> renamePlayer((SetPlayerNameV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, holder -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) holder.getRequest()));
@@ -122,17 +124,8 @@ public class RequestManagerV10 extends RequestManager {
 		IMainPlayer mainPlayer = createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
 		if (getServer().getMainPlayer() == null)
 			((PlayerMumbleServer) getServer()).setMainPlayer(mainPlayer);
-		else {
-			MainPlayer serverMainPlayer = (MainPlayer) getServer().getMainPlayer();
-			serverMainPlayer.setName(mainPlayer.getName());
-			serverMainPlayer.setGameAddress(mainPlayer.getGameAddress());
-			serverMainPlayer.setAdmin(mainPlayer.isAdmin());
-			serverMainPlayer.setMute(mainPlayer.isMute());
-			serverMainPlayer.setDeafen(mainPlayer.isDeafen());
-			IPosition position = mainPlayer.getPosition();
-			((Position) serverMainPlayer.getPosition()).update(position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
-
-		}
+		else
+			updateMainPlayer(mainPlayer);
 
 		for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
 			ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), createParameterList(modifierInfo.getParameterInfo().values()));
@@ -427,6 +420,18 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Updates main player's characteristics.
+	 * 
+	 * @param request The request sent by the remote in order to update main player characteristics.
+	 */
+	private void onPlayerInfoChanged(GetPlayerInfoV10 request) {
+		if (!request.getPlayerInfo().isOnline())
+			((MainPlayer) getServer().getMainPlayer()).setOnline(false);
+		else
+			updateMainPlayer(createMainPlayer(request.getPlayerInfo()));
+	}
+
+	/**
 	 * Renames a player on the server.
 	 * 
 	 * @param request The request sent by the remote in order to rename a player.
@@ -671,6 +676,23 @@ public class RequestManagerV10 extends RequestManager {
 					return Optional.of(player);
 
 		return Optional.empty();
+	}
+
+	/**
+	 * Transfer the properties of the given player to the server main player.
+	 * 
+	 * @param mainPlayer The main player that contains server's main player properties.
+	 */
+	private void updateMainPlayer(IMainPlayer mainPlayer) {
+		MainPlayer serverMainPlayer = (MainPlayer) getServer().getMainPlayer();
+		serverMainPlayer.setName(mainPlayer.getName());
+		serverMainPlayer.setOnline(mainPlayer.isOnline());
+		serverMainPlayer.setGameAddress(mainPlayer.getGameAddress());
+		serverMainPlayer.setAdmin(mainPlayer.isAdmin());
+		serverMainPlayer.setMute(mainPlayer.isMute());
+		serverMainPlayer.setDeafen(mainPlayer.isDeafen());
+		IPosition position = mainPlayer.getPosition();
+		((Position) serverMainPlayer.getPosition()).update(position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
 	}
 
 	/**
