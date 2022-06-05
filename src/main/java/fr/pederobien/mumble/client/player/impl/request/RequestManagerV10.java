@@ -22,6 +22,7 @@ import fr.pederobien.mumble.client.player.impl.MainPlayer;
 import fr.pederobien.mumble.client.player.impl.Parameter;
 import fr.pederobien.mumble.client.player.impl.ParameterList;
 import fr.pederobien.mumble.client.player.impl.PlayerMumbleServer;
+import fr.pederobien.mumble.client.player.impl.Position;
 import fr.pederobien.mumble.client.player.impl.RangeParameter;
 import fr.pederobien.mumble.client.player.impl.SoundModifier;
 import fr.pederobien.mumble.client.player.impl.SoundModifierList;
@@ -31,6 +32,7 @@ import fr.pederobien.mumble.client.player.interfaces.IParameter;
 import fr.pederobien.mumble.client.player.interfaces.IParameterList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
+import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.mumble.client.player.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.Identifier;
@@ -49,9 +51,12 @@ import fr.pederobien.mumble.common.impl.messages.v10.SetParameterMinValueV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetParameterValueV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerAdministratorStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerDeafenStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerGameAddressV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerMuteByStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerMuteStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerNameV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerOnlineStatusV10;
+import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerPositionV10;
 import fr.pederobien.mumble.common.impl.messages.v10.UnregisterChannelFromServerV10;
 import fr.pederobien.mumble.common.impl.messages.v10.model.ChannelInfo.SemiFullChannelInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
@@ -78,10 +83,13 @@ public class RequestManagerV10 extends RequestManager {
 		// Player messages
 		getRequests().put(Identifier.SET_PLAYER_NAME, holder -> renamePlayer((SetPlayerNameV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, holder -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_GAME_ADDRESS, holder -> setPlayerGameAddress((SetPlayerGameAddressV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
+		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
 
 		// Channel messages
 		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, holder -> registerChannelOnServer((RegisterChannelOnServerV10) holder.getRequest()));
@@ -111,7 +119,20 @@ public class RequestManagerV10 extends RequestManager {
 	public void onGetServerConfiguration(IMumbleMessage request) {
 		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
 
-		((PlayerMumbleServer) getServer()).setMainPlayer(createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo()));
+		IMainPlayer mainPlayer = createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
+		if (getServer().getMainPlayer() == null)
+			((PlayerMumbleServer) getServer()).setMainPlayer(mainPlayer);
+		else {
+			MainPlayer serverMainPlayer = (MainPlayer) getServer().getMainPlayer();
+			serverMainPlayer.setName(mainPlayer.getName());
+			serverMainPlayer.setGameAddress(mainPlayer.getGameAddress());
+			serverMainPlayer.setAdmin(mainPlayer.isAdmin());
+			serverMainPlayer.setMute(mainPlayer.isMute());
+			serverMainPlayer.setDeafen(mainPlayer.isDeafen());
+			IPosition position = mainPlayer.getPosition();
+			((Position) serverMainPlayer.getPosition()).update(position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
+
+		}
 
 		for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
 			ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), createParameterList(modifierInfo.getParameterInfo().values()));
@@ -361,6 +382,24 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Set the online status of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the online status of a player.
+	 */
+	private void setPlayerOnlineStatus(SetPlayerOnlineStatusV10 request) {
+		findPlayerAndUpdate(request.getPlayerName(), MainPlayer.class, player -> player.setOnline(request.isOnline()));
+	}
+
+	/**
+	 * Set the game address of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the game address of a player.
+	 */
+	private void setPlayerGameAddress(SetPlayerGameAddressV10 request) {
+		findPlayerAndUpdate(request.getPlayerName(), MainPlayer.class, player -> player.setGameAddress(request.getGameAddress()));
+	}
+
+	/**
 	 * Set the mute status of a player.
 	 * 
 	 * @param request The request sent by the remote in order to update the mute status of a player.
@@ -393,7 +432,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to rename a player.
 	 */
 	private void renamePlayer(SetPlayerNameV10 request) {
-		findPlayerAndUpdate(request.getOldName(), AbstractPlayer.class, player -> player.setName(request.getName()));
+		findPlayerAndUpdate(request.getOldName(), AbstractPlayer.class, player -> player.setName(request.getNewName()));
 	}
 
 	/**
@@ -403,6 +442,15 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void kickPlayerFromChannel(KickPlayerFromChannelV10 request) {
 		findPlayerAndUpdate(request.getKicked(), AbstractPlayer.class, player -> player.kick(getServer().getMainPlayer()));
+	}
+
+	/**
+	 * Sets the position of a player.
+	 * 
+	 * @param request The request sent by the remote in order to update the position of a player.
+	 */
+	private void setPlayerPosition(SetPlayerPositionV10 request) {
+		((Position) getServer().getMainPlayer().getPosition()).update(request.getX(), request.getY(), request.getZ(), request.getYaw(), request.getPitch());
 	}
 
 	/**
@@ -430,7 +478,6 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void renameChannel(SetChannelNameV10 request) {
 		((Channel) getServer().getChannels().get(request.getOldName()).get()).setName(request.getNewName());
-
 	}
 
 	/**
@@ -519,41 +566,49 @@ public class RequestManagerV10 extends RequestManager {
 	 * @return The created player.
 	 */
 	private IMainPlayer createMainPlayer(FullPlayerInfo info) {
-		// Player's name
-		String name = info.getName();
-
-		// Player's identifier
-		UUID identifier = info.getIdentifier();
-
 		// Player' online status
 		boolean isOnline = info.isOnline();
 
-		// Player's game address
-		InetSocketAddress gameAddress = info.getGameAddress();
+		String name = null;
+		UUID identifier = null;
+		InetSocketAddress gameAddress = null;
+		boolean isAdmin = false, isMute = false, isDeafen = false;
+		double x = 0, y = 0, z = 0, yaw = 0, pitch = 0;
 
-		// Player's administrator status
-		boolean isAdmin = info.isAdmin();
+		if (isOnline) {
+			// Player's name
+			name = info.getName();
 
-		// Player's mute status
-		boolean isMute = info.isMute();
+			// Player's identifier
+			identifier = info.getIdentifier();
 
-		// Player's deafen status
-		boolean isDeafen = info.isDeafen();
+			// Player's game address
+			gameAddress = info.getGameAddress();
 
-		// Player's X coordinate
-		double x = info.getX();
+			// Player's administrator status
+			isAdmin = info.isAdmin();
 
-		// Player's Y coordinate
-		double y = info.getY();
+			// Player's mute status
+			isMute = info.isMute();
 
-		// Player's Z coordinate
-		double z = info.getZ();
+			// Player's deafen status
+			isDeafen = info.isDeafen();
 
-		// Player's yaw angle
-		double yaw = info.getYaw();
+			// Player's X coordinate
+			x = info.getX();
 
-		// Player's pitch coordinate
-		double pitch = info.getPitch();
+			// Player's Y coordinate
+			y = info.getY();
+
+			// Player's Z coordinate
+			z = info.getZ();
+
+			// Player's yaw angle
+			yaw = info.getYaw();
+
+			// Player's pitch coordinate
+			pitch = info.getPitch();
+		}
 
 		return new MainPlayer(getServer(), name, identifier, isOnline, gameAddress, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
 	}
@@ -607,7 +662,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @return An optional that contains a player, if registered, null otherwise.
 	 */
 	private Optional<IPlayer> getPlayer(String name) {
-		if (getServer().getMainPlayer().getName().equals(name))
+		if (getServer().getMainPlayer() != null && getServer().getMainPlayer().getName().equals(name))
 			return Optional.of(getServer().getMainPlayer());
 
 		for (IChannel channel : getServer().getChannels())

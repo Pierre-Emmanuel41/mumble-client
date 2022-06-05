@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.PlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
@@ -79,5 +81,29 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer {
 	public void setAdmin(boolean isAdmin) {
 		if (setAdmin0(isAdmin))
 			EventManager.callEvent(new PlayerAdminChangePostEvent(this, !isAdmin));
+	}
+
+	/**
+	 * Set the player game address. For internal use only.
+	 * 
+	 * @param gameAddress The new player game address.
+	 */
+	public void setGameAddress(InetSocketAddress gameAddress) {
+		if (this.gameAddress != null && this.gameAddress.equals(gameAddress))
+			return;
+
+		InetSocketAddress oldGameAddress = this.gameAddress;
+		this.gameAddress = gameAddress;
+		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, oldGameAddress));
+	}
+
+	/**
+	 * Set the player online status. For internal use only.
+	 * 
+	 * @param isOnline The new player online status.
+	 */
+	public void setOnline(boolean isOnline) {
+		if (setOnline0(isOnline))
+			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, !isOnline));
 	}
 }

@@ -14,6 +14,7 @@ import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.common.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerAddressChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerAddressChangePreEvent;
 import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
@@ -249,7 +250,23 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			return;
 
 		isJoined.set(false);
-		clear();
+		clear(true);
+	}
+
+	@EventHandler
+	private void onPlayerOnlineChange(PlayerOnlineChangePostEvent event) {
+		if (!event.getPlayer().equals(mainPlayer))
+			return;
+
+		if (!event.getPlayer().isOnline()) {
+			clear(false);
+		} else {
+			Consumer<IResponse> callback = response -> {
+				if (response.hasFailed())
+					EventManager.callEvent(new LogEvent("Fail to join automatically the server... (reason: %s)", response.getErrorCode().getMessage()));
+			};
+			connection.getServerConfiguration(callback);
+		}
 	}
 
 	@EventHandler
@@ -266,8 +283,9 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
+		isJoined.set(false);
 		setReachable(false);
-		clear();
+		clear(true);
 	}
 
 	/**
@@ -283,8 +301,10 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	/**
 	 * Clear the server configuration. In a first time, it removes all players from all channels, then removes all channels and
 	 * finally removes all players from the server player list.
+	 * 
+	 * @param setMainPlayerToNull True to set the main player to null, false otherwise.
 	 */
-	private void clear() {
+	private void clear(boolean setMainPlayerToNull) {
 		// Step 1: Clearing the sound modifiers list
 		List<ISoundModifier> soundModifiers = new ArrayList<ISoundModifier>(getSoundModifiers().toList());
 		for (ISoundModifier soundModifier : soundModifiers)
@@ -302,7 +322,8 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		}
 
 		// Step 4: Clearing the main player
-		mainPlayer = null;
+		if (setMainPlayerToNull)
+			mainPlayer = null;
 	}
 
 	private void openConnection() {
