@@ -5,16 +5,21 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerAdminChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.client.player.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class MainPlayer extends AbstractPlayer implements IMainPlayer {
+public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventListener {
 	private UUID identifier;
 	private InetSocketAddress gameAddress;
 	private IPosition position;
@@ -48,6 +53,8 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer {
 		setDeafen0(isDeafen);
 
 		position = new Position(this, x, y, z, yaw, pitch);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -105,5 +112,29 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer {
 	public void setOnline(boolean isOnline) {
 		if (setOnline0(isOnline))
 			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, !isOnline));
+	}
+
+	@EventHandler
+	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		setChannel0(event.getList().getChannel());
+	}
+
+	@EventHandler
+	private void onChannelPlayerRemove(ChannelPlayerListPlayerRemovePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		setChannel0(null);
+	}
+
+	@EventHandler
+	private void onServerReachableChange(ServerReachableChangeEvent event) {
+		if (!event.getServer().equals(getChannel().getServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }

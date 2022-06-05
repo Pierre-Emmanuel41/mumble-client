@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.common.exceptions.ChannelPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractChannelPlayerList;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.external.event.ServerReachableChangeEvent;
 import fr.pederobien.mumble.client.player.event.ChannelListChannelRemovePostEvent;
 import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPreEvent;
@@ -14,6 +13,8 @@ import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePos
 import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.player.event.ServerReachableChangeEvent;
+import fr.pederobien.mumble.client.player.exceptions.PlayerNotOnlineException;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
@@ -36,11 +37,17 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 
 	@Override
 	public void join(Consumer<IResponse> callback) {
+		if (!getChannel().getServer().getMainPlayer().isOnline())
+			throw new PlayerNotOnlineException(getChannel().getServer().getMainPlayer());
+
 		EventManager.callEvent(new ChannelPlayerListPlayerAddPreEvent(this, getChannel().getServer().getMainPlayer(), callback));
 	}
 
 	@Override
 	public void leave(Consumer<IResponse> callback) {
+		if (!getChannel().getServer().getMainPlayer().isOnline())
+			throw new PlayerNotOnlineException(getChannel().getServer().getMainPlayer());
+
 		EventManager.callEvent(new ChannelPlayerListPlayerRemovePreEvent(this, getChannel().getServer().getMainPlayer(), callback));
 	}
 
