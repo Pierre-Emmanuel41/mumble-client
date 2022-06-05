@@ -2,9 +2,12 @@ package fr.pederobien.mumble.client.external.impl;
 
 import fr.pederobien.mumble.client.common.exceptions.SoundModifierAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractSoundModifierList;
+import fr.pederobien.mumble.client.external.event.SoundModifierListSoundModifierAddPostEvent;
+import fr.pederobien.mumble.client.external.event.SoundModifierListSoundModifierRemovePostEvent;
 import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.external.interfaces.ISoundModifierList;
+import fr.pederobien.utils.event.EventManager;
 
 public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier, IExternalMumbleServer> implements ISoundModifierList {
 
@@ -26,6 +29,7 @@ public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier,
 	 */
 	public void add(ISoundModifier soundModifier) {
 		add0(soundModifier);
+		EventManager.callEvent(new SoundModifierListSoundModifierAddPostEvent(this, soundModifier));
 	}
 
 	/**
@@ -36,6 +40,7 @@ public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier,
 	 * @throws SoundModifierAlreadyRegisteredException if a sound modifier with the same name is already registered.
 	 */
 	public void remove(ISoundModifier soundModifier) {
-		remove0(soundModifier);
+		if (remove0(soundModifier))
+			EventManager.callEvent(new SoundModifierListSoundModifierRemovePostEvent(this, soundModifier));
 	}
 }
