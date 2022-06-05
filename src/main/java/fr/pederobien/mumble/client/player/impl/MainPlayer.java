@@ -132,7 +132,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 
 	@EventHandler
 	private void onServerReachableChange(ServerReachableChangeEvent event) {
-		if (!event.getServer().equals(getChannel().getServer()))
+		if (!event.getServer().equals(getServer()))
 			return;
 
 		EventManager.unregisterListener(this);
