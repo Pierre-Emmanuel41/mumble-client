@@ -32,7 +32,6 @@ import fr.pederobien.mumble.client.player.interfaces.IParameter;
 import fr.pederobien.mumble.client.player.interfaces.IParameterList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
-import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.mumble.client.player.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.mumble.common.impl.Identifier;
@@ -121,11 +120,10 @@ public class RequestManagerV10 extends RequestManager {
 	public void onGetServerConfiguration(IMumbleMessage request) {
 		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
 
-		IMainPlayer mainPlayer = createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
 		if (getServer().getMainPlayer() == null)
-			((PlayerMumbleServer) getServer()).setMainPlayer(mainPlayer);
+			((PlayerMumbleServer) getServer()).setMainPlayer(createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo()));
 		else
-			updateMainPlayer(mainPlayer);
+			updateMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
 
 		for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
 			ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), createParameterList(modifierInfo.getParameterInfo().values()));
@@ -428,7 +426,7 @@ public class RequestManagerV10 extends RequestManager {
 		if (!request.getPlayerInfo().isOnline())
 			((MainPlayer) getServer().getMainPlayer()).setOnline(false);
 		else
-			updateMainPlayer(createMainPlayer(request.getPlayerInfo()));
+			updateMainPlayer(request.getPlayerInfo());
 	}
 
 	/**
@@ -681,18 +679,17 @@ public class RequestManagerV10 extends RequestManager {
 	/**
 	 * Transfer the properties of the given player to the server main player.
 	 * 
-	 * @param mainPlayer The main player that contains server's main player properties.
+	 * @param playerInfo The description of the main player.
 	 */
-	private void updateMainPlayer(IMainPlayer mainPlayer) {
+	private void updateMainPlayer(FullPlayerInfo playerInfo) {
 		MainPlayer serverMainPlayer = (MainPlayer) getServer().getMainPlayer();
-		serverMainPlayer.setName(mainPlayer.getName());
-		serverMainPlayer.setOnline(mainPlayer.isOnline());
-		serverMainPlayer.setGameAddress(mainPlayer.getGameAddress());
-		serverMainPlayer.setAdmin(mainPlayer.isAdmin());
-		serverMainPlayer.setMute(mainPlayer.isMute());
-		serverMainPlayer.setDeafen(mainPlayer.isDeafen());
-		IPosition position = mainPlayer.getPosition();
-		((Position) serverMainPlayer.getPosition()).update(position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch());
+		serverMainPlayer.setName(playerInfo.getName());
+		serverMainPlayer.setOnline(playerInfo.isOnline());
+		serverMainPlayer.setGameAddress(playerInfo.getGameAddress());
+		serverMainPlayer.setAdmin(playerInfo.isAdmin());
+		serverMainPlayer.setMute(playerInfo.isMute());
+		serverMainPlayer.setDeafen(playerInfo.isDeafen());
+		((Position) serverMainPlayer.getPosition()).update(playerInfo.getX(), playerInfo.getY(), playerInfo.getZ(), playerInfo.getYaw(), playerInfo.getPitch());
 	}
 
 	/**
