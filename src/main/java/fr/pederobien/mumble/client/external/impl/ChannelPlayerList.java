@@ -13,7 +13,7 @@ import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemoveP
 import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerKickPostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePostEvent;
-import fr.pederobien.mumble.client.external.event.ServerReachableChangeEvent;
+import fr.pederobien.mumble.client.external.event.ServerClosePostEvent;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
@@ -92,7 +92,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	}
 
 	@EventHandler
-	private void onServerReachableChange(ServerReachableChangeEvent event) {
+	private void onServerClose(ServerClosePostEvent event) {
 		if (!event.getServer().equals(getChannel().getServer()))
 			return;
 

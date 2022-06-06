@@ -20,7 +20,7 @@ import fr.pederobien.mumble.client.external.event.ServerClosePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerClosePreEvent;
 import fr.pederobien.mumble.client.external.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerNameChangePreEvent;
-import fr.pederobien.mumble.client.external.event.ServerReachableChangeEvent;
+import fr.pederobien.mumble.client.external.event.ServerReachableStatusChangeEvent;
 import fr.pederobien.mumble.client.external.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IChannelList;
@@ -124,7 +124,6 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 				throw new IllegalStateException("Time out on server configuration request.");
 			}
 
-			setReachable(true);
 		} catch (InterruptedException e) {
 			// Do nothing
 		} finally {
@@ -209,10 +208,15 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 	 * Set the the new reachable status of the remote.
 	 * 
 	 * @param isReachable True if the remote is reachable, false otherwise.
+	 * 
+	 * @return True if the reachable status has changed, false otherwise.
 	 */
-	private void setReachable(boolean isReachable) {
-		if (setReachable0(isReachable))
-			EventManager.callEvent(new ServerReachableChangeEvent(this, isReachable));
+	private boolean setReachable(boolean isReachable) {
+		boolean changed = setReachable0(isReachable);
+		if (changed)
+			EventManager.callEvent(new ServerReachableStatusChangeEvent(this, isReachable));
+
+		return changed;
 	}
 
 	/**
@@ -251,10 +255,9 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 	}
 
 	private void closeConnection() {
-		if (!setReachable0(false))
+		if (!setReachable(false))
 			return;
 
 		connection.getTcpConnection().dispose();
-		setReachable(false);
 	}
 }

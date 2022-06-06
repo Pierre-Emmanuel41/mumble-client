@@ -24,7 +24,7 @@ import fr.pederobien.mumble.client.player.event.ServerLeavePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerLeavePreEvent;
 import fr.pederobien.mumble.client.player.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerNameChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ServerReachableChangeEvent;
+import fr.pederobien.mumble.client.player.event.ServerReachableStatusChangeEvent;
 import fr.pederobien.mumble.client.player.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelList;
@@ -275,10 +275,15 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	 * Set the the new reachable status of the remote.
 	 * 
 	 * @param isReachable True if the remote is reachable, false otherwise.
+	 * 
+	 * @return True if the reachable status has changed, false otherwise.
 	 */
-	private void setReachable(boolean isReachable) {
-		if (setReachable0(isReachable))
-			EventManager.callEvent(new ServerReachableChangeEvent(this, isReachable));
+	private boolean setReachable(boolean isReachable) {
+		boolean changed = setReachable0(isReachable);
+		if (changed)
+			EventManager.callEvent(new ServerReachableStatusChangeEvent(this, isReachable));
+
+		return changed;
 	}
 
 	/**
@@ -317,10 +322,9 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	}
 
 	private void closeConnection() {
-		if (!setReachable0(false))
+		if (!setReachable(false))
 			return;
 
 		connection.getTcpConnection().dispose();
-		setReachable(false);
 	}
 }

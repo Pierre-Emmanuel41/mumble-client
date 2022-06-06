@@ -1,10 +1,10 @@
-package fr.pederobien.mumble.client.external.event;
+package fr.pederobien.mumble.client.player.event;
 
 import java.util.StringJoiner;
 
-import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
+import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 
-public class ServerReachableChangeEvent extends ServerEvent {
+public class ServerReachableStatusChangeEvent extends ServerEvent {
 	private boolean isReachable;
 
 	/**
@@ -13,7 +13,7 @@ public class ServerReachableChangeEvent extends ServerEvent {
 	 * @param server      The server whose the reachable status has changed.
 	 * @param isReachable The new reachable status.
 	 */
-	public ServerReachableChangeEvent(IExternalMumbleServer server, boolean isReachable) {
+	public ServerReachableStatusChangeEvent(IPlayerMumbleServer server, boolean isReachable) {
 		super(server);
 		this.isReachable = isReachable;
 	}
