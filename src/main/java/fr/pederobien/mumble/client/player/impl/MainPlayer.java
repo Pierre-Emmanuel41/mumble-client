@@ -8,8 +8,10 @@ import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerAdminChangePostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
@@ -148,8 +150,8 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
-	private void onPlayerMuteStatusChange(PlayerMuteStatusChangePreEvent event) {
-		if (!event.getPlayer().equals(this) || vocalClient != null)
+	private void onPlayerMuteStatusPreChange(PlayerMuteStatusChangePreEvent event) {
+		if (!event.getPlayer().equals(this) || vocalClient == null)
 			return;
 
 		if (event.getNewMute())
@@ -159,11 +161,33 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
-	private void onPlayerDeafenStatusChange(PlayerDeafenStatusChangePreEvent event) {
-		if (!event.getPlayer().equals(this) || vocalClient != null)
+	private void onPlayerMuteStatusPostChange(PlayerMuteStatusChangePostEvent event) {
+		if (!event.getPlayer().equals(this) || vocalClient == null)
+			return;
+
+		if (event.getPlayer().isMute())
+			vocalClient.pauseMicrophone();
+		else
+			vocalClient.resumeMicrophone();
+	}
+
+	@EventHandler
+	private void onPlayerDeafenStatusPreChange(PlayerDeafenStatusChangePreEvent event) {
+		if (!event.getPlayer().equals(this) || vocalClient == null)
 			return;
 
 		if (event.getNewDeafen())
+			vocalClient.pauseSpeakers();
+		else
+			vocalClient.resumeSpeakers();
+	}
+
+	@EventHandler
+	private void onPlayerDeafenStatusPostChange(PlayerDeafenStatusChangePostEvent event) {
+		if (!event.getPlayer().equals(this) || vocalClient == null)
+			return;
+
+		if (event.getPlayer().isDeafen())
 			vocalClient.pauseSpeakers();
 		else
 			vocalClient.resumeSpeakers();
