@@ -165,7 +165,6 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
 	 */
 	private boolean isAttached() {
-		return false;
-		// return soundModifier != null && soundModifier.getChannel() != null;
+		return soundModifier != null && soundModifier.getChannel() != null;
 	}
 }

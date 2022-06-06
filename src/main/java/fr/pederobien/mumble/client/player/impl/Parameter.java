@@ -90,7 +90,6 @@ public class Parameter<T> extends AbstractParameter<T> implements IParameter<T> 
 	 * @return True if the sound modifier associated to this parameter is attached to a channel, false otherwise.
 	 */
 	private boolean isAttached() {
-		// return soundModifier != null && soundModifier.getChannel() != null;
-		return false;
+		return soundModifier != null && soundModifier.getChannel() != null;
 	}
 }
