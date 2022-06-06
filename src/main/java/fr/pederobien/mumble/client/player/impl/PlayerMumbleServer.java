@@ -14,6 +14,7 @@ import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.common.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerAddressChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerAddressChangePreEvent;
 import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
@@ -195,7 +196,9 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		try {
 			if (this.mainPlayer != null)
 				throw new IllegalArgumentException("The main player of a mumble server can only be set once");
+
 			this.mainPlayer = mainPlayer;
+			EventManager.callEvent(new PlayerOnlineChangePostEvent(mainPlayer, mainPlayer.isOnline()));
 		} finally {
 			getLock().unlock();
 		}

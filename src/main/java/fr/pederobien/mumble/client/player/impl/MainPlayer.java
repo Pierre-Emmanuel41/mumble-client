@@ -13,7 +13,6 @@ import fr.pederobien.mumble.client.player.event.PlayerGameAddressChangePostEvent
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerReachableStatusChangeEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
@@ -60,12 +59,6 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 		position = new Position(this, x, y, z, yaw, pitch);
 
 		EventManager.registerListener(this);
-	}
-
-	@Override
-	public void setName(String name) {
-		super.setName(name);
-		vocalClient = new VocalClient(name, getServer().getAddress().getAddress().getHostAddress(), getServer().getAddress().getPort());
 	}
 
 	@Override
@@ -126,11 +119,23 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
+	private void onPlayerOnlineStatusChange(PlayerOnlineChangePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		if (event.getPlayer().isOnline())
+			vocalClient = new VocalClient(getName(), getServer().getAddress().getAddress().getHostAddress(), getServer().getAddress().getPort());
+		else if (vocalClient != null)
+			vocalClient.dispose();
+	}
+
+	@EventHandler
 	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
 		setChannel0(event.getList().getChannel());
+		vocalClient.connect();
 	}
 
 	@EventHandler
@@ -139,6 +144,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 			return;
 
 		setChannel0(null);
+		vocalClient.disconnect();
 	}
 
 	@EventHandler
@@ -161,14 +167,6 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 			vocalClient.pauseSpeakers();
 		else
 			vocalClient.resumeSpeakers();
-	}
-
-	@EventHandler
-	private void onServerReachableChange(ServerReachableStatusChangeEvent event) {
-		if (!event.getServer().equals(getServer()) || vocalClient == null || vocalClient.isDisposed())
-			return;
-
-		vocalClient.dispose();
 	}
 
 	@EventHandler
