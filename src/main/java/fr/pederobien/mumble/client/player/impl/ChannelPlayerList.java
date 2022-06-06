@@ -141,7 +141,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	 */
 	private void remove(String name, boolean raiseEvent) {
 		IPlayer player = remove0(name);
-		if (raiseEvent)
+		if (raiseEvent && player != null)
 			EventManager.callEvent(new ChannelPlayerListPlayerRemovePostEvent(this, player));
 	}
 }
