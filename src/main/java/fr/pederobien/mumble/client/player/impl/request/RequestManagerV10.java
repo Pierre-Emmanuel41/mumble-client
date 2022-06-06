@@ -574,7 +574,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Player' online status
 		boolean isOnline = info.isOnline();
 
-		String name = null;
+		String name = "Unknown";
 		UUID identifier = null;
 		InetSocketAddress gameAddress = null;
 		boolean isAdmin = false, isMute = false, isDeafen = false;
