@@ -269,7 +269,6 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
-		isJoined.set(false);
 		setReachable(false);
 		clear();
 	}
