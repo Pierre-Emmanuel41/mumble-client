@@ -113,7 +113,8 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IExternalMu
 		if (!event.getList().getChannel().getServer().equals(getServer()))
 			return;
 
-		send(getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer()), args -> parse(args, event.getCallback(), null));
+		IMumbleMessage request = getRequestManager().onChannelPlayerAdd(getVersion(), event.getList().getChannel(), event.getPlayer(), false);
+		send(request, args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

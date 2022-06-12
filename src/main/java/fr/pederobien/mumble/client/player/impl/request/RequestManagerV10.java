@@ -24,6 +24,7 @@ import fr.pederobien.mumble.client.player.impl.ParameterList;
 import fr.pederobien.mumble.client.player.impl.PlayerMumbleServer;
 import fr.pederobien.mumble.client.player.impl.Position;
 import fr.pederobien.mumble.client.player.impl.RangeParameter;
+import fr.pederobien.mumble.client.player.impl.SecondaryPlayer;
 import fr.pederobien.mumble.client.player.impl.SoundModifier;
 import fr.pederobien.mumble.client.player.impl.SoundModifierList;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
@@ -61,7 +62,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.UnregisterChannelFromServer
 import fr.pederobien.mumble.common.impl.messages.v10.model.ChannelInfo.SemiFullChannelInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayerInfo;
-import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.SimplePlayerInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.StatusPlayerInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.SoundModifierInfo.FullSoundModifierInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventManager;
@@ -209,8 +210,8 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
-	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player) {
-		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName());
+	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player, boolean isMuteByMainPlayer) {
+		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName(), player.isMute(), player.isDeafen(), isMuteByMainPlayer);
 	}
 
 	@Override
@@ -489,7 +490,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a player to a channel.
 	 */
 	private void addPlayerToChannel(AddPlayerToChannelV10 request) {
-		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
+		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(createSecondaryPlayer(request.getPlayerInfo()));
 	}
 
 	/**
@@ -617,6 +618,21 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
+	 * Creates a player.
+	 * 
+	 * @param info A description of the player to create.
+	 * 
+	 * @return The created player.
+	 */
+	private IPlayer createSecondaryPlayer(StatusPlayerInfo info) {
+		SecondaryPlayer player = new SecondaryPlayer(getServer(), info.getName());
+		player.setMute(info.isMute());
+		player.setMuteByMainPlayer(info.isMuteByMainPlayer());
+		player.setDeafen(info.isDeafen());
+		return player;
+	}
+
+	/**
 	 * Creates a parameters list.
 	 * 
 	 * @param s A description of each parameter to create.
@@ -649,9 +665,9 @@ public class RequestManagerV10 extends RequestManager {
 		ISoundModifier soundModifier = getServer().getSoundModifiers().get(info.getSoundModifierInfo().getName()).get();
 		soundModifier.getParameters().update(parameters);
 
-		List<String> playerNames = new ArrayList<String>();
-		for (SimplePlayerInfo playerInfo : info.getPlayerInfo().values())
-			playerNames.add(playerInfo.getName());
+		List<IPlayer> playerNames = new ArrayList<IPlayer>();
+		for (StatusPlayerInfo playerInfo : info.getPlayerInfo().values())
+			playerNames.add(createSecondaryPlayer(playerInfo));
 
 		return new Channel(getServer(), info.getName(), playerNames, soundModifier);
 	}

@@ -71,12 +71,13 @@ public interface ICommonRequestManager<T extends ICommonChannel<?, ?>, U extends
 	/**
 	 * Creates a message in order to add a player to a channel.
 	 * 
-	 * @param channel      The channel to which a player has been added.
-	 * @param commonPlayer The added player.
+	 * @param channel            The channel to which a player has been added.
+	 * @param commonPlayer       The added player.
+	 * @param isMuteByMainPlayer True if the given player is mute by the client main player.
 	 * 
 	 * @return The message to send to the remote in order to add a player to a channel.
 	 */
-	IMumbleMessage onChannelPlayerAdd(T channel, V commonPlayer);
+	IMumbleMessage onChannelPlayerAdd(T channel, V commonPlayer, boolean isMuteByMainPlayer);
 
 	/**
 	 * Creates a message in order to remove a player from a channel.

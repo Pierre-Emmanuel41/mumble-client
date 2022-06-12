@@ -58,7 +58,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.UnregisterPlayerFromServerV
 import fr.pederobien.mumble.common.impl.messages.v10.model.ChannelInfo.SemiFullChannelInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterInfo.FullParameterInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.FullPlayerInfo;
-import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.SimplePlayerInfo;
+import fr.pederobien.mumble.common.impl.messages.v10.model.PlayerInfo.StatusPlayerInfo;
 import fr.pederobien.mumble.common.impl.messages.v10.model.SoundModifierInfo.FullSoundModifierInfo;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventManager;
@@ -194,8 +194,8 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
-	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player) {
-		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName());
+	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player, boolean isMuteByMainPlayer) {
+		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName(), player.isMute(), player.isDeafen(), isMuteByMainPlayer);
 	}
 
 	@Override
@@ -557,7 +557,7 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a player to a channel.
 	 */
 	private void addPlayerToChannel(AddPlayerToChannelV10 request) {
-		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(request.getPlayerName());
+		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(request.getPlayerInfo().getName());
 	}
 
 	/**
@@ -710,7 +710,7 @@ public class RequestManagerV10 extends RequestManager {
 		soundModifier.getParameters().update(parameters);
 
 		List<String> playerNames = new ArrayList<String>();
-		for (SimplePlayerInfo playerInfo : info.getPlayerInfo().values())
+		for (StatusPlayerInfo playerInfo : info.getPlayerInfo().values())
 			playerNames.add(playerInfo.getName());
 
 		return new Channel(getServer(), info.getName(), playerNames, soundModifier);

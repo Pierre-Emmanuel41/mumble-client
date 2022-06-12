@@ -12,6 +12,7 @@ import fr.pederobien.mumble.client.player.event.ChannelSoundModifierChangePostEv
 import fr.pederobien.mumble.client.player.event.ChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelPlayerList;
+import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -24,16 +25,16 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 	 * 
 	 * @param server        The mumble server associated to the channel.
 	 * @param name          The channel's name.
-	 * @param playerNames   The list of name of the players registered in the channel.
+	 * @param players       The list of the players registered in the channel.
 	 * @param soundModifier The channel's sound modifier.
 	 */
-	public Channel(IPlayerMumbleServer server, String name, List<String> playerNames, ISoundModifier soundModifier) {
+	public Channel(IPlayerMumbleServer server, String name, List<IPlayer> players, ISoundModifier soundModifier) {
 		super(name);
 		this.server = server;
 
-		ChannelPlayerList players = new ChannelPlayerList(this);
-		setPlayers(players);
-		for (String player : playerNames)
+		ChannelPlayerList playerList = new ChannelPlayerList(this);
+		setPlayers(playerList);
+		for (IPlayer player : players)
 			players.add(player);
 
 		setSoundModifier0(soundModifier);

@@ -63,8 +63,8 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 
 		getLock().lock();
 		try {
-			remove(event.getOldName(), false);
-			add(event.getPlayer().getName(), false);
+			IPlayer player = remove0(event.getOldName());
+			add0(player);
 		} finally {
 			getLock().unlock();
 		}
@@ -105,41 +105,23 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	 * @param name The name of the player to add.
 	 */
 	public void add(String name) {
-		add(name, true);
+		IPlayer player = getChannel().getServer().getPlayers().get(name).get();
+		add0(player);
+		EventManager.callEvent(new ChannelPlayerListPlayerAddPostEvent(this, player));
 	}
 
 	/**
 	 * Removes a player from this list. For internal use only.
 	 * 
 	 * @param name The name of the player to remove.
-	 */
-	public void remove(String name) {
-		remove(name, true);
-	}
-
-	/**
-	 * Adds a player to this list.
 	 * 
-	 * @param name       The name of the player to add.
-	 * @param raiseEvent True to raise an event, false otherwise.
+	 * @return the removed player if registered, null otherwise.
 	 */
-	private void add(String name, boolean raiseEvent) {
-		IPlayer player = getChannel().getServer().getPlayers().get(name).get();
-		add0(player);
-		if (raiseEvent)
-			EventManager.callEvent(new ChannelPlayerListPlayerAddPostEvent(this, player));
-	}
-
-	/**
-	 * Removes a player from this list. For internal use only.
-	 * 
-	 * @param player     The player to remove.
-	 * @param raiseEvent True to raise an event, false otherwise.
-	 */
-	private void remove(String name, boolean raiseEvent) {
+	public IPlayer remove(String name) {
 		IPlayer player = remove0(name);
-		if (raiseEvent)
+		if (player != null)
 			EventManager.callEvent(new ChannelPlayerListPlayerRemovePostEvent(this, player));
+		return player;
 	}
 
 	/**

@@ -74,8 +74,8 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	}
 
 	@Override
-	public IMumbleMessage onChannelPlayerAdd(float version, T channel, V player) {
-		return findManagerAndReturn(version, manager -> manager.onChannelPlayerAdd(channel, player));
+	public IMumbleMessage onChannelPlayerAdd(float version, T channel, V player, boolean isMuteByMainPlayer) {
+		return findManagerAndReturn(version, manager -> manager.onChannelPlayerAdd(channel, player, isMuteByMainPlayer));
 	}
 
 	@Override
