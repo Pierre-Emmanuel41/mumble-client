@@ -35,7 +35,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 		ChannelPlayerList playerList = new ChannelPlayerList(this);
 		setPlayers(playerList);
 		for (IPlayer player : players)
-			players.add(player);
+			playerList.add(player);
 
 		setSoundModifier0(soundModifier);
 		((SoundModifier) getSoundModifier()).setChannel(this);
