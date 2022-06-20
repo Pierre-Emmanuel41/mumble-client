@@ -21,14 +21,11 @@ import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
-import fr.pederobien.vocal.client.impl.VocalClient;
-import fr.pederobien.vocal.client.interfaces.IVocalClient;
 
 public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventListener {
 	private UUID identifier;
 	private InetSocketAddress gameAddress;
 	private IPosition position;
-	private IVocalClient vocalClient;
 
 	/**
 	 * Creates a player based on the given parameters.
@@ -121,23 +118,11 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
-	private void onPlayerOnlineStatusChange(PlayerOnlineChangePostEvent event) {
-		if (!event.getPlayer().equals(this))
-			return;
-
-		if (event.getPlayer().isOnline())
-			vocalClient = new VocalClient(getName(), getServer().getAddress().getAddress().getHostAddress(), getServer().getAddress().getPort());
-		else if (vocalClient != null)
-			vocalClient.dispose();
-	}
-
-	@EventHandler
 	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
 		setChannel0(event.getList().getChannel());
-		vocalClient.connect();
 	}
 
 	@EventHandler
@@ -146,51 +131,30 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 			return;
 
 		setChannel0(null);
-		vocalClient.disconnect();
 	}
 
 	@EventHandler
 	private void onPlayerMuteStatusPreChange(PlayerMuteStatusChangePreEvent event) {
-		if (!event.getPlayer().equals(this) || vocalClient == null)
+		if (!event.getPlayer().equals(this))
 			return;
-
-		if (event.getNewMute())
-			vocalClient.pauseMicrophone();
-		else
-			vocalClient.resumeMicrophone();
 	}
 
 	@EventHandler
 	private void onPlayerMuteStatusPostChange(PlayerMuteStatusChangePostEvent event) {
-		if (!event.getPlayer().equals(this) || vocalClient == null)
+		if (!event.getPlayer().equals(this))
 			return;
-
-		if (event.getPlayer().isMute())
-			vocalClient.pauseMicrophone();
-		else
-			vocalClient.resumeMicrophone();
 	}
 
 	@EventHandler
 	private void onPlayerDeafenStatusPreChange(PlayerDeafenStatusChangePreEvent event) {
-		if (!event.getPlayer().equals(this) || vocalClient == null)
+		if (!event.getPlayer().equals(this))
 			return;
-
-		if (event.getNewDeafen())
-			vocalClient.pauseSpeakers();
-		else
-			vocalClient.resumeSpeakers();
 	}
 
 	@EventHandler
 	private void onPlayerDeafenStatusPostChange(PlayerDeafenStatusChangePostEvent event) {
-		if (!event.getPlayer().equals(this) || vocalClient == null)
+		if (!event.getPlayer().equals(this))
 			return;
-
-		if (event.getPlayer().isDeafen())
-			vocalClient.pauseSpeakers();
-		else
-			vocalClient.resumeSpeakers();
 	}
 
 	@EventHandler
