@@ -42,35 +42,38 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 
 	@Override
 	public void setValue(Object value, Consumer<IResponse> callback) {
-		if (getValue().equals(value))
+		T castValue = getType().cast(value);
+		if (getValue().equals(castValue))
 			return;
 
 		if (!isAttached())
-			setValue(value);
+			setValue(castValue);
 		else
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, value, callback));
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, castValue, callback));
 	}
 
 	@Override
 	public void setMin(Object min, Consumer<IResponse> callback) {
-		if (getMin().equals(min))
+		T castMin = getType().cast(min);
+		if (getMin().equals(castMin))
 			return;
 
 		if (!isAttached())
-			setMin0(getType().cast(min));
+			setMin0(castMin);
 		else
-			EventManager.callEvent(new ParameterMinValueChangePreEvent(this, min, callback));
+			EventManager.callEvent(new ParameterMinValueChangePreEvent(this, castMin, callback));
 	}
 
 	@Override
 	public void setMax(Object max, Consumer<IResponse> callback) {
-		if (getMax().equals(max))
+		T castMax = getType().cast(max);
+		if (getMax().equals(castMax))
 			return;
 
 		if (!isAttached())
-			setMax0(getType().cast(max));
+			setMax0(castMax);
 		else
-			EventManager.callEvent(new ParameterMaxValueChangePreEvent(this, max, callback));
+			EventManager.callEvent(new ParameterMaxValueChangePreEvent(this, castMax, callback));
 	}
 
 	@Override
@@ -89,16 +92,17 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 	 * @param value The new parameter value.
 	 */
 	public void setValue(Object value) {
+		T castValue = getType().cast(value);
 		if (!isAttached())
-			setValue0(getType().cast(value));
+			setValue0(castValue);
 		else {
 			getLock().lock();
 			try {
 				T oldValue = getValue();
-				if (oldValue.equals(value))
+				if (oldValue.equals(castValue))
 					return;
 
-				setValue0(getType().cast(value));
+				setValue0(castValue);
 				EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
 			} finally {
 				getLock().unlock();
@@ -112,16 +116,17 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 	 * @param min The new parameter minimum value.
 	 */
 	public void setMin(Object min) {
+		T castMin = getType().cast(min);
 		if (!isAttached())
-			setMin0(getType().cast(min));
+			setMin0(castMin);
 		else {
 			getLock().lock();
 			try {
 				T oldMin = getMin();
-				if (oldMin.equals(min))
+				if (oldMin.equals(castMin))
 					return;
 
-				setMin0(getType().cast(min));
+				setMin0(castMin);
 				EventManager.callEvent(new ParameterMinValueChangePostEvent(this, oldMin));
 			} finally {
 				getLock().unlock();
@@ -135,16 +140,17 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 	 * @param max The new parameter maximum value.
 	 */
 	public void setMax(Object max) {
+		T castMax = getType().cast(max);
 		if (!isAttached())
-			setMax0(getType().cast(max));
+			setMax0(castMax);
 		else {
 			getLock().lock();
 			try {
 				T oldMax = getMax();
-				if (oldMax.equals(max))
+				if (oldMax.equals(castMax))
 					return;
 
-				setMax0(getType().cast(max));
+				setMax0(castMax);
 				EventManager.callEvent(new ParameterMaxValueChangePostEvent(this, oldMax));
 			} finally {
 				getLock().unlock();

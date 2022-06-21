@@ -35,13 +35,14 @@ public class Parameter<T> extends AbstractParameter<T> implements IParameter<T> 
 
 	@Override
 	public void setValue(Object value, Consumer<IResponse> callback) {
-		if (getValue().equals(value))
+		T castValue = getType().cast(value);
+		if (getValue().equals(castValue))
 			return;
 
 		if (!isAttached())
-			setValue0(getType().cast(value));
+			setValue0(castValue);
 		else
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, value, callback));
+			EventManager.callEvent(new ParameterValueChangePreEvent(this, castValue, callback));
 	}
 
 	@Override
@@ -69,16 +70,17 @@ public class Parameter<T> extends AbstractParameter<T> implements IParameter<T> 
 	 * @param value The new parameter value.
 	 */
 	public void setValue(Object value) {
+		T castValue = getType().cast(value);
 		if (!isAttached())
-			setValue0(getType().cast(value));
+			setValue0(castValue);
 		else {
 			getLock().lock();
 			try {
 				T oldValue = getValue();
-				if (oldValue.equals(value))
+				if (oldValue.equals(castValue))
 					return;
 
-				setValue0(getType().cast(value));
+				setValue0(castValue);
 				EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
 			} finally {
 				getLock().unlock();
