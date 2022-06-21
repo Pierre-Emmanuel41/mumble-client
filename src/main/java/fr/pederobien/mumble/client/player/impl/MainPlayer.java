@@ -117,6 +117,15 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, !isOnline));
 	}
 
+	/**
+	 * Set the identifier associated to this player. For internal use only.
+	 * 
+	 * @param identifier The identifier associated to this player.
+	 */
+	public void setIdentifier(UUID identifier) {
+		this.identifier = identifier;
+	}
+
 	@EventHandler
 	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))

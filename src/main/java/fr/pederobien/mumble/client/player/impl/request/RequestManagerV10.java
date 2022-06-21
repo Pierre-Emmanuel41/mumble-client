@@ -699,7 +699,8 @@ public class RequestManagerV10 extends RequestManager {
 	 */
 	private void updateMainPlayer(FullPlayerInfo playerInfo) {
 		MainPlayer serverMainPlayer = (MainPlayer) getServer().getMainPlayer();
-		serverMainPlayer.setName(playerInfo.getName());
+		serverMainPlayer.setName(playerInfo.getName() == null ? "Unknown" : playerInfo.getName());
+		serverMainPlayer.setIdentifier(playerInfo.getIdentifier());
 		serverMainPlayer.setOnline(playerInfo.isOnline());
 		serverMainPlayer.setGameAddress(playerInfo.getGameAddress());
 		serverMainPlayer.setAdmin(playerInfo.isAdmin());

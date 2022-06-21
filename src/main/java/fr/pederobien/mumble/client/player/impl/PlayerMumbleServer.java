@@ -46,6 +46,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	private AtomicBoolean isJoined;
 	private AtomicBoolean tryOpening;
 	private Condition serverConfiguration, communicationProtocolVersion;
+	private boolean connectionLost;
 
 	public PlayerMumbleServer(String name, InetSocketAddress address) {
 		super(name, address);
@@ -59,6 +60,8 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 
 		serverConfiguration = getLock().newCondition();
 		communicationProtocolVersion = getLock().newCondition();
+
+		connectionLost = false;
 
 		EventManager.registerListener(this);
 	}
@@ -223,6 +226,12 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		} finally {
 			getLock().unlock();
 		}
+
+		if (connectionLost) {
+			join(response -> {
+			});
+			connectionLost = false;
+		}
 	}
 
 	@EventHandler
@@ -269,6 +278,8 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		if (connection == null || !event.getConnection().equals(connection.getTcpConnection()))
 			return;
 
+		connectionLost = true;
+		isJoined.set(false);
 		setReachable(false);
 		clear();
 	}
@@ -312,7 +323,12 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		}
 
 		// Step 4: Clearing the main player
-		mainPlayer = null;
+		MainPlayer mainPlayerImpl = (MainPlayer) mainPlayer;
+		mainPlayerImpl.setName("Unknown");
+		mainPlayerImpl.setIdentifier(null);
+		mainPlayerImpl.setOnline(false);
+		mainPlayerImpl.setGameAddress(null);
+		mainPlayerImpl.setAdmin(false);
 	}
 
 	private void openConnection() {
