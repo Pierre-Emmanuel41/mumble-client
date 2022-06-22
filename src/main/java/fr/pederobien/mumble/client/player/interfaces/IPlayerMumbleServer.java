@@ -32,4 +32,9 @@ public interface IPlayerMumbleServer extends ICommonMumbleServer<IChannelList, I
 	 * @return The player associated to this mumble server.
 	 */
 	IMainPlayer getMainPlayer();
+
+	/**
+	 * @return The list of players registered in a channel.
+	 */
+	IServerPlayerList getPlayers();
 }

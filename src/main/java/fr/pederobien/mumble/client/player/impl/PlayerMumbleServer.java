@@ -32,6 +32,7 @@ import fr.pederobien.mumble.client.player.interfaces.IChannelList;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
+import fr.pederobien.mumble.client.player.interfaces.IServerPlayerList;
 import fr.pederobien.mumble.client.player.interfaces.IServerRequestManager;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifierList;
@@ -43,6 +44,7 @@ import fr.pederobien.utils.event.LogEvent;
 public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> implements IPlayerMumbleServer, IEventListener {
 	private MumbleTcpConnection connection;
 	private IMainPlayer mainPlayer;
+	private IServerPlayerList players;
 	private AtomicBoolean isJoined;
 	private AtomicBoolean tryOpening;
 	private Condition serverConfiguration, communicationProtocolVersion;
@@ -51,6 +53,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	public PlayerMumbleServer(String name, InetSocketAddress address) {
 		super(name, address);
 
+		players = new ServerPlayerList(this);
 		isJoined = new AtomicBoolean(false);
 		tryOpening = new AtomicBoolean(false);
 
@@ -185,6 +188,11 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	@Override
 	public IMainPlayer getMainPlayer() {
 		return mainPlayer;
+	}
+
+	@Override
+	public IServerPlayerList getPlayers() {
+		return players;
 	}
 
 	/**
