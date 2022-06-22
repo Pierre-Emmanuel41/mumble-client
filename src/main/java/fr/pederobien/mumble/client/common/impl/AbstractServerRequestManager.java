@@ -99,11 +99,6 @@ public abstract class AbstractServerRequestManager<T extends ICommonChannel<?, ?
 	}
 
 	@Override
-	public IMumbleMessage onPlayerKick(float version, V kickedPlayer, V KickingPlayer) {
-		return findManagerAndReturn(version, manager -> manager.onPlayerKick(kickedPlayer, KickingPlayer));
-	}
-
-	@Override
 	public IMumbleMessage onParameterValueChange(float version, W parameter, Object value) {
 		return findManagerAndReturn(version, manager -> manager.onParameterValueChange(parameter, value));
 	}

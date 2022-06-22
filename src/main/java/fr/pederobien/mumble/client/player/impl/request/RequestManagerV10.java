@@ -557,7 +557,7 @@ public class RequestManagerV10 extends RequestManager {
 			isUsed = true;
 		}
 
-		EventManager.callEvent(new GamePortCheckPostEvent(getServer(), request, isUsed));
+		EventManager.callEvent(new GamePortCheckPostEvent(getServer(), request, true));
 	}
 
 	/**

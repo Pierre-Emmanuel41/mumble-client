@@ -38,4 +38,15 @@ public interface IServerRequestManager extends ICommonServerRequestManager<IChan
 	 * @return The message to send to the remote in order to leave a mumble server.
 	 */
 	IMumbleMessage onServerLeave(float version);
+
+	/**
+	 * Creates a message in order to kick a player from a channel.
+	 * 
+	 * @param version       The protocol version to use to create a mumble message.
+	 * @param kickedPlayer  The player to kick.
+	 * @param KickingPlayer The player kicking another player.
+	 * 
+	 * @return The message to send to the remote in order to kick a player from a channel.
+	 */
+	IMumbleMessage onPlayerKick(float version, IPlayer kickedPlayer, IPlayer KickingPlayer);
 }

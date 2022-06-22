@@ -26,7 +26,6 @@ import fr.pederobien.mumble.client.external.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePreEvent;
-import fr.pederobien.mumble.client.external.event.PlayerKickPreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePreEvent;
@@ -197,14 +196,6 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IExternalMu
 			return;
 
 		send(getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer(), event.getNewDeafen()), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerKick(PlayerKickPreEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
-			return;
-
-		send(getRequestManager().onPlayerKick(getVersion(), event.getPlayer(), event.getKickingPlayer()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

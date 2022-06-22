@@ -285,11 +285,6 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	@Override
-	public IMumbleMessage onPlayerKick(IPlayer kickedPlayer, IPlayer KickingPlayer) {
-		return create(getVersion(), Identifier.KICK_PLAYER_FROM_CHANNEL, kickedPlayer.getName(), KickingPlayer.getName());
-	}
-
-	@Override
 	public IMumbleMessage onPlayerPositionChange(IPlayer player, double x, double y, double z, double yaw, double pitch) {
 		return create(getVersion(), Identifier.SET_PLAYER_POSITION, player.getName(), x, y, z, yaw, pitch);
 	}

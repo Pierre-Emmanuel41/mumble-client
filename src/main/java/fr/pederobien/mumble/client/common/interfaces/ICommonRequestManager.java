@@ -121,16 +121,6 @@ public interface ICommonRequestManager<T extends ICommonChannel<?, ?>, U extends
 	IMumbleMessage onPlayerDeafenChange(V player, boolean newDeafen);
 
 	/**
-	 * Creates a message in order to kick a player from a channel.
-	 * 
-	 * @param kickedPlayer  The player to kick.
-	 * @param KickingPlayer The player kicking another player.
-	 * 
-	 * @return The message to send to the remote in order to kick a player from a channel.
-	 */
-	IMumbleMessage onPlayerKick(V kickedPlayer, V KickingPlayer);
-
-	/**
 	 * Creates a message in order to update the value of the given parameter.
 	 * 
 	 * @param parameter The parameter whose the value has changed.

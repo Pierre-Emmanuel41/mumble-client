@@ -3,7 +3,6 @@ package fr.pederobien.mumble.client.external.impl;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -19,7 +18,6 @@ import fr.pederobien.mumble.client.external.event.PlayerDeafenStatusChangePreEve
 import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerGameAddressChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerKickPostEvent;
-import fr.pederobien.mumble.client.external.event.PlayerKickPreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteByChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerMuteStatusChangePostEvent;
@@ -29,8 +27,6 @@ import fr.pederobien.mumble.client.external.event.PlayerNameChangePreEvent;
 import fr.pederobien.mumble.client.external.event.PlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerOnlineChangePreEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.client.external.exceptions.PlayerNotAdministratorException;
-import fr.pederobien.mumble.client.external.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
 import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
@@ -64,8 +60,8 @@ public class Player extends AbstractPlayer implements IPlayer, IEventListener {
 	 * @param yaw         The player's yaw angle.
 	 * @param pitch       The player's pitch angle.
 	 */
-	public Player(IExternalMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute, boolean isDeafen,
-			double x, double y, double z, double yaw, double pitch) {
+	public Player(IExternalMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute,
+			boolean isDeafen, double x, double y, double z, double yaw, double pitch) {
 		super(name);
 
 		this.server = server;
@@ -177,21 +173,6 @@ public class Player extends AbstractPlayer implements IPlayer, IEventListener {
 	@Override
 	public IPosition getPosition() {
 		return position;
-	}
-
-	@Override
-	public void kick(IPlayer kickingPlayer, Consumer<IResponse> callback) {
-		Optional<IPlayer> optPlayer = getChannel().getServer().getPlayers().get(kickingPlayer.getName());
-		if (!optPlayer.isPresent() || kickingPlayer != optPlayer.get())
-			throw new IllegalArgumentException("The player " + kickingPlayer.getName() + " is not registered on the server");
-
-		if (!kickingPlayer.isAdmin())
-			throw new PlayerNotAdministratorException(kickingPlayer);
-
-		if (channel == null)
-			throw new PlayerNotRegisteredInChannelException(this);
-
-		EventManager.callEvent(new PlayerKickPreEvent(this, kickingPlayer, callback));
 	}
 
 	@Override

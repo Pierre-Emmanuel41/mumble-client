@@ -41,4 +41,9 @@ public class ServerRequestManager extends AbstractServerRequestManager<IChannel,
 	public IMumbleMessage onServerLeave(float version) {
 		return findManagerAndReturn(version, manager -> manager.onServerLeave());
 	}
+
+	@Override
+	public IMumbleMessage onPlayerKick(float version, IPlayer kickedPlayer, IPlayer KickingPlayer) {
+		return findManagerAndReturn(version, manager -> manager.onPlayerKick(kickedPlayer, KickingPlayer));
+	}
 }
