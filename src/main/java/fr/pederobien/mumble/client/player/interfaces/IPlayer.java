@@ -4,8 +4,8 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.ICommonPlayer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.external.exceptions.PlayerNotAdministratorException;
-import fr.pederobien.mumble.client.external.exceptions.PlayerNotRegisteredInChannelException;
+import fr.pederobien.mumble.client.player.exceptions.PlayerNotAdministratorException;
+import fr.pederobien.mumble.client.player.exceptions.PlayerNotRegisteredInChannelException;
 
 public interface IPlayer extends ICommonPlayer {
 
