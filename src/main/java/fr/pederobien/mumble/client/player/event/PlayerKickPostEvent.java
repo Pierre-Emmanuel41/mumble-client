@@ -49,7 +49,7 @@ public class PlayerKickPostEvent extends PlayerEvent {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
 		joiner.add("kicked=" + getPlayer().getName());
 		joiner.add("channel=" + getChannel().getName());
-		joiner.add("kicking=" + getKickingPlayer().getName());
+		joiner.add("kicking=" + (getKickingPlayer() == null ? "An administrator" : getKickingPlayer().getName()));
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

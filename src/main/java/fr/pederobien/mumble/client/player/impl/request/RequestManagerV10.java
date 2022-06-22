@@ -445,7 +445,17 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to kick a player from a channel.
 	 */
 	private void kickPlayerFromChannel(KickPlayerFromChannelV10 request) {
-		findPlayerAndUpdate(request.getKicked(), AbstractPlayer.class, player -> player.kick(getServer().getMainPlayer()));
+		IPlayer kicking = null;
+		if (request.getKicking().equals(getServer().getMainPlayer().getName()))
+			kicking = getServer().getMainPlayer();
+		else {
+			Optional<IPlayer> optPlayer = getServer().getPlayers().get(request.getKicking());
+			if (optPlayer.isPresent())
+				kicking = optPlayer.get();
+		}
+
+		final IPlayer kickingPlayer = kicking;
+		findPlayerAndUpdate(request.getKicked(), AbstractPlayer.class, player -> player.kick(kickingPlayer));
 	}
 
 	/**

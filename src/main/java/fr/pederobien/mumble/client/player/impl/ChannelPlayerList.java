@@ -78,12 +78,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 		if (!event.getChannel().equals(getChannel()))
 			return;
 
-		getLock().lock();
-		try {
-			remove(event.getPlayer().getName());
-		} finally {
-			getLock().unlock();
-		}
+		remove0(event.getPlayer().getName());
 	}
 
 	@EventHandler

@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
-import fr.pederobien.mumble.client.player.interfaces.ISecondaryPlayer;
+import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
-public class PlayerKickPreEvent extends SecondaryPlayerEvent implements ICancellable {
+public class PlayerKickPreEvent extends PlayerEvent implements ICancellable {
 	private boolean isCancelled;
 	private IChannel channel;
 	private Consumer<IResponse> callback;
@@ -21,7 +21,7 @@ public class PlayerKickPreEvent extends SecondaryPlayerEvent implements ICancell
 	 * @param channel      The channel from which the player is about to be kicked.
 	 * @param callback     The callback to run when an answer is received from the server.
 	 */
-	public PlayerKickPreEvent(ISecondaryPlayer kickedPlayer, IChannel channel, Consumer<IResponse> callback) {
+	public PlayerKickPreEvent(IPlayer kickedPlayer, IChannel channel, Consumer<IResponse> callback) {
 		super(kickedPlayer);
 		this.channel = channel;
 		this.callback = callback;
@@ -35,14 +35,6 @@ public class PlayerKickPreEvent extends SecondaryPlayerEvent implements ICancell
 	@Override
 	public void setCancelled(boolean isCancelled) {
 		this.isCancelled = isCancelled;
-	}
-
-	/**
-	 * @return The player that is about to be kick from a channel.
-	 */
-	@Override
-	public ISecondaryPlayer getPlayer() {
-		return super.getPlayer();
 	}
 
 	/**

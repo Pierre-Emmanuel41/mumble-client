@@ -6,9 +6,12 @@ import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.PlayerAdminChangePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerKickPostEvent;
+import fr.pederobien.mumble.client.player.event.PlayerKickPreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.player.exceptions.PlayerNotAdministratorException;
+import fr.pederobien.mumble.client.player.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
@@ -53,6 +56,17 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 			return;
 
 		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, callback));
+	}
+
+	@Override
+	public void kick(Consumer<IResponse> callback) {
+		if (!getServer().getMainPlayer().isAdmin())
+			throw new PlayerNotAdministratorException(getServer().getMainPlayer());
+
+		if (channel == null)
+			throw new PlayerNotRegisteredInChannelException(this);
+
+		EventManager.callEvent(new PlayerKickPreEvent(this, getChannel(), callback));
 	}
 
 	@Override

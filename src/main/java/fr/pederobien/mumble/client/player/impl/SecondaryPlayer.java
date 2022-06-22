@@ -1,18 +1,18 @@
 package fr.pederobien.mumble.client.player.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.PlayerKickPreEvent;
+import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.exceptions.PlayerNotAdministratorException;
-import fr.pederobien.mumble.client.player.exceptions.PlayerNotRegisteredInChannelException;
+import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.ISecondaryPlayer;
+import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
+import fr.pederobien.utils.event.IEventListener;
 
-public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer {
+public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer, IEventListener {
 	private AtomicBoolean isMuteByMainPlayer;
 
 	/**
@@ -25,22 +25,13 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer 
 		super(server, name);
 
 		isMuteByMainPlayer = new AtomicBoolean(false);
+
+		EventManager.registerListener(this);
 	}
 
 	@Override
 	public boolean isMuteByMainPlayer() {
 		return isMuteByMainPlayer.get();
-	}
-
-	@Override
-	public void kick(Consumer<IResponse> callback) {
-		if (!getServer().getMainPlayer().isAdmin())
-			throw new PlayerNotAdministratorException(getServer().getMainPlayer());
-
-		if (getChannel() == null)
-			throw new PlayerNotRegisteredInChannelException(this);
-
-		EventManager.callEvent(new PlayerKickPreEvent(this, getChannel(), callback));
 	}
 
 	/**
@@ -54,5 +45,29 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer 
 
 		boolean oldMute = !isMuteByMainPlayer;
 		EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, oldMute));
+	}
+
+	@EventHandler
+	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		setChannel0(event.getList().getChannel());
+	}
+
+	@EventHandler
+	private void onChannelPlayerRemove(ChannelPlayerListPlayerRemovePostEvent event) {
+		if (!event.getPlayer().equals(this))
+			return;
+
+		setChannel0(null);
+	}
+
+	@EventHandler
+	private void onServerClose(ServerClosePostEvent event) {
+		if (!event.getServer().equals(getServer()))
+			return;
+
+		EventManager.unregisterListener(this);
 	}
 }
