@@ -70,7 +70,7 @@ import fr.pederobien.utils.event.EventManager;
 public class RequestManagerV10 extends RequestManager {
 
 	/**
-	 * Creates a request management in order to modify the given getServer() and answer to remote getRequests().
+	 * Creates a request management in order to modify the given server and answer to remote requests.
 	 * 
 	 * @param server The server to update.
 	 */
@@ -557,7 +557,7 @@ public class RequestManagerV10 extends RequestManager {
 			isUsed = true;
 		}
 
-		EventManager.callEvent(new GamePortCheckPostEvent(getServer(), request, true));
+		EventManager.callEvent(new GamePortCheckPostEvent(getServer(), request, isUsed));
 	}
 
 	/**
