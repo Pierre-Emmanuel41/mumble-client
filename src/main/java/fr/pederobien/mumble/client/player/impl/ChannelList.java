@@ -6,12 +6,12 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.common.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractChannelList;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelAddPostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelAddPreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelRemovePostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelRemovePreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelAddPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelAddPreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelRemovePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelRemovePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelNameChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
@@ -43,16 +43,16 @@ public class ChannelList extends AbstractChannelList<IChannel, ISoundModifier, I
 		if (!optSoundModifier.isPresent())
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 
-		EventManager.callEvent(new ChannelListChannelAddPreEvent(this, name, soundModifier, callback));
+		EventManager.callEvent(new MumbleChannelListChannelAddPreEvent(this, name, soundModifier, callback));
 	}
 
 	@Override
 	public void remove(String name, Consumer<IResponse> callback) {
-		EventManager.callEvent(new ChannelListChannelRemovePreEvent(this, name, callback));
+		EventManager.callEvent(new MumbleChannelListChannelRemovePreEvent(this, name, callback));
 	}
 
 	@EventHandler
-	private void onChannelNameChange(ChannelNameChangePostEvent event) {
+	private void onChannelNameChange(MumbleChannelNameChangePostEvent event) {
 		Optional<IChannel> optOldChannel = get(event.getOldName());
 		if (!optOldChannel.isPresent())
 			return;
@@ -71,7 +71,7 @@ public class ChannelList extends AbstractChannelList<IChannel, ISoundModifier, I
 	}
 
 	@EventHandler
-	private void onServerClose(ServerClosePostEvent event) {
+	private void onServerClose(MumbleServerClosePostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -107,7 +107,7 @@ public class ChannelList extends AbstractChannelList<IChannel, ISoundModifier, I
 	private void add(IChannel channel, boolean raiseEvent) {
 		add0(channel);
 		if (raiseEvent)
-			EventManager.callEvent(new ChannelListChannelAddPostEvent(this, channel));
+			EventManager.callEvent(new MumbleChannelListChannelAddPostEvent(this, channel));
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class ChannelList extends AbstractChannelList<IChannel, ISoundModifier, I
 	public IChannel remove(String name, boolean raiseEvent) {
 		IChannel channel = remove0(name);
 		if (raiseEvent && channel != null)
-			EventManager.callEvent(new ChannelListChannelRemovePostEvent(this, channel));
+			EventManager.callEvent(new MumbleChannelListChannelRemovePostEvent(this, channel));
 		return channel;
 	}
 }

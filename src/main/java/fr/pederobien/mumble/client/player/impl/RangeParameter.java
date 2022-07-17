@@ -4,12 +4,12 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.impl.AbstractRangeParameter;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ParameterMaxValueChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ParameterMaxValueChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ParameterMinValueChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ParameterMinValueChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ParameterValueChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ParameterValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterMaxValueChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterMaxValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterMinValueChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterMinValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterValueChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -49,7 +49,7 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 		if (!isAttached())
 			setValue(castValue);
 		else
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, castValue, callback));
+			EventManager.callEvent(new MumbleParameterValueChangePreEvent(this, castValue, callback));
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 		if (!isAttached())
 			setMin0(castMin);
 		else
-			EventManager.callEvent(new ParameterMinValueChangePreEvent(this, castMin, callback));
+			EventManager.callEvent(new MumbleParameterMinValueChangePreEvent(this, castMin, callback));
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 		if (!isAttached())
 			setMax0(castMax);
 		else
-			EventManager.callEvent(new ParameterMaxValueChangePreEvent(this, castMax, callback));
+			EventManager.callEvent(new MumbleParameterMaxValueChangePreEvent(this, castMax, callback));
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 					return;
 
 				setValue0(castValue);
-				EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+				EventManager.callEvent(new MumbleParameterValueChangePostEvent(this, oldValue));
 			} finally {
 				getLock().unlock();
 			}
@@ -127,7 +127,7 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 					return;
 
 				setMin0(castMin);
-				EventManager.callEvent(new ParameterMinValueChangePostEvent(this, oldMin));
+				EventManager.callEvent(new MumbleParameterMinValueChangePostEvent(this, oldMin));
 			} finally {
 				getLock().unlock();
 			}
@@ -151,7 +151,7 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 					return;
 
 				setMax0(castMax);
-				EventManager.callEvent(new ParameterMaxValueChangePostEvent(this, oldMax));
+				EventManager.callEvent(new MumbleParameterMaxValueChangePostEvent(this, oldMax));
 			} finally {
 				getLock().unlock();
 			}

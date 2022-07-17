@@ -4,8 +4,8 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.impl.AbstractParameter;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ParameterValueChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ParameterValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterValueChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IParameter;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.utils.event.EventManager;
@@ -42,7 +42,7 @@ public class Parameter<T> extends AbstractParameter<T> implements IParameter<T> 
 		if (!isAttached())
 			setValue0(castValue);
 		else
-			EventManager.callEvent(new ParameterValueChangePreEvent(this, castValue, callback));
+			EventManager.callEvent(new MumbleParameterValueChangePreEvent(this, castValue, callback));
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class Parameter<T> extends AbstractParameter<T> implements IParameter<T> 
 					return;
 
 				setValue0(castValue);
-				EventManager.callEvent(new ParameterValueChangePostEvent(this, oldValue));
+				EventManager.callEvent(new MumbleParameterValueChangePostEvent(this, oldValue));
 			} finally {
 				getLock().unlock();
 			}

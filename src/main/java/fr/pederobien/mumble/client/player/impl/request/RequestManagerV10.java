@@ -11,9 +11,9 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.impl.RequestReceivedHolder;
-import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionGetPostEvent;
-import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionSetPostEvent;
-import fr.pederobien.mumble.client.player.event.GamePortCheckPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleCommunicationProtocolVersionGetPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleGamePortCheckPostEvent;
 import fr.pederobien.mumble.client.player.impl.AbstractPlayer;
 import fr.pederobien.mumble.client.player.impl.Channel;
 import fr.pederobien.mumble.client.player.impl.ChannelList;
@@ -353,18 +353,18 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to get the supported versions.
 	 */
 	private void onGetCommunicationProtocolVersions(GetCommunicationProtocolVersionsV10 request) {
-		EventManager.callEvent(new CommunicationProtocolVersionGetPostEvent(getServer(), request));
+		EventManager.callEvent(new MumbleCommunicationProtocolVersionGetPostEvent(getServer(), request));
 	}
 
 	/**
-	 * Throw a {@link CommunicationProtocolVersionSetPostEvent} in order to set the version of the communication protocol to use
+	 * Throw a {@link MumbleCommunicationProtocolVersionSetPostEvent} in order to set the version of the communication protocol to use
 	 * between the client and the server.
 	 * 
 	 * @param holder The holder that gather the request received by the remote and the connection that has received the request.
 	 */
 	private void onSetCommunicationProtocolVersion(RequestReceivedHolder holder) {
 		SetCommunicationProtocolVersionV10 request = (SetCommunicationProtocolVersionV10) holder.getRequest();
-		EventManager.callEvent(new CommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), holder.getConnection()));
+		EventManager.callEvent(new MumbleCommunicationProtocolVersionSetPostEvent(getServer(), request, request.getVersion(), holder.getConnection()));
 	}
 
 	/**
@@ -560,7 +560,7 @@ public class RequestManagerV10 extends RequestManager {
 			isUsed = true;
 		}
 
-		EventManager.callEvent(new GamePortCheckPostEvent(getServer(), request, isUsed));
+		EventManager.callEvent(new MumbleGamePortCheckPostEvent(getServer(), request, isUsed));
 	}
 
 	/**

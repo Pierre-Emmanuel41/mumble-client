@@ -6,14 +6,14 @@ import java.util.function.Consumer;
 import fr.pederobien.mumble.client.common.exceptions.ChannelPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractChannelPlayerList;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelRemovePostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerKickPostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerNameChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelRemovePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerKickPostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.client.player.exceptions.PlayerNotOnlineException;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelPlayerList;
@@ -40,7 +40,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 		if (!getChannel().getServer().getMainPlayer().isOnline())
 			throw new PlayerNotOnlineException(getChannel().getServer().getMainPlayer());
 
-		EventManager.callEvent(new ChannelPlayerListPlayerAddPreEvent(this, getChannel().getServer().getMainPlayer(), callback));
+		EventManager.callEvent(new MumbleChannelPlayerListPlayerAddPreEvent(this, getChannel().getServer().getMainPlayer(), callback));
 	}
 
 	@Override
@@ -48,11 +48,11 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 		if (!getChannel().getServer().getMainPlayer().isOnline())
 			throw new PlayerNotOnlineException(getChannel().getServer().getMainPlayer());
 
-		EventManager.callEvent(new ChannelPlayerListPlayerRemovePreEvent(this, getChannel().getServer().getMainPlayer(), callback));
+		EventManager.callEvent(new MumbleChannelPlayerListPlayerRemovePreEvent(this, getChannel().getServer().getMainPlayer(), callback));
 	}
 
 	@EventHandler
-	private void onPlayerNameChange(PlayerNameChangePostEvent event) {
+	private void onPlayerNameChange(MumblePlayerNameChangePostEvent event) {
 		if (!getChannel().equals(event.getPlayer().getChannel()))
 			return;
 
@@ -74,7 +74,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	}
 
 	@EventHandler
-	private void onPlayerKick(PlayerKickPostEvent event) {
+	private void onPlayerKick(MumblePlayerKickPostEvent event) {
 		if (!event.getChannel().equals(getChannel()))
 			return;
 
@@ -82,7 +82,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	}
 
 	@EventHandler
-	private void onChannelRemove(ChannelListChannelRemovePostEvent event) {
+	private void onChannelRemove(MumbleChannelListChannelRemovePostEvent event) {
 		if (!event.getChannel().equals(getChannel()))
 			return;
 
@@ -90,7 +90,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	}
 
 	@EventHandler
-	private void onServerClose(ServerClosePostEvent event) {
+	private void onServerClose(MumbleServerClosePostEvent event) {
 		if (!event.getServer().equals(getChannel().getServer()))
 			return;
 
@@ -104,7 +104,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	 */
 	public void add(IPlayer player) {
 		add0(player);
-		EventManager.callEvent(new ChannelPlayerListPlayerAddPostEvent(this, player));
+		EventManager.callEvent(new MumbleChannelPlayerListPlayerAddPostEvent(this, player));
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class ChannelPlayerList extends AbstractChannelPlayerList<IPlayer, IChann
 	public IPlayer remove(String name) {
 		IPlayer player = remove0(name);
 		if (player != null)
-			EventManager.callEvent(new ChannelPlayerListPlayerRemovePostEvent(this, player));
+			EventManager.callEvent(new MumbleChannelPlayerListPlayerRemovePostEvent(this, player));
 		return player;
 	}
 }

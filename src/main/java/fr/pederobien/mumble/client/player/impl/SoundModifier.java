@@ -1,7 +1,7 @@
 package fr.pederobien.mumble.client.player.impl;
 
 import fr.pederobien.mumble.client.common.impl.AbstractSoundModifier;
-import fr.pederobien.mumble.client.player.event.ChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelSoundModifierChangePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IParameter;
 import fr.pederobien.mumble.client.player.interfaces.IParameterList;
@@ -65,7 +65,7 @@ public class SoundModifier extends AbstractSoundModifier<IParameterList> impleme
 	}
 
 	@EventHandler
-	private void onChannelSoundModifierChange(ChannelSoundModifierChangePostEvent event) {
+	private void onChannelSoundModifierChange(MumbleChannelSoundModifierChangePostEvent event) {
 		if (event.getChannel().getSoundModifier() == this)
 			channel = event.getChannel();
 		else if (event.getOldSoundModifier() == this) {

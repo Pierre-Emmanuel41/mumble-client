@@ -5,16 +5,16 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerAdminChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerGameAddressChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerAdminChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerGameAddressChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
@@ -75,7 +75,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 		if (isDeafen() == isDeafen)
 			return;
 
-		EventManager.callEvent(new PlayerDeafenStatusChangePreEvent(this, isDeafen, callback));
+		EventManager.callEvent(new MumblePlayerDeafenStatusChangePreEvent(this, isDeafen, callback));
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	 */
 	public void setAdmin(boolean isAdmin) {
 		if (setAdmin0(isAdmin))
-			EventManager.callEvent(new PlayerAdminChangePostEvent(this, !isAdmin));
+			EventManager.callEvent(new MumblePlayerAdminChangePostEvent(this, !isAdmin));
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 
 		InetSocketAddress oldGameAddress = this.gameAddress;
 		this.gameAddress = gameAddress;
-		EventManager.callEvent(new PlayerGameAddressChangePostEvent(this, oldGameAddress));
+		EventManager.callEvent(new MumblePlayerGameAddressChangePostEvent(this, oldGameAddress));
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	 */
 	public void setOnline(boolean isOnline) {
 		if (setOnline0(isOnline))
-			EventManager.callEvent(new PlayerOnlineChangePostEvent(this, !isOnline));
+			EventManager.callEvent(new MumblePlayerOnlineChangePostEvent(this, !isOnline));
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
-	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
+	private void onChannelPlayerAdd(MumbleChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -135,7 +135,7 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
-	private void onChannelPlayerRemove(ChannelPlayerListPlayerRemovePostEvent event) {
+	private void onChannelPlayerRemove(MumbleChannelPlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -143,31 +143,31 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@EventHandler
-	private void onPlayerMuteStatusPreChange(PlayerMuteStatusChangePreEvent event) {
+	private void onPlayerMuteStatusPreChange(MumblePlayerMuteStatusChangePreEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 	}
 
 	@EventHandler
-	private void onPlayerMuteStatusPostChange(PlayerMuteStatusChangePostEvent event) {
+	private void onPlayerMuteStatusPostChange(MumblePlayerMuteStatusChangePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 	}
 
 	@EventHandler
-	private void onPlayerDeafenStatusPreChange(PlayerDeafenStatusChangePreEvent event) {
+	private void onPlayerDeafenStatusPreChange(MumblePlayerDeafenStatusChangePreEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 	}
 
 	@EventHandler
-	private void onPlayerDeafenStatusPostChange(PlayerDeafenStatusChangePostEvent event) {
+	private void onPlayerDeafenStatusPostChange(MumblePlayerDeafenStatusChangePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 	}
 
 	@EventHandler
-	private void onServerClose(ServerClosePostEvent event) {
+	private void onServerClose(MumbleServerClosePostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 

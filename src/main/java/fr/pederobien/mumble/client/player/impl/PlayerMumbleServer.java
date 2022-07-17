@@ -13,19 +13,19 @@ import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.mumble.client.common.impl.AbstractMumbleServer;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionSetPostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerOnlineChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerAddressChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerAddressChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerClosePreEvent;
-import fr.pederobien.mumble.client.player.event.ServerJoinPostEvent;
-import fr.pederobien.mumble.client.player.event.ServerJoinPreEvent;
-import fr.pederobien.mumble.client.player.event.ServerLeavePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerLeavePreEvent;
-import fr.pederobien.mumble.client.player.event.ServerNameChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerNameChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ServerReachableStatusChangeEvent;
+import fr.pederobien.mumble.client.player.event.MumbleCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerOnlineChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerAddressChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerAddressChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerClosePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerJoinPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerJoinPreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerLeavePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerLeavePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerNameChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerNameChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerReachableStatusChangeEvent;
 import fr.pederobien.mumble.client.player.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelList;
@@ -80,7 +80,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			if (oldName.equals(name))
 				return;
 
-			EventManager.callEvent(new ServerNameChangePreEvent(this, name), () -> setName0(name), new ServerNameChangePostEvent(this, oldName));
+			EventManager.callEvent(new MumbleServerNameChangePreEvent(this, name), () -> setName0(name), new MumbleServerNameChangePostEvent(this, oldName));
 		} finally {
 			getLock().unlock();
 		}
@@ -100,7 +100,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 					closeConnection();
 				openConnection();
 			};
-			EventManager.callEvent(new ServerAddressChangePreEvent(this, address), update, new ServerAddressChangePostEvent(this, oldAddress));
+			EventManager.callEvent(new MumbleServerAddressChangePreEvent(this, address), update, new MumbleServerAddressChangePostEvent(this, oldAddress));
 		} finally {
 			getLock().unlock();
 		}
@@ -138,7 +138,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			closeConnection();
 			EventManager.unregisterListener(this);
 		};
-		EventManager.callEvent(new ServerClosePreEvent(this), update, new ServerClosePostEvent(this));
+		EventManager.callEvent(new MumbleServerClosePreEvent(this), update, new MumbleServerClosePostEvent(this));
 	}
 
 	@Override
@@ -148,10 +148,10 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 
 		Consumer<IResponse> update = response -> {
 			if (!response.hasFailed())
-				EventManager.callEvent(new ServerJoinPostEvent(this));
+				EventManager.callEvent(new MumbleServerJoinPostEvent(this));
 			callback.accept(response);
 		};
-		EventManager.callEvent(new ServerJoinPreEvent(this, update));
+		EventManager.callEvent(new MumbleServerJoinPreEvent(this, update));
 
 		getLock().lock();
 		try {
@@ -177,10 +177,10 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 
 		Consumer<IResponse> update = response -> {
 			if (!response.hasFailed())
-				EventManager.callEvent(new ServerLeavePostEvent(this));
+				EventManager.callEvent(new MumbleServerLeavePostEvent(this));
 			callback.accept(response);
 		};
-		EventManager.callEvent(new ServerLeavePreEvent(this, update));
+		EventManager.callEvent(new MumbleServerLeavePreEvent(this, update));
 	}
 
 	@Override
@@ -227,7 +227,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 				throw new IllegalArgumentException("The main player of a mumble server can only be set once");
 
 			this.mainPlayer = mainPlayer;
-			EventManager.callEvent(new PlayerOnlineChangePostEvent(mainPlayer, mainPlayer.isOnline()));
+			EventManager.callEvent(new MumblePlayerOnlineChangePostEvent(mainPlayer, mainPlayer.isOnline()));
 		} finally {
 			getLock().unlock();
 		}
@@ -242,7 +242,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	}
 
 	@EventHandler
-	private void onSetCommunicationProtocolVersion(CommunicationProtocolVersionSetPostEvent event) {
+	private void onSetCommunicationProtocolVersion(MumbleCommunicationProtocolVersionSetPostEvent event) {
 		if (connection == null || !event.getConnection().equals(connection))
 			return;
 
@@ -261,7 +261,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	}
 
 	@EventHandler
-	private void onServerJoin(ServerJoinPostEvent event) {
+	private void onServerJoin(MumbleServerJoinPostEvent event) {
 		if (!event.getServer().equals(this))
 			return;
 
@@ -282,7 +282,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	}
 
 	@EventHandler
-	private void onServerLeave(ServerLeavePostEvent event) {
+	private void onServerLeave(MumbleServerLeavePostEvent event) {
 		if (!event.getServer().equals(this))
 			return;
 
@@ -320,7 +320,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	private boolean setReachable(boolean isReachable) {
 		boolean changed = setReachable0(isReachable);
 		if (changed)
-			EventManager.callEvent(new ServerReachableStatusChangeEvent(this, isReachable));
+			EventManager.callEvent(new MumbleServerReachableStatusChangeEvent(this, isReachable));
 
 		return changed;
 	}

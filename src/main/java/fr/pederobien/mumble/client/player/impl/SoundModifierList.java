@@ -2,8 +2,8 @@ package fr.pederobien.mumble.client.player.impl;
 
 import fr.pederobien.mumble.client.common.exceptions.SoundModifierAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractSoundModifierList;
-import fr.pederobien.mumble.client.player.event.SoundModifierListSoundModifierAddPostEvent;
-import fr.pederobien.mumble.client.player.event.SoundModifierListSoundModifierRemovePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleSoundModifierListSoundModifierAddPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleSoundModifierListSoundModifierRemovePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifierList;
@@ -29,7 +29,7 @@ public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier,
 	 */
 	public void add(ISoundModifier soundModifier) {
 		add0(soundModifier);
-		EventManager.callEvent(new SoundModifierListSoundModifierAddPostEvent(this, soundModifier));
+		EventManager.callEvent(new MumbleSoundModifierListSoundModifierAddPostEvent(this, soundModifier));
 	}
 
 	/**
@@ -41,6 +41,6 @@ public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier,
 	 */
 	public void remove(ISoundModifier soundModifier) {
 		if (remove0(soundModifier))
-			EventManager.callEvent(new SoundModifierListSoundModifierRemovePostEvent(this, soundModifier));
+			EventManager.callEvent(new MumbleSoundModifierListSoundModifierRemovePostEvent(this, soundModifier));
 	}
 }

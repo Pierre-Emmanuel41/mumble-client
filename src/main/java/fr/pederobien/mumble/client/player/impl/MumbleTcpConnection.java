@@ -11,23 +11,23 @@ import fr.pederobien.mumble.client.common.impl.AbstractMumbleTcpConnection;
 import fr.pederobien.mumble.client.common.impl.RequestReceivedHolder;
 import fr.pederobien.mumble.client.common.impl.Response;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelAddPreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelListChannelRemovePreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelNameChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelSoundModifierChangePreEvent;
-import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionGetPostEvent;
-import fr.pederobien.mumble.client.player.event.CommunicationProtocolVersionSetPostEvent;
-import fr.pederobien.mumble.client.player.event.GamePortCheckPostEvent;
-import fr.pederobien.mumble.client.player.event.ParameterMaxValueChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ParameterMinValueChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ParameterValueChangePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerKickPreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ServerJoinPreEvent;
-import fr.pederobien.mumble.client.player.event.ServerLeavePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelAddPreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelListChannelRemovePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelNameChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelSoundModifierChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleCommunicationProtocolVersionGetPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleCommunicationProtocolVersionSetPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleGamePortCheckPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterMaxValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterMinValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleParameterValueChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerKickPreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerJoinPreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerLeavePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IServerRequestManager;
 import fr.pederobien.mumble.common.impl.ErrorCode;
@@ -62,7 +62,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onCommunicationProtocolVersionGet(CommunicationProtocolVersionGetPostEvent event) {
+	private void onCommunicationProtocolVersionGet(MumbleCommunicationProtocolVersionGetPostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -70,7 +70,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
-	private void onCommunicationProtocolVersionSet(CommunicationProtocolVersionSetPostEvent event) {
+	private void onCommunicationProtocolVersionSet(MumbleCommunicationProtocolVersionSetPostEvent event) {
 		if (!event.getConnection().equals(this) || getVersion() != -1)
 			return;
 
@@ -79,7 +79,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerJoin(ServerJoinPreEvent event) {
+	private void onServerJoin(MumbleServerJoinPreEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -87,7 +87,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onServerLeave(ServerLeavePreEvent event) {
+	private void onServerLeave(MumbleServerLeavePreEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 
@@ -95,7 +95,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelAdd(ChannelListChannelAddPreEvent event) {
+	private void onChannelAdd(MumbleChannelListChannelAddPreEvent event) {
 		if (!event.getList().getServer().equals(getServer()))
 			return;
 
@@ -103,7 +103,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelRemove(ChannelListChannelRemovePreEvent event) {
+	private void onChannelRemove(MumbleChannelListChannelRemovePreEvent event) {
 		if (!event.getList().getServer().equals(getServer()))
 			return;
 
@@ -111,7 +111,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelNameChange(ChannelNameChangePreEvent event) {
+	private void onChannelNameChange(MumbleChannelNameChangePreEvent event) {
 		if (!event.getChannel().getServer().equals(getServer()))
 			return;
 
@@ -119,7 +119,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPreEvent event) {
+	private void onChannelPlayerAdd(MumbleChannelPlayerListPlayerAddPreEvent event) {
 		if (!event.getList().getChannel().getServer().equals(getServer()))
 			return;
 
@@ -128,7 +128,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onChannelPlayerRemove(ChannelPlayerListPlayerRemovePreEvent event) {
+	private void onChannelPlayerRemove(MumbleChannelPlayerListPlayerRemovePreEvent event) {
 		if (!event.getList().getChannel().getServer().equals(getServer()))
 			return;
 
@@ -136,7 +136,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteStatusChange(PlayerMuteStatusChangePreEvent event) {
+	private void onPlayerMuteStatusChange(MumblePlayerMuteStatusChangePreEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -148,7 +148,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerDeafenStatusChange(PlayerDeafenStatusChangePreEvent event) {
+	private void onPlayerDeafenStatusChange(MumblePlayerDeafenStatusChangePreEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -156,7 +156,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerKick(PlayerKickPreEvent event) {
+	private void onPlayerKick(MumblePlayerKickPreEvent event) {
 		if (!event.getPlayer().getServer().equals(getServer()))
 			return;
 
@@ -164,7 +164,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterValueChange(ParameterValueChangePreEvent event) {
+	private void onParameterValueChange(MumbleParameterValueChangePreEvent event) {
 		if (!event.getParameter().getSoundModifier().getChannel().getServer().equals(getServer()))
 			return;
 
@@ -172,7 +172,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterMinValueChange(ParameterMinValueChangePreEvent event) {
+	private void onParameterMinValueChange(MumbleParameterMinValueChangePreEvent event) {
 		if (!event.getParameter().getSoundModifier().getChannel().getServer().equals(getServer()))
 			return;
 
@@ -180,7 +180,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onParameterMaxValueChange(ParameterMaxValueChangePreEvent event) {
+	private void onParameterMaxValueChange(MumbleParameterMaxValueChangePreEvent event) {
 		if (!event.getParameter().getSoundModifier().getChannel().getServer().equals(getServer()))
 			return;
 
@@ -188,7 +188,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onSoundModifierChange(ChannelSoundModifierChangePreEvent event) {
+	private void onSoundModifierChange(MumbleChannelSoundModifierChangePreEvent event) {
 		if (!event.getChannel().getServer().equals(getServer()))
 			return;
 
@@ -196,7 +196,7 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onGamePortCheck(GamePortCheckPostEvent event) {
+	private void onGamePortCheck(MumbleGamePortCheckPostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 

@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.impl.AbstractChannel;
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.ChannelNameChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelNameChangePreEvent;
-import fr.pederobien.mumble.client.player.event.ChannelSoundModifierChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelSoundModifierChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelNameChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelNameChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelSoundModifierChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelSoundModifierChangePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
@@ -51,7 +51,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 		if (getName().equals(name))
 			return;
 
-		EventManager.callEvent(new ChannelNameChangePreEvent(this, name, callback));
+		EventManager.callEvent(new MumbleChannelNameChangePreEvent(this, name, callback));
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 			return;
 
 		checkSoundModifier(soundModifier);
-		EventManager.callEvent(new ChannelSoundModifierChangePreEvent(this, soundModifier, callback));
+		EventManager.callEvent(new MumbleChannelSoundModifierChangePreEvent(this, soundModifier, callback));
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 				return;
 
 			setName0(name);
-			EventManager.callEvent(new ChannelNameChangePostEvent(this, oldName));
+			EventManager.callEvent(new MumbleChannelNameChangePostEvent(this, oldName));
 		} finally {
 			getLock().unlock();
 		}
@@ -109,7 +109,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 				return;
 
 			setSoundModifier0(soundModifier);
-			EventManager.callEvent(new ChannelSoundModifierChangePostEvent(this, oldSoundModifier));
+			EventManager.callEvent(new MumbleChannelSoundModifierChangePostEvent(this, oldSoundModifier));
 		} finally {
 			getLock().unlock();
 		}

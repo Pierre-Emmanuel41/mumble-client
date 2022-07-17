@@ -1,7 +1,7 @@
 package fr.pederobien.mumble.client.player.impl;
 
 import fr.pederobien.mumble.client.common.impl.AbstractPosition;
-import fr.pederobien.mumble.client.player.event.PlayerPositionChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerPositionChangePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.utils.event.EventManager;
@@ -39,7 +39,7 @@ public class Position extends AbstractPosition<IMainPlayer> implements IPosition
 
 			double oldX = getX(), oldY = getY(), oldZ = getZ(), oldYaw = getYaw(), oldPitch = getPitch();
 			update0(x, y, z, yaw, pitch);
-			EventManager.callEvent(new PlayerPositionChangePostEvent(getPlayer(), oldX, oldY, oldZ, oldYaw, oldPitch));
+			EventManager.callEvent(new MumblePlayerPositionChangePostEvent(getPlayer(), oldX, oldY, oldZ, oldYaw, oldPitch));
 		} finally {
 			getLock().unlock();
 		}

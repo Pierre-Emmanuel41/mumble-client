@@ -2,10 +2,10 @@ package fr.pederobien.mumble.client.player.impl;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerAddPostEvent;
-import fr.pederobien.mumble.client.player.event.ChannelPlayerListPlayerRemovePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.ServerClosePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.ISecondaryPlayer;
 import fr.pederobien.utils.event.EventHandler;
@@ -44,11 +44,11 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer,
 			return;
 
 		boolean oldMute = !isMuteByMainPlayer;
-		EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, oldMute));
+		EventManager.callEvent(new MumblePlayerMuteStatusChangePostEvent(this, oldMute));
 	}
 
 	@EventHandler
-	private void onChannelPlayerAdd(ChannelPlayerListPlayerAddPostEvent event) {
+	private void onChannelPlayerAdd(MumbleChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -56,7 +56,7 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer,
 	}
 
 	@EventHandler
-	private void onChannelPlayerRemove(ChannelPlayerListPlayerRemovePostEvent event) {
+	private void onChannelPlayerRemove(MumbleChannelPlayerListPlayerRemovePostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
@@ -64,7 +64,7 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer,
 	}
 
 	@EventHandler
-	private void onServerClose(ServerClosePostEvent event) {
+	private void onServerClose(MumbleServerClosePostEvent event) {
 		if (!event.getServer().equals(getServer()))
 			return;
 

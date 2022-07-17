@@ -3,13 +3,13 @@ package fr.pederobien.mumble.client.player.impl;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.player.event.PlayerAdminChangePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerDeafenStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerKickPostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerKickPreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.PlayerMuteStatusChangePreEvent;
-import fr.pederobien.mumble.client.player.event.PlayerNameChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerAdminChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerKickPostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerKickPreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePostEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumblePlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.player.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.client.player.exceptions.PlayerNotRegisteredInChannelException;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
@@ -47,7 +47,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 		if (isAdmin() == isAdmin)
 			return;
 
-		EventManager.callEvent(new PlayerAdminChangePreEvent(this, isAdmin, callback));
+		EventManager.callEvent(new MumblePlayerAdminChangePreEvent(this, isAdmin, callback));
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 		if (isMute() == isMute)
 			return;
 
-		EventManager.callEvent(new PlayerMuteStatusChangePreEvent(this, isMute, callback));
+		EventManager.callEvent(new MumblePlayerMuteStatusChangePreEvent(this, isMute, callback));
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 		if (channel == null)
 			throw new PlayerNotRegisteredInChannelException(this);
 
-		EventManager.callEvent(new PlayerKickPreEvent(this, getChannel(), callback));
+		EventManager.callEvent(new MumblePlayerKickPreEvent(this, getChannel(), callback));
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 				return;
 
 			setName0(name);
-			EventManager.callEvent(new PlayerNameChangePostEvent(this, oldName));
+			EventManager.callEvent(new MumblePlayerNameChangePostEvent(this, oldName));
 		} finally {
 			getLock().unlock();
 		}
@@ -107,7 +107,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 	 */
 	public void setMute(boolean isMute) {
 		if (setMute0(isMute))
-			EventManager.callEvent(new PlayerMuteStatusChangePostEvent(this, !isMute));
+			EventManager.callEvent(new MumblePlayerMuteStatusChangePostEvent(this, !isMute));
 	}
 
 	/**
@@ -117,7 +117,7 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 	 */
 	public void setDeafen(boolean isDeafen) {
 		if (setDeafen0(isDeafen))
-			EventManager.callEvent(new PlayerDeafenStatusChangePostEvent(this, !isDeafen));
+			EventManager.callEvent(new MumblePlayerDeafenStatusChangePostEvent(this, !isDeafen));
 	}
 
 	/**
@@ -149,6 +149,6 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 	private void kick0(IPlayer player) {
 		IChannel oldChannel = getChannel();
 		setChannel0(null);
-		EventManager.callEvent(new PlayerKickPostEvent(this, oldChannel, player));
+		EventManager.callEvent(new MumblePlayerKickPostEvent(this, oldChannel, player));
 	}
 }
