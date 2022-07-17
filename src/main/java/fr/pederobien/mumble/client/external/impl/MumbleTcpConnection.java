@@ -252,12 +252,12 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IExternalMu
 		if (!event.getConnection().equals(getTcpConnection()))
 			return;
 
-		IMumbleMessage request = MumbleClientMessageFactory.parse(event.getAnswer());
+		IMumbleMessage request = MumbleClientMessageFactory.parse(event.getBuffer());
 		if (getVersion() != -1 && getVersion() != request.getHeader().getVersion()) {
 			String format = "Receiving message with unexpected getVersion() of the communication protocol, expected=v%s, actual=v%s";
 			EventManager.callEvent(new LogEvent(format, getVersion(), request.getHeader().getVersion()));
 		} else
-			getServer().getRequestManager().apply(new RequestReceivedHolder(MumbleClientMessageFactory.parse(event.getAnswer()), this));
+			getServer().getRequestManager().apply(new RequestReceivedHolder(request, this));
 	}
 
 	@EventHandler
