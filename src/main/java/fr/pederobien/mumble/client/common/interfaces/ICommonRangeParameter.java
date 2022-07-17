@@ -2,6 +2,8 @@ package fr.pederobien.mumble.client.common.interfaces;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
+
 public interface ICommonRangeParameter<T> extends ICommonParameter<T> {
 
 	/**

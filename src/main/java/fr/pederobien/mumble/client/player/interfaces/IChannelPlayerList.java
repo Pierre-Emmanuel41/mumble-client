@@ -2,9 +2,9 @@ package fr.pederobien.mumble.client.player.interfaces;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.exceptions.ChannelPlayerAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.interfaces.ICommonChannelPlayerList;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.exceptions.PlayerNotOnlineException;
 
 public interface IChannelPlayerList extends ICommonChannelPlayerList<IPlayer, IChannel> {

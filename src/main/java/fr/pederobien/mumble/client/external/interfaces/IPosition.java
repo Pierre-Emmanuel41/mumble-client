@@ -2,8 +2,8 @@ package fr.pederobien.mumble.client.external.interfaces;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.interfaces.ICommonPosition;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 
 public interface IPosition extends ICommonPosition<IPlayer> {
 

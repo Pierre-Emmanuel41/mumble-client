@@ -1,6 +1,6 @@
 package fr.pederobien.mumble.client.common;
 
-import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.impl.Identifier;
 import fr.pederobien.mumble.common.impl.MumbleMessageFactory;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
@@ -22,7 +22,7 @@ public class MumbleClientMessageFactory {
 	 * @return The created message.
 	 */
 	public static IMumbleMessage create(float version, Identifier identifier, Object... properties) {
-		return FACTORY.create(version, identifier, ErrorCode.NONE, properties);
+		return FACTORY.create(version, identifier, MumbleErrorCode.NONE, properties);
 	}
 
 	/**
@@ -48,7 +48,7 @@ public class MumbleClientMessageFactory {
 	 * @return The message associated to the answer.
 	 */
 	public static IMumbleMessage answer(float version, IMumbleMessage message, Identifier identifier, Object... properties) {
-		return FACTORY.answer(version, message, identifier, ErrorCode.NONE, properties);
+		return FACTORY.answer(version, message, identifier, MumbleErrorCode.NONE, properties);
 	}
 
 }

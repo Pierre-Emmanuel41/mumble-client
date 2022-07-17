@@ -2,8 +2,8 @@ package fr.pederobien.mumble.client.external.impl;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.impl.AbstractParameter;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ParameterValueChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ParameterValueChangePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IParameter;

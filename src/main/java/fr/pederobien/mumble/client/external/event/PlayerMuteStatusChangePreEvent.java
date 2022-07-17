@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
@@ -15,7 +15,7 @@ public class PlayerMuteStatusChangePreEvent extends PlayerEvent implements ICanc
 	 * Creates an event thrown when the mute status of a player is about to change.
 	 * 
 	 * @param player   The player whose the mute status is about to change.
-	 * @param newMute   The new mute status of the player.
+	 * @param newMute  The new mute status of the player.
 	 * @param callback The callback to run when an answer is received from the server.
 	 */
 	public PlayerMuteStatusChangePreEvent(IPlayer player, boolean newMute, Consumer<IResponse> callback) {

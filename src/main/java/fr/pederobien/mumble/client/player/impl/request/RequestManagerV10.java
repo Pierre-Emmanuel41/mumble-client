@@ -1,13 +1,11 @@
 package fr.pederobien.mumble.client.player.impl.request;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 import fr.pederobien.mumble.client.common.impl.RequestReceivedHolder;
@@ -28,7 +26,6 @@ import fr.pederobien.mumble.client.player.impl.SecondaryPlayer;
 import fr.pederobien.mumble.client.player.impl.SoundModifier;
 import fr.pederobien.mumble.client.player.impl.SoundModifierList;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
-import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IParameter;
 import fr.pederobien.mumble.client.player.interfaces.IParameterList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
@@ -123,11 +120,7 @@ public class RequestManagerV10 extends RequestManager {
 		PlayerMumbleServer server = ((PlayerMumbleServer) getServer());
 
 		server.setVocalPort(serverInfoMessage.getServerInfo().getVocalPort());
-
-		if (getServer().getMainPlayer() == null)
-			server.setMainPlayer(createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo()));
-		else
-			updateMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
+		updateMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
 
 		for (FullSoundModifierInfo modifierInfo : serverInfoMessage.getServerInfo().getSoundModifierInfo().values()) {
 			ISoundModifier soundModifier = new SoundModifier(modifierInfo.getName(), createParameterList(modifierInfo.getParameterInfo().values()));
@@ -582,63 +575,8 @@ public class RequestManagerV10 extends RequestManager {
 	 * 
 	 * @return The created player.
 	 */
-	private IMainPlayer createMainPlayer(FullPlayerInfo info) {
-		// Player' online status
-		boolean isOnline = info.isOnline();
-
-		String name = "Unknown";
-		UUID identifier = null;
-		InetSocketAddress gameAddress = null;
-		boolean isAdmin = false, isMute = false, isDeafen = false;
-		double x = 0, y = 0, z = 0, yaw = 0, pitch = 0;
-
-		if (isOnline) {
-			// Player's name
-			name = info.getName();
-
-			// Player's identifier
-			identifier = info.getIdentifier();
-
-			// Player's game address
-			gameAddress = info.getGameAddress();
-
-			// Player's administrator status
-			isAdmin = info.isAdmin();
-
-			// Player's mute status
-			isMute = info.isMute();
-
-			// Player's deafen status
-			isDeafen = info.isDeafen();
-
-			// Player's X coordinate
-			x = info.getX();
-
-			// Player's Y coordinate
-			y = info.getY();
-
-			// Player's Z coordinate
-			z = info.getZ();
-
-			// Player's yaw angle
-			yaw = info.getYaw();
-
-			// Player's pitch coordinate
-			pitch = info.getPitch();
-		}
-
-		return new MainPlayer(getServer(), name, identifier, isOnline, gameAddress, isAdmin, isMute, isDeafen, x, y, z, yaw, pitch);
-	}
-
-	/**
-	 * Creates a player.
-	 * 
-	 * @param info A description of the player to create.
-	 * 
-	 * @return The created player.
-	 */
 	private IPlayer createSecondaryPlayer(StatusPlayerInfo info) {
-		SecondaryPlayer player = new SecondaryPlayer(getServer(), info.getName());
+		SecondaryPlayer player = new SecondaryPlayer(getServer(), ((PlayerMumbleServer) getServer()).getVocalServer(), info.getName());
 		player.setMute(info.isMute());
 		player.setMuteByMainPlayer(info.isMuteByMainPlayer());
 		player.setDeafen(info.isDeafen());

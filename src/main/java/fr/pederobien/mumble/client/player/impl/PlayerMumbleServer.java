@@ -11,10 +11,9 @@ import java.util.function.Consumer;
 import fr.pederobien.communication.event.ConnectionCompleteEvent;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.ConnectionLostEvent;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.impl.AbstractMumbleServer;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.MumbleCommunicationProtocolVersionSetPostEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerAddressChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerAddressChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
@@ -45,17 +44,19 @@ import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> implements IPlayerMumbleServer, IEventListener {
 	private MumbleTcpConnection connection;
+	private IVocalServer vocalServer;
 	private IMainPlayer mainPlayer;
 	private IServerPlayerList players;
 	private AtomicBoolean isJoined;
 	private AtomicBoolean tryOpening;
 	private Condition serverConfiguration, communicationProtocolVersion;
 	private boolean connectionLost;
-	private IVocalServer vocalServer;
 
 	public PlayerMumbleServer(String name, InetSocketAddress address) {
 		super(name, address);
 
+		vocalServer = new VocalServer(getName(), new InetSocketAddress(getAddress().getAddress(), 0));
+		mainPlayer = new MainPlayer(this, vocalServer, "Unknown", null, false, null, false, true, true, 0, 0, 0, 0, 0);
 		players = new ServerPlayerList(this);
 		isJoined = new AtomicBoolean(false);
 		tryOpening = new AtomicBoolean(false);
@@ -204,33 +205,16 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	 * @param vocalPort The vocal server's port number.
 	 */
 	public void setVocalPort(int vocalPort) {
-		if (vocalServer != null) {
-			vocalServer.close();
-			vocalServer = null;
-		}
-
-		vocalServer = new VocalServer(getName(), new InetSocketAddress(getAddress().getAddress(), vocalPort));
+		vocalServer.close();
+		vocalServer.setAddress(new InetSocketAddress(getAddress().getAddress(), vocalPort));
 		vocalServer.open();
 	}
 
 	/**
-	 * Set the main player associated to this mumble server. For internal use only.
-	 * 
-	 * @param mainPlayer The new main player associated to this server.
-	 * 
-	 * @throws IllegalArgumentException if the main player is already defined.
+	 * @return The vocal server associated to this mumble server.
 	 */
-	public void setMainPlayer(IMainPlayer mainPlayer) {
-		getLock().lock();
-		try {
-			if (this.mainPlayer != null)
-				throw new IllegalArgumentException("The main player of a mumble server can only be set once");
-
-			this.mainPlayer = mainPlayer;
-			EventManager.callEvent(new MumblePlayerOnlineChangePostEvent(mainPlayer, mainPlayer.isOnline()));
-		} finally {
-			getLock().unlock();
-		}
+	public IVocalServer getVocalServer() {
+		return vocalServer;
 	}
 
 	@EventHandler

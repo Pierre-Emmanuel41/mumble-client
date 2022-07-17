@@ -7,8 +7,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.impl.AbstractPlayer;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.external.event.ChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.external.event.PlayerAdminChangePostEvent;

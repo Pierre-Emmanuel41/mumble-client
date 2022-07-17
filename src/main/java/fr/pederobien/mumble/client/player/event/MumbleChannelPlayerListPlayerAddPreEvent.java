@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.player.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.interfaces.IChannelPlayerList;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;

@@ -11,6 +11,7 @@ import fr.pederobien.mumble.client.player.interfaces.ISecondaryPlayer;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer, IEventListener {
 	private AtomicBoolean isMuteByMainPlayer;
@@ -21,8 +22,8 @@ public class SecondaryPlayer extends AbstractPlayer implements ISecondaryPlayer,
 	 * @param server The server on which this player is registered.
 	 * @param name   The player name.
 	 */
-	public SecondaryPlayer(IPlayerMumbleServer server, String name) {
-		super(server, name);
+	public SecondaryPlayer(IPlayerMumbleServer server, IVocalServer vocalServer, String name) {
+		super(server, vocalServer, name);
 
 		isMuteByMainPlayer = new AtomicBoolean(false);
 

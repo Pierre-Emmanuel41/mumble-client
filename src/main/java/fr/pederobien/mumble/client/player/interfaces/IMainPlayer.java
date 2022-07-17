@@ -4,7 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.messenger.interfaces.IResponse;
 
 public interface IMainPlayer extends IPlayer {
 

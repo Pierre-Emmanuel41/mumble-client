@@ -2,8 +2,8 @@ package fr.pederobien.mumble.client.player.interfaces;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.interfaces.ICommonMumbleServer;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 
 public interface IPlayerMumbleServer extends ICommonMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> {
 

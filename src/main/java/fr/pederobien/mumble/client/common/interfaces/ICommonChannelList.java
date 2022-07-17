@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import fr.pederobien.messenger.interfaces.IResponse;
+
 public interface ICommonChannelList<T extends ICommonChannel<?, ?>, U extends ICommonSoundModifier<?>, V extends ICommonMumbleServer<?, ?, ?>> extends Iterable<T> {
 
 	/**

@@ -2,8 +2,8 @@ package fr.pederobien.mumble.client.player.impl;
 
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.impl.AbstractRangeParameter;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.MumbleParameterMaxValueChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleParameterMinValueChangePostEvent;

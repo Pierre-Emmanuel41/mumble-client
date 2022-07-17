@@ -3,9 +3,9 @@ package fr.pederobien.mumble.client.external.event;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
-import fr.pederobien.mumble.client.external.interfaces.IPlayer;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.interfaces.IChannelPlayerList;
+import fr.pederobien.mumble.client.external.interfaces.IPlayer;
 import fr.pederobien.utils.ICancellable;
 
 public class ChannelPlayerListPlayerAddPreEvent extends ChannelPlayerListEvent implements ICancellable {

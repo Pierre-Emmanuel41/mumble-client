@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.PlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerClosePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPostEvent;

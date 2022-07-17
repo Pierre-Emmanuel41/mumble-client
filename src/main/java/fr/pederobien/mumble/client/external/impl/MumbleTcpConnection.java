@@ -6,11 +6,11 @@ import fr.pederobien.communication.ResponseCallbackArgs;
 import fr.pederobien.communication.event.ConnectionDisposedEvent;
 import fr.pederobien.communication.event.ConnectionLostEvent;
 import fr.pederobien.communication.event.UnexpectedDataReceivedEvent;
+import fr.pederobien.messenger.impl.Response;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.MumbleClientMessageFactory;
 import fr.pederobien.mumble.client.common.impl.AbstractMumbleTcpConnection;
 import fr.pederobien.mumble.client.common.impl.RequestReceivedHolder;
-import fr.pederobien.mumble.client.common.impl.Response;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelNameChangePreEvent;
@@ -35,7 +35,7 @@ import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerAddPreEv
 import fr.pederobien.mumble.client.external.event.ServerPlayerListPlayerRemovePreEvent;
 import fr.pederobien.mumble.client.external.interfaces.IExternalMumbleServer;
 import fr.pederobien.mumble.client.external.interfaces.IServerRequestManager;
-import fr.pederobien.mumble.common.impl.ErrorCode;
+import fr.pederobien.mumble.common.impl.MumbleErrorCode;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
@@ -289,14 +289,14 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IExternalMu
 	 */
 	private void parse(ResponseCallbackArgs args, Consumer<IResponse> callback, Consumer<IMumbleMessage> consumer) {
 		if (args.isTimeout())
-			callback.accept(new Response(ErrorCode.TIMEOUT));
+			callback.accept(new Response(MumbleErrorCode.TIMEOUT));
 		else {
 			IMumbleMessage response = MumbleClientMessageFactory.parse(args.getResponse().getBytes());
 			if (response.getHeader().isError() || consumer == null)
 				callback.accept(new Response(response.getHeader().getErrorCode()));
 			else {
 				consumer.accept(response);
-				callback.accept(new Response(ErrorCode.NONE));
+				callback.accept(new Response(MumbleErrorCode.NONE));
 			}
 		}
 	}

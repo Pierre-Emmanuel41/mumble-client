@@ -3,9 +3,9 @@ package fr.pederobien.mumble.client.external.impl;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.exceptions.ChannelAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractChannelList;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelAddPostEvent;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelAddPreEvent;
 import fr.pederobien.mumble.client.external.event.ChannelListChannelRemovePostEvent;

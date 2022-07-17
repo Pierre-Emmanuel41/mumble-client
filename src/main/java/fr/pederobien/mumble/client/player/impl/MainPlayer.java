@@ -4,7 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerAdminChangePostEvent;
@@ -21,6 +21,7 @@ import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
+import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventListener {
 	private UUID identifier;
@@ -30,6 +31,8 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	/**
 	 * Creates a player based on the given parameters.
 	 * 
+	 * @param server      The server on which this main player is registered.
+	 * @param vocalServer The vocal server associated to the mumble server.
 	 * @param name        The player's name.
 	 * @param identifier  The player's identifier.
 	 * @param isOnline    The player's online status.
@@ -43,9 +46,9 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	 * @param yaw         The player's yaw angle.
 	 * @param pitch       The player's pitch angle.
 	 */
-	public MainPlayer(IPlayerMumbleServer server, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress, boolean isAdmin, boolean isMute,
-			boolean isDeafen, double x, double y, double z, double yaw, double pitch) {
-		super(server, name);
+	public MainPlayer(IPlayerMumbleServer server, IVocalServer vocalServer, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress,
+			boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z, double yaw, double pitch) {
+		super(server, vocalServer, name);
 
 		this.identifier = identifier;
 		this.gameAddress = gameAddress;
@@ -68,6 +71,11 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	@Override
 	public InetSocketAddress getGameAddress() {
 		return gameAddress;
+	}
+
+	@Override
+	public void setMute(boolean isMute, Consumer<IResponse> callback) {
+		getVocalServer().getMainPlayer().setMute(isMute, callback);
 	}
 
 	@Override

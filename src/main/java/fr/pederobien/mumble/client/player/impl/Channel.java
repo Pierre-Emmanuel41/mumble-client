@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.common.impl.AbstractChannel;
-import fr.pederobien.mumble.client.common.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.MumbleChannelNameChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleChannelNameChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleChannelSoundModifierChangePostEvent;
