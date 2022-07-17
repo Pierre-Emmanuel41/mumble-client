@@ -120,9 +120,12 @@ public class RequestManagerV10 extends RequestManager {
 	@Override
 	public void onGetServerConfiguration(IMumbleMessage request) {
 		GetServerConfigurationV10 serverInfoMessage = (GetServerConfigurationV10) request;
+		PlayerMumbleServer server = ((PlayerMumbleServer) getServer());
+
+		server.setVocalPort(serverInfoMessage.getServerInfo().getVocalPort());
 
 		if (getServer().getMainPlayer() == null)
-			((PlayerMumbleServer) getServer()).setMainPlayer(createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo()));
+			server.setMainPlayer(createMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo()));
 		else
 			updateMainPlayer(serverInfoMessage.getServerInfo().getPlayerInfo());
 

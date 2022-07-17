@@ -40,6 +40,8 @@ import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
+import fr.pederobien.vocal.client.impl.VocalServer;
+import fr.pederobien.vocal.client.interfaces.IVocalServer;
 
 public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoundModifierList, IServerRequestManager> implements IPlayerMumbleServer, IEventListener {
 	private MumbleTcpConnection connection;
@@ -49,6 +51,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	private AtomicBoolean tryOpening;
 	private Condition serverConfiguration, communicationProtocolVersion;
 	private boolean connectionLost;
+	private IVocalServer vocalServer;
 
 	public PlayerMumbleServer(String name, InetSocketAddress address) {
 		super(name, address);
@@ -193,6 +196,21 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	@Override
 	public IServerPlayerList getPlayers() {
 		return players;
+	}
+
+	/**
+	 * Set the vocal port for the audio communication.
+	 * 
+	 * @param vocalPort The vocal server's port number.
+	 */
+	public void setVocalPort(int vocalPort) {
+		if (vocalServer != null) {
+			vocalServer.close();
+			vocalServer = null;
+		}
+
+		vocalServer = new VocalServer(getName(), new InetSocketAddress(getAddress().getAddress(), vocalPort));
+		vocalServer.open();
 	}
 
 	/**
