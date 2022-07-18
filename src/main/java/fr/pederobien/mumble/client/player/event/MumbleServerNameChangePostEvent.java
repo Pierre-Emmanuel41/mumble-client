@@ -28,7 +28,7 @@ public class MumbleServerNameChangePostEvent extends MumbleServerEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("server=" + getServer());
 		joiner.add("oldName=" + getOldName());
 		return String.format("%s_%s", getName(), joiner);
 	}

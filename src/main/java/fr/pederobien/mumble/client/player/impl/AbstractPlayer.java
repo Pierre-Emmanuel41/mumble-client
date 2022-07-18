@@ -4,11 +4,8 @@ import java.util.function.Consumer;
 
 import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.MumblePlayerAdminChangePreEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerKickPostEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerKickPreEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerNameChangePostEvent;
 import fr.pederobien.mumble.client.player.exceptions.PlayerNotAdministratorException;
 import fr.pederobien.mumble.client.player.exceptions.PlayerNotRegisteredInChannelException;
@@ -16,24 +13,21 @@ import fr.pederobien.mumble.client.player.interfaces.IChannel;
 import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.utils.event.EventManager;
-import fr.pederobien.vocal.client.interfaces.IVocalServer;
+import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
 
-public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.impl.AbstractPlayer implements IPlayer {
+public abstract class AbstractPlayer<T extends IVocalPlayer> extends fr.pederobien.mumble.client.common.impl.AbstractPlayer implements IPlayer {
 	private IPlayerMumbleServer server;
-	private IVocalServer vocalServer;
 	private IChannel channel;
 
 	/**
 	 * Creates a player associated to a name and a server.
 	 * 
-	 * @param server      The server on which this player is registered.
-	 * @param vocalServer The vocal server associated to the mumble server.
-	 * @param name        The player name.
+	 * @param server The server on which this player is registered.
+	 * @param name   The player name.
 	 */
-	protected AbstractPlayer(IPlayerMumbleServer server, IVocalServer vocalServer, String name) {
+	protected AbstractPlayer(IPlayerMumbleServer server, String name) {
 		super(name);
 		this.server = server;
-		this.vocalServer = vocalServer;
 	}
 
 	@Override
@@ -56,10 +50,10 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 
 	@Override
 	public void setMute(boolean isMute, Consumer<IResponse> callback) {
-		if (isMute() == isMute)
+		if (getVocalPlayer() == null)
 			return;
 
-		EventManager.callEvent(new MumblePlayerMuteStatusChangePreEvent(this, isMute, callback));
+		getVocalPlayer().setMute(isMute, callback);
 	}
 
 	@Override
@@ -105,26 +99,6 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 	}
 
 	/**
-	 * Set the mute status of this player. For internal use only.
-	 * 
-	 * @param isMute The new player mute status.
-	 */
-	public void setMute(boolean isMute) {
-		if (setMute0(isMute))
-			EventManager.callEvent(new MumblePlayerMuteStatusChangePostEvent(this, !isMute));
-	}
-
-	/**
-	 * Set the deafen status of this player. For internal use only.
-	 * 
-	 * @param isDeafen The new player deafen status.
-	 */
-	public void setDeafen(boolean isDeafen) {
-		if (setDeafen0(isDeafen))
-			EventManager.callEvent(new MumblePlayerDeafenStatusChangePostEvent(this, !isDeafen));
-	}
-
-	/**
 	 * Kick this player from its channel. For internal use only.
 	 * 
 	 * @param player The player that has kicked this player.
@@ -137,11 +111,9 @@ public abstract class AbstractPlayer extends fr.pederobien.mumble.client.common.
 	}
 
 	/**
-	 * @return The vocal server associated to the mumble server.
+	 * @return The vocal player associated to the mumble player.
 	 */
-	protected IVocalServer getVocalServer() {
-		return vocalServer;
-	}
+	protected abstract T getVocalPlayer();
 
 	/**
 	 * Set the channel associated to this player.

@@ -8,11 +8,7 @@ import fr.pederobien.messenger.interfaces.IResponse;
 import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerAddPostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleChannelPlayerListPlayerRemovePostEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerAdminChangePostEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerGameAddressChangePostEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePostEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerOnlineChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerClosePostEvent;
 import fr.pederobien.mumble.client.player.interfaces.IMainPlayer;
@@ -21,9 +17,11 @@ import fr.pederobien.mumble.client.player.interfaces.IPosition;
 import fr.pederobien.utils.event.EventHandler;
 import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.IEventListener;
-import fr.pederobien.vocal.client.interfaces.IVocalServer;
+import fr.pederobien.utils.event.LogEvent;
+import fr.pederobien.vocal.client.interfaces.IVocalMainPlayer;
 
-public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventListener {
+public class MainPlayer extends AbstractPlayer<IVocalMainPlayer> implements IMainPlayer, IEventListener {
+	private IVocalMainPlayer vocalPlayer;
 	private UUID identifier;
 	private InetSocketAddress gameAddress;
 	private IPosition position;
@@ -32,7 +30,6 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	 * Creates a player based on the given parameters.
 	 * 
 	 * @param server      The server on which this main player is registered.
-	 * @param vocalServer The vocal server associated to the mumble server.
 	 * @param name        The player's name.
 	 * @param identifier  The player's identifier.
 	 * @param isOnline    The player's online status.
@@ -46,17 +43,16 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	 * @param yaw         The player's yaw angle.
 	 * @param pitch       The player's pitch angle.
 	 */
-	public MainPlayer(IPlayerMumbleServer server, IVocalServer vocalServer, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress,
+	public MainPlayer(IPlayerMumbleServer server, IVocalMainPlayer vocalPlayer, String name, UUID identifier, boolean isOnline, InetSocketAddress gameAddress,
 			boolean isAdmin, boolean isMute, boolean isDeafen, double x, double y, double z, double yaw, double pitch) {
-		super(server, vocalServer, name);
+		super(server, name);
 
+		this.vocalPlayer = vocalPlayer;
 		this.identifier = identifier;
 		this.gameAddress = gameAddress;
 
 		setOnline0(isOnline);
 		setAdmin0(isAdmin);
-		setMute0(isMute);
-		setDeafen0(isDeafen);
 
 		position = new Position(this, x, y, z, yaw, pitch);
 
@@ -74,16 +70,8 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 	}
 
 	@Override
-	public void setMute(boolean isMute, Consumer<IResponse> callback) {
-		getVocalServer().getMainPlayer().setMute(isMute, callback);
-	}
-
-	@Override
 	public void setDeafen(boolean isDeafen, Consumer<IResponse> callback) {
-		if (isDeafen() == isDeafen)
-			return;
-
-		EventManager.callEvent(new MumblePlayerDeafenStatusChangePreEvent(this, isDeafen, callback));
+		getVocalPlayer().setDeafen(isDeafen, callback);
 	}
 
 	@Override
@@ -134,12 +122,23 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 		this.identifier = identifier;
 	}
 
+	@Override
+	protected IVocalMainPlayer getVocalPlayer() {
+		return vocalPlayer;
+	}
+
 	@EventHandler
 	private void onChannelPlayerAdd(MumbleChannelPlayerListPlayerAddPostEvent event) {
 		if (!event.getPlayer().equals(this))
 			return;
 
 		setChannel0(event.getList().getChannel());
+
+		Consumer<IResponse> callback = response -> {
+			if (response.hasFailed())
+				EventManager.callEvent(new LogEvent("Fail to join automatically the vocal server, reason: ", response.getErrorCode().getMessage()));
+		};
+		getVocalPlayer().getServer().join(getName(), callback);
 	}
 
 	@EventHandler
@@ -148,30 +147,12 @@ public class MainPlayer extends AbstractPlayer implements IMainPlayer, IEventLis
 			return;
 
 		setChannel0(null);
-	}
 
-	@EventHandler
-	private void onPlayerMuteStatusPreChange(MumblePlayerMuteStatusChangePreEvent event) {
-		if (!event.getPlayer().equals(this))
-			return;
-	}
-
-	@EventHandler
-	private void onPlayerMuteStatusPostChange(MumblePlayerMuteStatusChangePostEvent event) {
-		if (!event.getPlayer().equals(this))
-			return;
-	}
-
-	@EventHandler
-	private void onPlayerDeafenStatusPreChange(MumblePlayerDeafenStatusChangePreEvent event) {
-		if (!event.getPlayer().equals(this))
-			return;
-	}
-
-	@EventHandler
-	private void onPlayerDeafenStatusPostChange(MumblePlayerDeafenStatusChangePostEvent event) {
-		if (!event.getPlayer().equals(this))
-			return;
+		Consumer<IResponse> callback = response -> {
+			if (response.hasFailed())
+				EventManager.callEvent(new LogEvent("Fail to leave automatically the vocal server, reason: ", response.getErrorCode().getMessage()));
+		};
+		getVocalPlayer().getServer().leave(callback);
 	}
 
 	@EventHandler

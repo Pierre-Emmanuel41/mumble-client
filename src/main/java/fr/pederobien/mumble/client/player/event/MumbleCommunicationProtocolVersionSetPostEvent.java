@@ -51,7 +51,7 @@ public class MumbleCommunicationProtocolVersionSetPostEvent extends MumbleServer
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("server=" + getServer());
 		joiner.add("version=" + getVersion());
 		return String.format("%s_%s", getName(), joiner);
 	}

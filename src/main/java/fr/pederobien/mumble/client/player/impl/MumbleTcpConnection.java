@@ -23,9 +23,7 @@ import fr.pederobien.mumble.client.player.event.MumbleGamePortCheckPostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleParameterMaxValueChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleParameterMinValueChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleParameterValueChangePreEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerDeafenStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumblePlayerKickPreEvent;
-import fr.pederobien.mumble.client.player.event.MumblePlayerMuteStatusChangePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerJoinPreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerLeavePreEvent;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
@@ -133,26 +131,6 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 			return;
 
 		send(getRequestManager().onChannelPlayerRemove(getVersion(), event.getList().getChannel(), event.getPlayer()), args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerMuteStatusChange(MumblePlayerMuteStatusChangePreEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
-			return;
-
-		if (event.getPlayer().equals(getServer().getMainPlayer()))
-			send(getRequestManager().onPlayerMuteChange(getVersion(), event.getPlayer(), event.getNewMute()), args -> parse(args, event.getCallback(), null));
-		else
-			send(getRequestManager().onPlayerMuteByChange(getVersion(), event.getPlayer(), getServer().getMainPlayer(), event.getNewMute()),
-					args -> parse(args, event.getCallback(), null));
-	}
-
-	@EventHandler(priority = EventPriority.HIGHEST)
-	private void onPlayerDeafenStatusChange(MumblePlayerDeafenStatusChangePreEvent event) {
-		if (!event.getPlayer().getServer().equals(getServer()))
-			return;
-
-		send(getRequestManager().onPlayerDeafenChange(getVersion(), event.getPlayer(), event.getNewDeafen()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)

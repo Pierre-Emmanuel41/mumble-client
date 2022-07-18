@@ -55,8 +55,8 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	public PlayerMumbleServer(String name, InetSocketAddress address) {
 		super(name, address);
 
-		vocalServer = new VocalServer(getName(), new InetSocketAddress(getAddress().getAddress(), 0));
-		mainPlayer = new MainPlayer(this, vocalServer, "Unknown", null, false, null, false, true, true, 0, 0, 0, 0, 0);
+		vocalServer = new VocalServer(name, new InetSocketAddress(getAddress().getAddress(), 0));
+		mainPlayer = new MainPlayer(this, vocalServer.getMainPlayer(), "Unknown", null, false, null, false, true, true, 0, 0, 0, 0, 0);
 		players = new ServerPlayerList(this);
 		isJoined = new AtomicBoolean(false);
 		tryOpening = new AtomicBoolean(false);
@@ -95,12 +95,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			if (oldAddress.equals(address))
 				return;
 
-			Runnable update = () -> {
-				setAddress0(address);
-				if (connection != null && !connection.getTcpConnection().isDisposed())
-					closeConnection();
-				openConnection();
-			};
+			Runnable update = () -> setAddress0(address);
 			EventManager.callEvent(new MumbleServerAddressChangePreEvent(this, address), update, new MumbleServerAddressChangePostEvent(this, oldAddress));
 		} finally {
 			getLock().unlock();
@@ -137,6 +132,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	public void close() {
 		Runnable update = () -> {
 			closeConnection();
+			vocalServer.close();
 			EventManager.unregisterListener(this);
 		};
 		EventManager.callEvent(new MumbleServerClosePreEvent(this), update, new MumbleServerClosePostEvent(this));
@@ -199,19 +195,22 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		return players;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("%s_Mumble_%s:%s", getName(), getAddress().getAddress().getHostAddress(), getAddress().getPort());
+	}
+
 	/**
 	 * Set the vocal port for the audio communication.
 	 * 
 	 * @param vocalPort The vocal server's port number.
 	 */
 	public void setVocalPort(int vocalPort) {
-		vocalServer.close();
 		vocalServer.setAddress(new InetSocketAddress(getAddress().getAddress(), vocalPort));
-		vocalServer.open();
 	}
 
 	/**
-	 * @return The vocal server associated to this mumble server.
+	 * @return The vocal server associated to this mumble server. For internal use only.
 	 */
 	public IVocalServer getVocalServer() {
 		return vocalServer;
@@ -256,6 +255,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 				getLock().lock();
 				try {
 					serverConfiguration.signal();
+					vocalServer.open();
 				} finally {
 					getLock().unlock();
 				}
@@ -272,6 +272,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 
 		isJoined.set(false);
 		clear();
+		vocalServer.close();
 	}
 
 	@EventHandler
@@ -298,15 +299,10 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	 * Set the the new reachable status of the remote.
 	 * 
 	 * @param isReachable True if the remote is reachable, false otherwise.
-	 * 
-	 * @return True if the reachable status has changed, false otherwise.
 	 */
-	private boolean setReachable(boolean isReachable) {
-		boolean changed = setReachable0(isReachable);
-		if (changed)
+	private void setReachable(boolean isReachable) {
+		if (setReachable0(isReachable))
 			EventManager.callEvent(new MumbleServerReachableStatusChangeEvent(this, isReachable));
-
-		return changed;
 	}
 
 	/**
@@ -350,7 +346,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	}
 
 	private void closeConnection() {
-		if (!setReachable(false))
+		if (connection == null || connection.getTcpConnection().isDisposed())
 			return;
 
 		connection.getTcpConnection().dispose();

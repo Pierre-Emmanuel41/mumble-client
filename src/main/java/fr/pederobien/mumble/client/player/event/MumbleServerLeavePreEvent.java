@@ -42,7 +42,7 @@ public class MumbleServerLeavePreEvent extends MumbleServerEvent implements ICan
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
-		joiner.add("server=" + getServer().getName());
+		joiner.add("server=" + getServer());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

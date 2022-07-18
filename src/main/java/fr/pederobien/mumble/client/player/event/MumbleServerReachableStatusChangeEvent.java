@@ -28,8 +28,8 @@ public class MumbleServerReachableStatusChangeEvent extends MumbleServerEvent {
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
-		joiner.add("server=" + getServer().getName());
-		joiner.add("reachable=" + isReachable);
+		joiner.add("server=" + getServer());
+		joiner.add("reachable=" + isReachable());
 		return String.format("%s_%s", getName(), joiner);
 	}
 }

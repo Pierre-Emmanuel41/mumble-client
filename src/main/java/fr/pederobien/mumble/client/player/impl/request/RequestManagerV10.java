@@ -48,10 +48,7 @@ import fr.pederobien.mumble.common.impl.messages.v10.SetParameterMaxValueV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetParameterMinValueV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetParameterValueV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerAdministratorStatusV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerDeafenStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerGameAddressV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerMuteByStatusV10;
-import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerMuteStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerNameV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerOnlineStatusV10;
 import fr.pederobien.mumble.common.impl.messages.v10.SetPlayerPositionV10;
@@ -84,9 +81,6 @@ public class RequestManagerV10 extends RequestManager {
 		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, holder -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_GAME_ADDRESS, holder -> setPlayerGameAddress((SetPlayerGameAddressV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_MUTE, holder -> setPlayerMute((SetPlayerMuteStatusV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_MUTE_BY, holder -> setPlayerMuteBy((SetPlayerMuteByStatusV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_DEAFEN, holder -> setPlayerDeafen((SetPlayerDeafenStatusV10) holder.getRequest()));
 		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
 		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
 
@@ -388,33 +382,6 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
-	 * Set the mute status of a player.
-	 * 
-	 * @param request The request sent by the remote in order to update the mute status of a player.
-	 */
-	private void setPlayerMute(SetPlayerMuteStatusV10 request) {
-		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setMute(request.isMute()));
-	}
-
-	/**
-	 * Update the mute status of a target player for a source player.
-	 * 
-	 * @param request The request sent by the remote in order to mute or unmute a target player for a source player.
-	 */
-	private void setPlayerMuteBy(SetPlayerMuteByStatusV10 request) {
-		findPlayerAndUpdate(request.getTarget(), AbstractPlayer.class, player -> player.setMute(request.isMute()));
-	}
-
-	/**
-	 * Set the deafen status of a player.
-	 * 
-	 * @param request The request sent by the remote in order to update the deafen status of a player.
-	 */
-	private void setPlayerDeafen(SetPlayerDeafenStatusV10 request) {
-		findPlayerAndUpdate(request.getPlayerName(), AbstractPlayer.class, player -> player.setDeafen(request.isDeafen()));
-	}
-
-	/**
 	 * Updates main player's characteristics.
 	 * 
 	 * @param request The request sent by the remote in order to update main player characteristics.
@@ -496,7 +463,8 @@ public class RequestManagerV10 extends RequestManager {
 	 * @param request The request sent by the remote in order to add a player to a channel.
 	 */
 	private void addPlayerToChannel(AddPlayerToChannelV10 request) {
-		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers()).add(createSecondaryPlayer(request.getPlayerInfo()));
+		((ChannelPlayerList) getServer().getChannels().get(request.getChannelName()).get().getPlayers())
+				.add(new SecondaryPlayer(getServer(), request.getPlayerInfo().getName()));
 	}
 
 	/**
@@ -569,21 +537,6 @@ public class RequestManagerV10 extends RequestManager {
 	}
 
 	/**
-	 * Creates a player.
-	 * 
-	 * @param info A description of the player to create.
-	 * 
-	 * @return The created player.
-	 */
-	private IPlayer createSecondaryPlayer(StatusPlayerInfo info) {
-		SecondaryPlayer player = new SecondaryPlayer(getServer(), ((PlayerMumbleServer) getServer()).getVocalServer(), info.getName());
-		player.setMute(info.isMute());
-		player.setMuteByMainPlayer(info.isMuteByMainPlayer());
-		player.setDeafen(info.isDeafen());
-		return player;
-	}
-
-	/**
 	 * Creates a parameters list.
 	 * 
 	 * @param s A description of each parameter to create.
@@ -618,7 +571,7 @@ public class RequestManagerV10 extends RequestManager {
 
 		List<IPlayer> playerNames = new ArrayList<IPlayer>();
 		for (StatusPlayerInfo playerInfo : info.getPlayerInfo().values())
-			playerNames.add(createSecondaryPlayer(playerInfo));
+			playerNames.add(new SecondaryPlayer(getServer(), playerInfo.getName()));
 
 		return new Channel(getServer(), info.getName(), playerNames, soundModifier);
 	}
@@ -655,8 +608,6 @@ public class RequestManagerV10 extends RequestManager {
 		serverMainPlayer.setOnline(playerInfo.isOnline());
 		serverMainPlayer.setGameAddress(playerInfo.getGameAddress());
 		serverMainPlayer.setAdmin(playerInfo.isAdmin());
-		serverMainPlayer.setMute(playerInfo.isMute());
-		serverMainPlayer.setDeafen(playerInfo.isDeafen());
 		((Position) serverMainPlayer.getPosition()).update(playerInfo.getX(), playerInfo.getY(), playerInfo.getZ(), playerInfo.getYaw(), playerInfo.getPitch());
 	}
 
