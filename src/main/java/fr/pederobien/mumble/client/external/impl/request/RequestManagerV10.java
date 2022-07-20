@@ -224,7 +224,7 @@ public class RequestManagerV10 extends RequestManager {
 		properties.add(isMute);
 
 		// Player's deafen status
-		properties.add(isMute);
+		properties.add(isDeafen);
 
 		// Player's x coordinate
 		properties.add(x);
