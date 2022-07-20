@@ -70,6 +70,11 @@ public class MainPlayer extends AbstractPlayer<IVocalMainPlayer> implements IMai
 	}
 
 	@Override
+	public boolean isDeafen() {
+		return getVocalPlayer() == null ? false : getVocalPlayer().isDeafen();
+	}
+
+	@Override
 	public void setDeafen(boolean isDeafen, Consumer<IResponse> callback) {
 		getVocalPlayer().setDeafen(isDeafen, callback);
 	}

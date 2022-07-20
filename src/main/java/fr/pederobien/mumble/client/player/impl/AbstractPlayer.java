@@ -49,6 +49,11 @@ public abstract class AbstractPlayer<T extends IVocalPlayer> extends fr.pederobi
 	}
 
 	@Override
+	public boolean isMute() {
+		return getVocalPlayer() == null ? false : getVocalPlayer().isMute();
+	}
+
+	@Override
 	public void setMute(boolean isMute, Consumer<IResponse> callback) {
 		if (getVocalPlayer() == null)
 			return;

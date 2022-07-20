@@ -56,7 +56,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		super(name, address);
 
 		vocalServer = new VocalServer(name, new InetSocketAddress(getAddress().getAddress(), 0));
-		mainPlayer = new MainPlayer(this, vocalServer.getMainPlayer(), "Unknown", null, false, null, false, true, true, 0, 0, 0, 0, 0);
+		mainPlayer = new MainPlayer(this, vocalServer.getMainPlayer(), "Unknown", null, false, null, false, false, false, 0, 0, 0, 0, 0);
 		players = new ServerPlayerList(this);
 		isJoined = new AtomicBoolean(false);
 		tryOpening = new AtomicBoolean(false);

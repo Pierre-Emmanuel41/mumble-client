@@ -33,7 +33,7 @@ public class SecondaryPlayer extends AbstractPlayer<IVocalSecondaryPlayer> imple
 
 	@Override
 	public boolean isMuteByMainPlayer() {
-		return vocalPlayer == null ? true : vocalPlayer.isMuteByMainPlayer();
+		return vocalPlayer == null ? false : vocalPlayer.isMuteByMainPlayer();
 	}
 
 	@Override
