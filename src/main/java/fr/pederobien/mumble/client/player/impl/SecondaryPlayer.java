@@ -33,7 +33,7 @@ public class SecondaryPlayer extends AbstractPlayer<IVocalSecondaryPlayer> imple
 
 	@Override
 	public boolean isMuteByMainPlayer() {
-		return vocalPlayer.isMuteByMainPlayer();
+		return vocalPlayer == null ? true : vocalPlayer.isMuteByMainPlayer();
 	}
 
 	@Override
@@ -55,12 +55,13 @@ public class SecondaryPlayer extends AbstractPlayer<IVocalSecondaryPlayer> imple
 			return;
 
 		setChannel0(null);
+		EventManager.unregisterListener(this);
 	}
 
 	@EventHandler
 	private void onServerPlayerAdd(VocalServerListPlayerAddPostEvent event) {
 		Optional<IPlayer> optPlayer = getMumblePlayer(event.getPlayer());
-		if (!optPlayer.isPresent())
+		if (!optPlayer.isPresent() || !(event.getPlayer() instanceof ISecondaryPlayer))
 			return;
 
 		vocalPlayer = (IVocalSecondaryPlayer) event.getPlayer();
