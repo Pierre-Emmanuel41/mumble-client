@@ -1,9 +1,0 @@
-[submodule "mumble-common"]
-	path = mumble-common
-	url = https://github.com/Pierre-Emmanuel41/mumble-common.git
-	update = rebase
-	branch = 2.0-SNAPSHOT
-[submodule "vocal-client"]
-	path = vocal-client
-	url = https://github.com/Pierre-Emmanuel41/vocal-client
-	branch = 1.0-SNAPSHOT
