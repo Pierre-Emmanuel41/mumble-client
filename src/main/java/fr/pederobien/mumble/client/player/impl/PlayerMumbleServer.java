@@ -173,8 +173,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			return;
 
 		Consumer<IResponse> update = response -> {
-			if (!response.hasFailed())
-				EventManager.callEvent(new MumbleServerLeavePostEvent(this));
+			EventManager.callEvent(new MumbleServerLeavePostEvent(this));
 			callback.accept(response);
 		};
 		EventManager.callEvent(new MumbleServerLeavePreEvent(this, update));

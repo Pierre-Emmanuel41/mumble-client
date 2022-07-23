@@ -141,7 +141,7 @@ public class MainPlayer extends AbstractPlayer<IVocalMainPlayer> implements IMai
 
 		Consumer<IResponse> callback = response -> {
 			if (response.hasFailed())
-				EventManager.callEvent(new LogEvent("Fail to join automatically the vocal server, reason: ", response.getErrorCode().getMessage()));
+				EventManager.callEvent(new LogEvent("Fail to join automatically the vocal server, reason: %s", response.getErrorCode().getMessage()));
 		};
 		getVocalPlayer().getServer().join(getName(), callback);
 	}
@@ -154,8 +154,6 @@ public class MainPlayer extends AbstractPlayer<IVocalMainPlayer> implements IMai
 		setChannel0(null);
 
 		Consumer<IResponse> callback = response -> {
-			if (response.hasFailed())
-				EventManager.callEvent(new LogEvent("Fail to leave automatically the vocal server, reason: ", response.getErrorCode().getMessage()));
 		};
 		getVocalPlayer().getServer().leave(callback);
 	}
