@@ -63,7 +63,7 @@ public abstract class AbstractMumbleTcpConnection<T extends ICommonMumbleServer<
 	 * @param callback The callback to run when a response has been received before the timeout.
 	 */
 	protected void send(IMumbleMessage message, Consumer<ResponseCallbackArgs> callback) {
-		if (connection == null || connection.isDisposed())
+		if (message == null || connection == null || connection.isDisposed())
 			return;
 
 		connection.send(new MumbleCallbackMessage(message, callback));
