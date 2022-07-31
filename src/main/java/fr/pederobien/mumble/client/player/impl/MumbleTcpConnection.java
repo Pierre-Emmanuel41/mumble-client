@@ -35,6 +35,7 @@ import fr.pederobien.utils.event.EventManager;
 import fr.pederobien.utils.event.EventPriority;
 import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.utils.event.LogEvent;
+import fr.pederobien.vocal.common.impl.VocalErrorCode;
 
 public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumbleServer> implements IEventListener {
 
@@ -89,7 +90,10 @@ public class MumbleTcpConnection extends AbstractMumbleTcpConnection<IPlayerMumb
 		if (!event.getServer().equals(getServer()))
 			return;
 
-		send(getRequestManager().onServerLeave(getVersion()), args -> parse(args, event.getCallback(), null));
+		if (!getServer().isReachable())
+			event.getCallback().accept(new Response(VocalErrorCode.NONE));
+		else
+			send(getRequestManager().onServerLeave(getVersion()), args -> parse(args, event.getCallback(), null));
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
