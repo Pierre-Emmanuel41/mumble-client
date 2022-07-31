@@ -3,7 +3,7 @@ package fr.pederobien.mumble.client.common.interfaces;
 import java.util.function.Consumer;
 
 import fr.pederobien.messenger.interfaces.IResponse;
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
+import fr.pederobien.mumble.common.impl.ParameterType;
 
 public interface ICommonParameter<T> {
 

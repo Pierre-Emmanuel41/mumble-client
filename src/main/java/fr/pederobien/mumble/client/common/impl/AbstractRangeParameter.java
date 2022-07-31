@@ -55,6 +55,16 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 	}
 
 	/**
+	 * Check if the value is in range [min,max]
+	 * 
+	 * @param value The value to check.
+	 */
+	public void checkRange(Object value) {
+		if (!(toComparable(min).compareTo((Number) value) <= 0 && toComparable(getType().cast(value)).compareTo((Number) max) <= 0))
+			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
+	}
+
+	/**
 	 * Thread safe operation in order to set the minimum value of this parameter.
 	 * 
 	 * @param min The new minimum value of the parameter.
@@ -82,15 +92,5 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 	@SuppressWarnings("unchecked")
 	private Comparable<? super Number> toComparable(T value) {
 		return (Comparable<? super Number>) value;
-	}
-
-	/**
-	 * Check if the value is in range [min,max]
-	 * 
-	 * @param value The value to check.
-	 */
-	private void checkRange(T value) {
-		if (!(toComparable(min).compareTo((Number) value) <= 0 && toComparable(value).compareTo((Number) max) <= 0))
-			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
 	}
 }

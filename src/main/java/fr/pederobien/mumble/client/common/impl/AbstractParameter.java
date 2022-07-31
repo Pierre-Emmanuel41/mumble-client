@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import fr.pederobien.mumble.client.common.interfaces.ICommonParameter;
-import fr.pederobien.mumble.common.impl.messages.v10.model.ParameterType;
+import fr.pederobien.mumble.common.impl.ParameterType;
 
 public abstract class AbstractParameter<T> implements ICommonParameter<T> {
 	protected static final Map<Class<?>, ParameterType<?>> PRIMITIVE_TYPES;
