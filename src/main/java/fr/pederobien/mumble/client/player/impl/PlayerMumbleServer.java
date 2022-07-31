@@ -69,8 +69,6 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		communicationProtocolVersion = getLock().newCondition();
 
 		connectionLost = false;
-
-		EventManager.registerListener(this);
 	}
 
 	@Override
@@ -110,22 +108,8 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		if (isReachable())
 			return;
 
-		getLock().lock();
-		try {
-			openConnection();
-
-			if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
-				connection.getTcpConnection().dispose();
-				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
-			}
-
-			setReachable(true);
-		} catch (InterruptedException e) {
-			// Do nothing
-		} finally {
-			tryOpening.set(false);
-			getLock().unlock();
-		}
+		EventManager.registerListener(this);
+		openConnection();
 	}
 
 	@Override
@@ -140,9 +124,6 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 
 	@Override
 	public void join(Consumer<IResponse> callback) {
-		if (!isJoined.compareAndSet(false, true))
-			return;
-
 		Consumer<IResponse> update = response -> {
 			if (!response.hasFailed())
 				EventManager.callEvent(new MumbleServerJoinPostEvent(this));
@@ -169,7 +150,6 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 	@Override
 	public void leave(Consumer<IResponse> callback) {
 		if (!isJoined.compareAndSet(true, false))
-
 			return;
 
 		Consumer<IResponse> update = response -> {
@@ -221,6 +201,22 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			return;
 
 		setReachable(true);
+
+		Thread communicationProtocolVersionThread = new Thread(() -> {
+			getLock().lock();
+			try {
+				if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
+					connection.getTcpConnection().dispose();
+					throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+				}
+			} catch (InterruptedException e) {
+				// Do nothing
+			} finally {
+				getLock().unlock();
+			}
+		}, "CommunicationProtocolVersion");
+		communicationProtocolVersionThread.setDaemon(true);
+		communicationProtocolVersionThread.start();
 	}
 
 	@EventHandler
@@ -235,11 +231,8 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			getLock().unlock();
 		}
 
-		if (connectionLost) {
-			join(response -> {
-			});
-			connectionLost = false;
-		}
+		if (connectionLost && isJoined())
+			join(response -> connectionLost = false);
 	}
 
 	@EventHandler
@@ -289,7 +282,6 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			return;
 
 		connectionLost = true;
-		isJoined.set(false);
 		setReachable(false);
 		clear();
 	}
