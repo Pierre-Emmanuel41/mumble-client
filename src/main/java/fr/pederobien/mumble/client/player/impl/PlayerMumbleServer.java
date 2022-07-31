@@ -24,6 +24,8 @@ import fr.pederobien.mumble.client.player.event.MumbleServerLeavePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerLeavePreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerNameChangePostEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerNameChangePreEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerOpenPostEvent;
+import fr.pederobien.mumble.client.player.event.MumbleServerOpenPreEvent;
 import fr.pederobien.mumble.client.player.event.MumbleServerReachableStatusChangeEvent;
 import fr.pederobien.mumble.client.player.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.player.interfaces.IChannel;
@@ -108,13 +110,18 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 		if (isReachable())
 			return;
 
-		EventManager.registerListener(this);
-		openConnection();
+		Runnable update = () -> {
+			EventManager.registerListener(this);
+			openConnection();
+		};
+
+		EventManager.callEvent(new MumbleServerOpenPreEvent(this), update, new MumbleServerOpenPostEvent(this));
 	}
 
 	@Override
 	public void close() {
 		Runnable update = () -> {
+			tryOpening.set(false);
 			closeConnection();
 			vocalServer.close();
 			EventManager.unregisterListener(this);
@@ -212,6 +219,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			} catch (InterruptedException e) {
 				// Do nothing
 			} finally {
+				tryOpening.set(false);
 				getLock().unlock();
 			}
 		}, "CommunicationProtocolVersion");

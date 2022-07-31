@@ -20,6 +20,8 @@ import fr.pederobien.mumble.client.external.event.ServerClosePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerClosePreEvent;
 import fr.pederobien.mumble.client.external.event.ServerNameChangePostEvent;
 import fr.pederobien.mumble.client.external.event.ServerNameChangePreEvent;
+import fr.pederobien.mumble.client.external.event.ServerOpenPostEvent;
+import fr.pederobien.mumble.client.external.event.ServerOpenPreEvent;
 import fr.pederobien.mumble.client.external.event.ServerReachableStatusChangeEvent;
 import fr.pederobien.mumble.client.external.impl.request.ServerRequestManager;
 import fr.pederobien.mumble.client.external.interfaces.IChannel;
@@ -110,31 +112,36 @@ public class ExternalMumbleServer extends AbstractMumbleServer<IChannelList, ISo
 		if (isReachable())
 			return;
 
-		getLock().lock();
-		try {
-			openConnection();
+		Runnable update = () -> {
+			getLock().lock();
+			try {
+				openConnection();
 
-			if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
-				connection.getTcpConnection().dispose();
-				throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+				if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
+					connection.getTcpConnection().dispose();
+					throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+				}
+
+				if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
+					connection.getTcpConnection().dispose();
+					throw new IllegalStateException("Time out on server configuration request.");
+				}
+
+			} catch (InterruptedException e) {
+				// Do nothing
+			} finally {
+				tryOpening.set(false);
+				getLock().unlock();
 			}
+		};
 
-			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
-				connection.getTcpConnection().dispose();
-				throw new IllegalStateException("Time out on server configuration request.");
-			}
-
-		} catch (InterruptedException e) {
-			// Do nothing
-		} finally {
-			tryOpening.set(false);
-			getLock().unlock();
-		}
+		EventManager.callEvent(new ServerOpenPreEvent(this), update, new ServerOpenPostEvent(this));
 	}
 
 	@Override
 	public void close() {
 		Runnable update = () -> {
+			tryOpening.set(false);
 			closeConnection();
 			EventManager.unregisterListener(this);
 		};
