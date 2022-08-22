@@ -14,10 +14,9 @@ import fr.pederobien.utils.event.IEventListener;
 import fr.pederobien.vocal.client.event.VocalServerListPlayerAddPostEvent;
 import fr.pederobien.vocal.client.event.VocalServerListPlayerRemovePostEvent;
 import fr.pederobien.vocal.client.interfaces.IVocalPlayer;
-import fr.pederobien.vocal.client.interfaces.IVocalSecondaryPlayer;
 
-public class SecondaryPlayer extends AbstractPlayer<IVocalSecondaryPlayer> implements ISecondaryPlayer, IEventListener {
-	private IVocalSecondaryPlayer vocalPlayer;
+public class SecondaryPlayer extends AbstractPlayer<IVocalPlayer> implements ISecondaryPlayer, IEventListener {
+	private IVocalPlayer vocalPlayer;
 
 	/**
 	 * Creates a player associated to a name and a server.
@@ -33,11 +32,17 @@ public class SecondaryPlayer extends AbstractPlayer<IVocalSecondaryPlayer> imple
 
 	@Override
 	public boolean isMuteByMainPlayer() {
-		return vocalPlayer == null ? false : vocalPlayer.isMuteByMainPlayer();
+		if (vocalPlayer == null)
+			return false;
+
+		if (vocalPlayer instanceof ISecondaryPlayer)
+			return ((ISecondaryPlayer) vocalPlayer).isMuteByMainPlayer();
+
+		return false;
 	}
 
 	@Override
-	protected IVocalSecondaryPlayer getVocalPlayer() {
+	protected IVocalPlayer getVocalPlayer() {
 		return vocalPlayer;
 	}
 
@@ -61,10 +66,10 @@ public class SecondaryPlayer extends AbstractPlayer<IVocalSecondaryPlayer> imple
 	@EventHandler
 	private void onServerPlayerAdd(VocalServerListPlayerAddPostEvent event) {
 		Optional<IPlayer> optPlayer = getMumblePlayer(event.getPlayer());
-		if (!optPlayer.isPresent() || !(event.getPlayer() instanceof ISecondaryPlayer))
+		if (!optPlayer.isPresent())
 			return;
 
-		vocalPlayer = (IVocalSecondaryPlayer) event.getPlayer();
+		vocalPlayer = event.getPlayer();
 	}
 
 	@EventHandler
