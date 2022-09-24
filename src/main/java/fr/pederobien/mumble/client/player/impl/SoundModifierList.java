@@ -1,5 +1,7 @@
 package fr.pederobien.mumble.client.player.impl;
 
+import java.util.Optional;
+
 import fr.pederobien.mumble.client.common.exceptions.SoundModifierAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.impl.AbstractSoundModifierList;
 import fr.pederobien.mumble.client.player.event.MumbleSoundModifierListSoundModifierAddPostEvent;
@@ -18,6 +20,12 @@ public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier,
 	 */
 	public SoundModifierList(IPlayerMumbleServer server) {
 		super(server);
+	}
+
+	@Override
+	public Optional<ISoundModifier> get(String name) {
+		Optional<ISoundModifier> optSoundModifier = super.get(name);
+		return optSoundModifier.isPresent() ? Optional.of(optSoundModifier.get().clone()) : optSoundModifier;
 	}
 
 	/**
