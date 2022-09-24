@@ -66,6 +66,11 @@ public abstract class AbstractMumbleServer<T extends ICommonChannelList<?, ?, ?>
 	}
 
 	@Override
+	public String toString() {
+		return name;
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
