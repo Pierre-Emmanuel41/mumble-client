@@ -44,4 +44,16 @@ public interface IPlayer extends ICommonPlayer {
 	 * @throws PlayerNotRegisteredInChannelException If this player is not registered in a channel.
 	 */
 	void kick(Consumer<IResponse> callback);
+
+	/**
+	 * @return The audio volume of the player.
+	 */
+	float getVolume();
+
+	/**
+	 * Set the sound volume of the given player.
+	 * 
+	 * @param volume The new sound volume.
+	 */
+	void setVolume(float volume);
 }

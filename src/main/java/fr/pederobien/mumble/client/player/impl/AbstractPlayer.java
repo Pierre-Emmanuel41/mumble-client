@@ -73,6 +73,19 @@ public abstract class AbstractPlayer<T extends IVocalPlayer> extends fr.pederobi
 	}
 
 	@Override
+	public float getVolume() {
+		return getVocalPlayer() == null ? 1 : getVocalPlayer().getVolume();
+	}
+
+	@Override
+	public void setVolume(float volume) {
+		if (getVocalPlayer() == null)
+			return;
+
+		getVocalPlayer().setVolume(volume);
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
