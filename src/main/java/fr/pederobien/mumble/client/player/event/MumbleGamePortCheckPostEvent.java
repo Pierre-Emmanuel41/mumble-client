@@ -44,6 +44,15 @@ public class MumbleGamePortCheckPostEvent extends MumbleServerEvent {
 		return isUsed;
 	}
 
+	/**
+	 * Set if the game port to check is used by this client to play to a game.
+	 * 
+	 * @param isUsed True if the game port is used, false otherwise.
+	 */
+	public void setUsed(boolean isUsed) {
+		this.isUsed = isUsed;
+	}
+
 	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(", ", "{", "}");
