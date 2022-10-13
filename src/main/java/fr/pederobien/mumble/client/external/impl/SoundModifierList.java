@@ -28,6 +28,11 @@ public class SoundModifierList extends AbstractSoundModifierList<ISoundModifier,
 		return optSoundModifier.isPresent() ? Optional.of(optSoundModifier.get().clone()) : optSoundModifier;
 	}
 
+	@Override
+	public ISoundModifier getDefaultSoundModifier() {
+		return super.getDefaultSoundModifier().clone();
+	}
+
 	/**
 	 * Adds the given sound modifier to this list.
 	 * 

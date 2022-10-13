@@ -56,7 +56,7 @@ public abstract class AbstractSoundModifierList<T extends ICommonSoundModifier<?
 
 	@Override
 	public T getDefaultSoundModifier() {
-		if (defaultSoundModifier != null)
+		if (defaultSoundModifier == null)
 			defaultSoundModifier = soundModifiers.get(DEFAULT_SOUND_MODIFIER_NAME);
 		return defaultSoundModifier;
 	}
