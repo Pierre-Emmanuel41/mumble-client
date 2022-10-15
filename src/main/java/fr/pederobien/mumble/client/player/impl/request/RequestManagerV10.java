@@ -165,11 +165,11 @@ public class RequestManagerV10 extends RequestManager {
 			// Parameter's type
 			informations.add(parameter.getType());
 
-			// Parameter's value
-			informations.add(parameter.getValue());
-
 			// Parameter's default value
 			informations.add(parameter.getDefaultValue());
+
+			// Parameter's value
+			informations.add(parameter.getValue());
 
 			// Parameter's range
 			boolean isRange = parameter instanceof IRangeParameter<?>;
