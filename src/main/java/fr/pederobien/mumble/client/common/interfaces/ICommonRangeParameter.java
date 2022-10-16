@@ -39,5 +39,25 @@ public interface ICommonRangeParameter<T> extends ICommonParameter<T> {
 	 * 
 	 * @throws IllegalArgumentException If the value is out of range.
 	 */
-	void checkRange(T value);
+	void checkValue(Object value);
+
+	/**
+	 * Check if the value1 is less or equal to value2.
+	 * 
+	 * @param value1  The value1 to check.
+	 * @param value2  The value2 to check.
+	 * @param message The exception message.
+	 * 
+	 * @throws IllegalArgumentException If the value1 is strictly greater than value2
+	 */
+	void check(Object value1, Object value2, String message);
+
+	/**
+	 * Check if the minValue is less or equal to maxValue, and if the value is in range minValue, maxValue.
+	 * 
+	 * @param minValue The minimum value of the parameter.
+	 * @param value    The parameter value.
+	 * @param maxValue The maximum value of the parameter.
+	 */
+	void checkRange(Object minValue, Object value, Object maxValue);
 }

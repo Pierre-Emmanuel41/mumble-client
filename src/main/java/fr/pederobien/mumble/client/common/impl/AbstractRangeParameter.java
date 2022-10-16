@@ -26,11 +26,9 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 		this.max = max;
 
 		// The minimum should always be less than the maximum value
-		if (toComparable(this.max).compareTo((Number) this.min) < 0)
-			throw new IllegalArgumentException("The minimum value should be less than the maximum value.");
-
-		checkRange(defaultValue);
-		checkRange(value);
+		check(min, max, "The minimum value should be less than the maximum value.");
+		checkValue(defaultValue);
+		checkValue(value);
 	}
 
 	@Override
@@ -44,6 +42,26 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 	}
 
 	@Override
+	public void checkValue(Object value) {
+		check(min, getType().cast(value), String.format("The value %s should be in range [%s;%s]", value, min, max));
+		check(getType().cast(value), max, String.format("The value %s should be in range [%s;%s]", value, min, max));
+	}
+
+	@SuppressWarnings("unchecked")
+	public void check(Object value1, Object value2, String message) {
+		Comparable<? super Number> value1Comparable = (Comparable<? super Number>) value1;
+		if (value1Comparable.compareTo((Number) value2) > 0)
+			throw new IllegalArgumentException(message);
+	}
+
+	@Override
+	public void checkRange(Object minValue, Object value, Object maxValue) {
+		check(getType().cast(minValue), getType().cast(maxValue), String.format("The minimum value %s should be less than the maximum value", minValue, maxValue));
+		check(minValue, getType().cast(value), String.format("The value %s should be in range [%s;%s]", value, minValue, maxValue));
+		check(getType().cast(value), maxValue, String.format("The value %s should be in range [%s;%s]", value, minValue, maxValue));
+	}
+
+	@Override
 	public String toString() {
 		StringJoiner joiner = new StringJoiner(",", "{", "}");
 		joiner.add("name=" + getName());
@@ -52,16 +70,6 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 		joiner.add("type=" + getType());
 		joiner.add(String.format("range=[%s, %s]", getMin(), getMax()));
 		return joiner.toString();
-	}
-
-	/**
-	 * Check if the value is in range [min,max]
-	 * 
-	 * @param value The value to check.
-	 */
-	public void checkRange(Object value) {
-		if (!(toComparable(min).compareTo((Number) value) <= 0 && toComparable(getType().cast(value)).compareTo((Number) max) <= 0))
-			throw new IllegalArgumentException(String.format("The value %s should be in range [%s;%s]", value, min, max));
 	}
 
 	/**
@@ -80,17 +88,5 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 	 */
 	protected void setMax0(T max) {
 		this.max = max;
-	}
-
-	/**
-	 * Cast the given value as a comparable value.
-	 * 
-	 * @param value The value to cast.
-	 * 
-	 * @return The given value but as a comparable value.
-	 */
-	@SuppressWarnings("unchecked")
-	private Comparable<? super Number> toComparable(T value) {
-		return (Comparable<? super Number>) value;
 	}
 }

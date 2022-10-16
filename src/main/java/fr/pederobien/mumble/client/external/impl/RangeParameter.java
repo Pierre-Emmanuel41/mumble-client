@@ -58,6 +58,8 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 		if (getMin().equals(castMin))
 			return;
 
+		check(getMin(), castMin, "The minimum value cannot be greater than the maximum value");
+
 		if (!isAttached())
 			setMin0(castMin);
 		else
@@ -69,6 +71,8 @@ public class RangeParameter<T> extends AbstractRangeParameter<T> implements IRan
 		T castMax = getType().cast(max);
 		if (getMax().equals(castMax))
 			return;
+
+		check(getMin(), castMax, "The minimum value cannot be greater than the maximum value");
 
 		if (!isAttached())
 			setMax0(castMax);
