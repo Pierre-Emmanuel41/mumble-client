@@ -27,7 +27,6 @@ public abstract class AbstractRangeParameter<T> extends AbstractParameter<T> imp
 
 		// The minimum should always be less than the maximum value
 		check(min, max, "The minimum value should be less than the maximum value.");
-		checkValue(defaultValue);
 		checkValue(value);
 	}
 
