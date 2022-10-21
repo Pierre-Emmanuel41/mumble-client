@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import fr.pederobien.mumble.client.common.exceptions.ParameterAlreadyRegisteredException;
 import fr.pederobien.mumble.client.common.interfaces.ICommonParameter;
 import fr.pederobien.mumble.client.common.interfaces.ICommonParameterList;
+import fr.pederobien.mumble.client.common.interfaces.ICommonRangeParameter;
 
 public abstract class AbstractParameterList<T extends ICommonParameter<?>> implements ICommonParameterList<T> {
 	private String name;
@@ -68,14 +69,23 @@ public abstract class AbstractParameterList<T extends ICommonParameter<?>> imple
 		if (!(obj instanceof ICommonParameterList))
 			return false;
 
-		ICommonParameterList<?> other = (ICommonParameterList<?>) obj;
-		Map<String, ICommonParameter<?>> map = new LinkedHashMap<String, ICommonParameter<?>>();
-		for (ICommonParameter<?> parameter : other.toList())
-			map.put(parameter.getName(), parameter);
-
 		boolean parameterEquals = true;
-		for (Map.Entry<String, T> entry : parameters.entrySet())
-			parameterEquals &= entry.getValue().equals(map.get(entry.getKey()));
+		ICommonParameterList<?> other = (ICommonParameterList<?>) obj;
+		for (ICommonParameter<?> thisParameter : this) {
+			Optional<? extends ICommonParameter<?>> optParameter = other.get(thisParameter.getName());
+			if (!optParameter.isPresent())
+				return false;
+
+			ICommonParameter<?> otherParameter = optParameter.get();
+			parameterEquals &= thisParameter.getValue().equals(otherParameter.getValue());
+			if (thisParameter instanceof ICommonRangeParameter<?> && otherParameter instanceof ICommonRangeParameter<?>) {
+				ICommonRangeParameter<?> thisRangeParameter = (ICommonRangeParameter<?>) thisParameter;
+				ICommonRangeParameter<?> otherRangeParameter = (ICommonRangeParameter<?>) otherParameter;
+
+				parameterEquals &= thisRangeParameter.getMin().equals(otherRangeParameter.getMin());
+				parameterEquals &= thisRangeParameter.getMax().equals(otherRangeParameter.getMax());
+			}
+		}
 
 		return parameterEquals;
 	}
