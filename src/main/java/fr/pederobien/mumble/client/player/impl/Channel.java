@@ -122,7 +122,7 @@ public class Channel extends AbstractChannel<IChannelPlayerList, ISoundModifier>
 	 */
 	private void checkSoundModifier(ISoundModifier soundModifier) {
 		Optional<ISoundModifier> optSoundModifier = getServer().getSoundModifiers().get(soundModifier.getName());
-		if (!optSoundModifier.isPresent() || !soundModifier.equals(optSoundModifier.get()))
+		if (!optSoundModifier.isPresent())
 			throw new IllegalArgumentException("The sound modifier is not registered on the server");
 	}
 }
