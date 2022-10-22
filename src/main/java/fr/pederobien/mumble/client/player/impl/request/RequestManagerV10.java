@@ -32,7 +32,7 @@ import fr.pederobien.mumble.client.player.interfaces.IPlayer;
 import fr.pederobien.mumble.client.player.interfaces.IPlayerMumbleServer;
 import fr.pederobien.mumble.client.player.interfaces.IRangeParameter;
 import fr.pederobien.mumble.client.player.interfaces.ISoundModifier;
-import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleIdentifier;
 import fr.pederobien.mumble.common.impl.messages.v10.AddPlayerToChannelV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetCommunicationProtocolVersionsV10;
 import fr.pederobien.mumble.common.impl.messages.v10.GetPlayerInfoV10;
@@ -72,40 +72,40 @@ public class RequestManagerV10 extends RequestManager {
 		super(server, 1.0f);
 
 		// Server messages
-		getRequests().put(Identifier.GET_CP_VERSIONS, holder -> onGetCommunicationProtocolVersions((GetCommunicationProtocolVersionsV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_CP_VERSION, holder -> onSetCommunicationProtocolVersion(holder));
+		getRequests().put(MumbleIdentifier.GET_CP_VERSIONS, holder -> onGetCommunicationProtocolVersions((GetCommunicationProtocolVersionsV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_CP_VERSION, holder -> onSetCommunicationProtocolVersion(holder));
 
 		// Player messages
-		getRequests().put(Identifier.GET_PLAYER_INFO, holder -> onPlayerInfoChanged((GetPlayerInfoV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_NAME, holder -> renamePlayer((SetPlayerNameV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_ONLINE_STATUS, holder -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_GAME_ADDRESS, holder -> setPlayerGameAddress((SetPlayerGameAddressV10) holder.getRequest()));
-		getRequests().put(Identifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.GET_PLAYER_INFO, holder -> onPlayerInfoChanged((GetPlayerInfoV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PLAYER_NAME, holder -> renamePlayer((SetPlayerNameV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PLAYER_ADMINISTRATOR, holder -> setPlayerAdmin((SetPlayerAdministratorStatusV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PLAYER_ONLINE_STATUS, holder -> setPlayerOnlineStatus((SetPlayerOnlineStatusV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PLAYER_GAME_ADDRESS, holder -> setPlayerGameAddress((SetPlayerGameAddressV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.KICK_PLAYER_FROM_CHANNEL, holder -> kickPlayerFromChannel((KickPlayerFromChannelV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PLAYER_POSITION, holder -> setPlayerPosition((SetPlayerPositionV10) holder.getRequest()));
 
 		// Channel messages
-		getRequests().put(Identifier.REGISTER_CHANNEL_ON_THE_SERVER, holder -> registerChannelOnServer((RegisterChannelOnServerV10) holder.getRequest()));
-		getRequests().put(Identifier.UNREGISTER_CHANNEL_FROM_SERVER, holder -> unregisterChannelFromServer((UnregisterChannelFromServerV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_CHANNEL_NAME, holder -> renameChannel((SetChannelNameV10) holder.getRequest()));
-		getRequests().put(Identifier.ADD_PLAYER_TO_CHANNEL, holder -> addPlayerToChannel((AddPlayerToChannelV10) holder.getRequest()));
-		getRequests().put(Identifier.REMOVE_PLAYER_FROM_CHANNEL, holder -> removePlayerFromChannel((RemovePlayerFromChannelV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.REGISTER_CHANNEL_ON_THE_SERVER, holder -> registerChannelOnServer((RegisterChannelOnServerV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.UNREGISTER_CHANNEL_FROM_SERVER, holder -> unregisterChannelFromServer((UnregisterChannelFromServerV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_CHANNEL_NAME, holder -> renameChannel((SetChannelNameV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.ADD_PLAYER_TO_CHANNEL, holder -> addPlayerToChannel((AddPlayerToChannelV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.REMOVE_PLAYER_FROM_CHANNEL, holder -> removePlayerFromChannel((RemovePlayerFromChannelV10) holder.getRequest()));
 
 		// Parameter message
-		getRequests().put(Identifier.SET_PARAMETER_VALUE, holder -> setParameterValue((SetParameterValueV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PARAMETER_MIN_VALUE, holder -> setParameterMinValue((SetParameterMinValueV10) holder.getRequest()));
-		getRequests().put(Identifier.SET_PARAMETER_MAX_VALUE, holder -> setParameterMaxValue((SetParameterMaxValueV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PARAMETER_VALUE, holder -> setParameterValue((SetParameterValueV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PARAMETER_MIN_VALUE, holder -> setParameterMinValue((SetParameterMinValueV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_PARAMETER_MAX_VALUE, holder -> setParameterMaxValue((SetParameterMaxValueV10) holder.getRequest()));
 
 		// Sound modifier messages
-		getRequests().put(Identifier.SET_CHANNEL_SOUND_MODIFIER, holder -> setChannelSoundModifier((SetChannelSoundModifierV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.SET_CHANNEL_SOUND_MODIFIER, holder -> setChannelSoundModifier((SetChannelSoundModifierV10) holder.getRequest()));
 
 		// Game port messages
-		getRequests().put(Identifier.IS_GAME_PORT_USED, holder -> checkGamePort((IsGamePortUsedV10) holder.getRequest()));
+		getRequests().put(MumbleIdentifier.IS_GAME_PORT_USED, holder -> checkGamePort((IsGamePortUsedV10) holder.getRequest()));
 	}
 
 	@Override
 	public IMumbleMessage getServerConfiguration() {
-		return create(getVersion(), Identifier.GET_SERVER_CONFIGURATION);
+		return create(getVersion(), MumbleIdentifier.GET_SERVER_CONFIGURATION);
 	}
 
 	@Override
@@ -127,22 +127,22 @@ public class RequestManagerV10 extends RequestManager {
 
 	@Override
 	public IMumbleMessage onGetCommunicationProtocolVersions(IMumbleMessage request, List<Float> versions) {
-		return answer(getVersion(), request, Identifier.GET_CP_VERSIONS, versions.toArray());
+		return answer(getVersion(), request, MumbleIdentifier.GET_CP_VERSIONS, versions.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onSetCommunicationProtocolVersion(IMumbleMessage request, float version) {
-		return answer(getVersion(), request, Identifier.SET_CP_VERSION, version);
+		return answer(getVersion(), request, MumbleIdentifier.SET_CP_VERSION, version);
 	}
 
 	@Override
 	public IMumbleMessage onServerJoin() {
-		return create(getVersion(), Identifier.SET_SERVER_JOIN);
+		return create(getVersion(), MumbleIdentifier.SET_SERVER_JOIN);
 	}
 
 	@Override
 	public IMumbleMessage onServerLeave() {
-		return create(getVersion(), Identifier.SET_SERVER_LEAVE);
+		return create(getVersion(), MumbleIdentifier.SET_SERVER_LEAVE);
 	}
 
 	@Override
@@ -186,47 +186,47 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return create(getVersion(), Identifier.REGISTER_CHANNEL_ON_THE_SERVER, informations.toArray());
+		return create(getVersion(), MumbleIdentifier.REGISTER_CHANNEL_ON_THE_SERVER, informations.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onChannelRemove(String name) {
-		return create(getVersion(), Identifier.UNREGISTER_CHANNEL_FROM_SERVER, name);
+		return create(getVersion(), MumbleIdentifier.UNREGISTER_CHANNEL_FROM_SERVER, name);
 	}
 
 	@Override
 	public IMumbleMessage onChannelNameChange(IChannel channel, String newName) {
-		return create(getVersion(), Identifier.SET_CHANNEL_NAME, channel.getName(), newName);
+		return create(getVersion(), MumbleIdentifier.SET_CHANNEL_NAME, channel.getName(), newName);
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerAdd(IChannel channel, IPlayer player, boolean isMuteByMainPlayer) {
-		return create(getVersion(), Identifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName(), player.isMute(), player.isDeafen(), isMuteByMainPlayer);
+		return create(getVersion(), MumbleIdentifier.ADD_PLAYER_TO_CHANNEL, channel.getName(), player.getName(), player.isMute(), player.isDeafen(), isMuteByMainPlayer);
 	}
 
 	@Override
 	public IMumbleMessage onChannelPlayerRemove(IChannel channel, IPlayer player) {
-		return create(getVersion(), Identifier.REMOVE_PLAYER_FROM_CHANNEL, channel.getName(), player.getName());
+		return create(getVersion(), MumbleIdentifier.REMOVE_PLAYER_FROM_CHANNEL, channel.getName(), player.getName());
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteChange(IPlayer player, boolean newMute) {
-		return create(getVersion(), Identifier.SET_PLAYER_MUTE, player.getName(), newMute);
+		return create(getVersion(), MumbleIdentifier.SET_PLAYER_MUTE, player.getName(), newMute);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerMuteByChange(IPlayer target, IPlayer source, boolean newMute) {
-		return create(getVersion(), Identifier.SET_PLAYER_MUTE_BY, target.getName(), source.getName(), newMute);
+		return create(getVersion(), MumbleIdentifier.SET_PLAYER_MUTE_BY, target.getName(), source.getName(), newMute);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerDeafenChange(IPlayer player, boolean newDeafen) {
-		return create(getVersion(), Identifier.SET_PLAYER_DEAFEN, player.getName(), newDeafen);
+		return create(getVersion(), MumbleIdentifier.SET_PLAYER_DEAFEN, player.getName(), newDeafen);
 	}
 
 	@Override
 	public IMumbleMessage onPlayerKick(IPlayer kickedPlayer, IPlayer KickingPlayer) {
-		return create(getVersion(), Identifier.KICK_PLAYER_FROM_CHANNEL, kickedPlayer.getName(), KickingPlayer.getName());
+		return create(getVersion(), MumbleIdentifier.KICK_PLAYER_FROM_CHANNEL, kickedPlayer.getName(), KickingPlayer.getName());
 	}
 
 	@Override
@@ -245,7 +245,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's value
 		informations.add(value);
 
-		return create(getVersion(), Identifier.SET_PARAMETER_VALUE, informations.toArray());
+		return create(getVersion(), MumbleIdentifier.SET_PARAMETER_VALUE, informations.toArray());
 	}
 
 	@Override
@@ -264,7 +264,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's minimum value
 		informations.add(minValue);
 
-		return create(getVersion(), Identifier.SET_PARAMETER_MIN_VALUE, informations.toArray());
+		return create(getVersion(), MumbleIdentifier.SET_PARAMETER_MIN_VALUE, informations.toArray());
 	}
 
 	@Override
@@ -283,7 +283,7 @@ public class RequestManagerV10 extends RequestManager {
 		// Parameter's maximum value
 		informations.add(maxValue);
 
-		return create(getVersion(), Identifier.SET_PARAMETER_MAX_VALUE, informations.toArray());
+		return create(getVersion(), MumbleIdentifier.SET_PARAMETER_MAX_VALUE, informations.toArray());
 	}
 
 	@Override
@@ -326,12 +326,12 @@ public class RequestManagerV10 extends RequestManager {
 			}
 		}
 
-		return create(getVersion(), Identifier.SET_CHANNEL_SOUND_MODIFIER, informations.toArray());
+		return create(getVersion(), MumbleIdentifier.SET_CHANNEL_SOUND_MODIFIER, informations.toArray());
 	}
 
 	@Override
 	public IMumbleMessage onGamePortCheck(IMumbleMessage request, int port, boolean isUsed) {
-		return answer(getVersion(), request, Identifier.SET_GAME_PORT_USED, port, isUsed);
+		return answer(getVersion(), request, MumbleIdentifier.SET_GAME_PORT_USED, port, isUsed);
 	}
 
 	/**

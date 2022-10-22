@@ -11,14 +11,14 @@ import fr.pederobien.mumble.client.common.interfaces.ICommonParameter;
 import fr.pederobien.mumble.client.common.interfaces.ICommonPlayer;
 import fr.pederobien.mumble.client.common.interfaces.ICommonRequestManager;
 import fr.pederobien.mumble.client.common.interfaces.ICommonSoundModifier;
-import fr.pederobien.mumble.common.impl.Identifier;
+import fr.pederobien.mumble.common.impl.MumbleIdentifier;
 import fr.pederobien.mumble.common.interfaces.IMumbleMessage;
 
 public abstract class AbstractRequestManager<T extends ICommonChannel<?, ?>, U extends ICommonSoundModifier<?>, V extends ICommonPlayer, W extends ICommonParameter<?>, X extends ICommonMumbleServer<?, ?, ?>>
 		implements ICommonRequestManager<T, U, V, W> {
 	private float version;
 	private X server;
-	private Map<Identifier, Consumer<RequestReceivedHolder>> requests;
+	private Map<MumbleIdentifier, Consumer<RequestReceivedHolder>> requests;
 
 	/**
 	 * Creates a request manager in order to modify the given server and answer to remote requests.
@@ -29,7 +29,7 @@ public abstract class AbstractRequestManager<T extends ICommonChannel<?, ?>, U e
 	public AbstractRequestManager(X server, float version) {
 		this.server = server;
 		this.version = version;
-		requests = new HashMap<Identifier, Consumer<RequestReceivedHolder>>();
+		requests = new HashMap<MumbleIdentifier, Consumer<RequestReceivedHolder>>();
 	}
 
 	@Override
@@ -50,7 +50,7 @@ public abstract class AbstractRequestManager<T extends ICommonChannel<?, ?>, U e
 	/**
 	 * @return The map that stores requests.
 	 */
-	public Map<Identifier, Consumer<RequestReceivedHolder>> getRequests() {
+	public Map<MumbleIdentifier, Consumer<RequestReceivedHolder>> getRequests() {
 		return requests;
 	}
 
@@ -67,7 +67,7 @@ public abstract class AbstractRequestManager<T extends ICommonChannel<?, ?>, U e
 	 * @param identifier The identifier of the request to create.
 	 * @param properties The message properties.
 	 */
-	protected IMumbleMessage create(float version, Identifier identifier, Object... properties) {
+	protected IMumbleMessage create(float version, MumbleIdentifier identifier, Object... properties) {
 		return MumbleClientMessageFactory.create(version, identifier, properties);
 	}
 
@@ -79,7 +79,7 @@ public abstract class AbstractRequestManager<T extends ICommonChannel<?, ?>, U e
 	 * @param identifier The identifier of the answer request.
 	 * @param properties The message properties.
 	 */
-	protected IMumbleMessage answer(float version, IMumbleMessage request, Identifier identifier, Object... properties) {
+	protected IMumbleMessage answer(float version, IMumbleMessage request, MumbleIdentifier identifier, Object... properties) {
 		return MumbleClientMessageFactory.answer(version, request, identifier, properties);
 	}
 }
