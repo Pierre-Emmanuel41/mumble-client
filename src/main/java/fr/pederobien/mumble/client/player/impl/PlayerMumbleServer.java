@@ -143,7 +143,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			if (!serverConfiguration.await(5000, TimeUnit.MILLISECONDS)) {
 				isJoined.set(false);
 				connection.getTcpConnection().dispose();
-				throw new IllegalStateException("Time out on server configuration request.");
+				EventManager.callEvent(new LogEvent("Time out on server configuration request."));
 			}
 
 			isJoined.set(true);
@@ -214,7 +214,7 @@ public class PlayerMumbleServer extends AbstractMumbleServer<IChannelList, ISoun
 			try {
 				if (!communicationProtocolVersion.await(5000, TimeUnit.MILLISECONDS)) {
 					connection.getTcpConnection().dispose();
-					throw new IllegalStateException("Time out on establishing the version of the communication protocol.");
+					EventManager.callEvent(new LogEvent("Time out on establishing the version of the communication protocol."));
 				}
 			} catch (InterruptedException e) {
 				// Do nothing
